@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  db:
+    build: ./mysql
+    container_name: erp-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: erpdb
+      MYSQL_USER: erpuser
+      MYSQL_PASSWORD: erppass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
