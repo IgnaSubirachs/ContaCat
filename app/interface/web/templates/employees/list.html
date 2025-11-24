@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Partners - ERP Català</title>
+    <title>Empleats - ERP Català</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -28,6 +28,11 @@
             margin-bottom: 2rem;
         }
 
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
         .btn-primary {
             background: white;
             color: #4f46e5;
@@ -40,6 +45,21 @@
 
         .btn-primary:hover {
             transform: translateY(-2px);
+        }
+
+        .btn-filter {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-filter.active {
+            background: white;
+            color: #4f46e5;
         }
 
         .table-container {
@@ -80,14 +100,24 @@
             font-weight: 600;
         }
 
-        .badge-customer {
-            background: #dbeafe;
-            color: #1e40af;
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
         }
 
-        .badge-supplier {
-            background: #fef3c7;
-            color: #92400e;
+        .badge-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .employee-link {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .employee-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -95,47 +125,48 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 style="color: white; margin: 0;">Clients i Proveïdors</h1>
-            <a href="/partners/create" class="btn-primary">+ Afegir Partner</a>
+            <h1 style="color: white; margin: 0;">Empleats</h1>
+            <div class="header-actions">
+                <a href="/employees/?filter=all" class="btn-filter {% if filter == 'all' %}active{% endif %}">Tots</a>
+                <a href="/employees/?filter=active"
+                    class="btn-filter {% if filter == 'active' %}active{% endif %}">Actius</a>
+                <a href="/employees/create" class="btn-primary">+ Afegir Empleat</a>
+            </div>
         </div>
 
         <div class="table-container">
-            {% if partners %}
+            {% if employees %}
             <table>
                 <thead>
                     <tr>
                         <th>Nom</th>
-                        <th>NIF/CIF</th>
+                        <th>DNI</th>
+                        <th>Càrrec</th>
+                        <th>Departament</th>
                         <th>Email</th>
-                        <th>Telèfon</th>
-                        <th>Tipus</th>
-                        <th>Accions</th>
+                        <th>Salari</th>
+                        <th>Estat</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for partner in partners %}
+                    {% for employee in employees %}
                     <tr>
-                        <td><strong>{{ partner.name }}</strong></td>
-                        <td>{{ partner.tax_id }}</td>
-                        <td>{{ partner.email }}</td>
-                        <td>{{ partner.phone }}</td>
                         <td>
-                            {% if partner.is_customer %}
-                            <span class="badge badge-customer">Client</span>
-                            {% endif %}
-                            {% if partner.is_supplier %}
-                            <span class="badge badge-supplier">Proveïdor</span>
-                            {% endif %}
+                            <a href="/employees/{{ employee.id }}" class="employee-link">
+                                {{ employee.full_name }}
+                            </a>
                         </td>
+                        <td>{{ employee.dni }}</td>
+                        <td>{{ employee.position }}</td>
+                        <td>{{ employee.department }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td>{{ "%.2f"|format(employee.salary) }} €</td>
                         <td>
-                            <a href="/partners/edit/{{ partner.id }}"
-                                style="margin-right: 0.5rem; color: #4f46e5; text-decoration: none;">✏️ Editar</a>
-                            <form method="POST" action="/partners/delete/{{ partner.id }}" style="display: inline;"
-                                onsubmit="return confirm('Segur que vols eliminar aquest partner?');">
-                                <button type="submit"
-                                    style="background: none; border: none; color: #dc2626; cursor: pointer; font-size: 1rem;">🗑️
-                                    Eliminar</button>
-                            </form>
+                            {% if employee.is_active %}
+                            <span class="badge badge-active">Actiu</span>
+                            {% else %}
+                            <span class="badge badge-inactive">Inactiu</span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -143,7 +174,7 @@
             </table>
             {% else %}
             <p style="text-align: center; color: #6b7280; padding: 2rem;">
-                No hi ha partners. Afegeix-ne un!
+                No hi ha empleats. Afegeix-ne un!
             </p>
             {% endif %}
         </div>

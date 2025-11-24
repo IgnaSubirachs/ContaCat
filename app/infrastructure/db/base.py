@@ -22,5 +22,6 @@ def init_db():
     # importa els models perquè quedin registrats a Base.metadata
     from app.infrastructure.persistence.accounts.models import AccountModel  # noqa: F401
     from app.infrastructure.persistence.partners.models import PartnerModel  # noqa: F401
+    from app.infrastructure.persistence.hr.models import EmployeeModel  # noqa: F401
 
     Base.metadata.create_all(bind=engine)

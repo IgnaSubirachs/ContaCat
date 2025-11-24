@@ -62,6 +62,53 @@ async def create_partner(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.get("/edit/{partner_id}", response_class=HTMLResponse)
+async def edit_partner_form(request: Request, partner_id: str):
+    """Show edit partner form."""
+    partner = partner_service.get_partner_by_id(partner_id)
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner no trobat")
+    
+    return templates.TemplateResponse(
+        "partners/edit.html",
+        {"request": request, "partner": partner}
+    )
+
+
+@router.post("/edit/{partner_id}")
+async def edit_partner(
+    partner_id: str,
+    name: str = Form(...),
+    email: str = Form(...),
+    phone: str = Form(...),
+    is_supplier: bool = Form(False),
+    is_customer: bool = Form(False),
+):
+    """Update a partner."""
+    try:
+        partner_service.update_partner(
+            partner_id=partner_id,
+            name=name,
+            email=email,
+            phone=phone,
+            is_supplier=is_supplier,
+            is_customer=is_customer,
+        )
+        return RedirectResponse(url="/partners/", status_code=303)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/delete/{partner_id}")
+async def delete_partner(partner_id: str):
+    """Delete a partner."""
+    try:
+        partner_service.delete_partner(partner_id)
+        return RedirectResponse(url="/partners/", status_code=303)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # JSON API endpoints
 @router.get("/api/list")
 async def api_list_partners():

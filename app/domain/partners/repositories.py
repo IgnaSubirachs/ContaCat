@@ -25,3 +25,13 @@ class PartnerRepository(ABC):
     def find_by_tax_id(self, tax_id: str) -> Optional[Partner]:
         """Find a partner by tax ID."""
         pass
+    
+    @abstractmethod
+    def update(self, partner: Partner) -> None:
+        """Update an existing partner."""
+        pass
+    
+    @abstractmethod
+    def delete(self, partner_id: str) -> None:
+        """Delete a partner."""
+        pass

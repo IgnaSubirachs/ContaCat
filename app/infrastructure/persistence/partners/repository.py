@@ -97,3 +97,39 @@ class SqlAlchemyPartnerRepository(PartnerRepository):
             )
         finally:
             session.close()
+    
+    def update(self, partner: Partner) -> None:
+        session: Session = self._session_factory()
+        try:
+            stmt = select(PartnerModel).where(PartnerModel.id == partner.id)
+            result = session.execute(stmt)
+            model: PartnerModel | None = result.scalars().first()
+            
+            if not model:
+                raise ValueError(f"No s'ha trobat el partner amb ID {partner.id}")
+            
+            # Update fields
+            model.name = partner.name
+            model.email = partner.email
+            model.phone = partner.phone
+            model.is_supplier = partner.is_supplier
+            model.is_customer = partner.is_customer
+            
+            session.commit()
+        finally:
+            session.close()
+    
+    def delete(self, partner_id: str) -> None:
+        session: Session = self._session_factory()
+        try:
+            stmt = select(PartnerModel).where(PartnerModel.id == partner_id)
+            result = session.execute(stmt)
+            model: PartnerModel | None = result.scalars().first()
+            
+            if not model:
+                raise ValueError(f"No s'ha trobat el partner amb ID {partner_id}")
+            
+            session.delete(model)
+            session.commit()
+        finally:
+            session.close()

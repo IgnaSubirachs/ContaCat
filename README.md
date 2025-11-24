@@ -12,8 +12,8 @@ Sistema ERP modular desenvolupat amb Domain-Driven Design (DDD), FastAPI i MySQL
 ## Mòduls Implementats
 
 - ✅ **Partners (Clients i Proveïdors)**: Gestió completa de clients i proveïdors
+- ✅ **HR (RRHH)**: Gestió d'empleats, càrrecs, departaments i salaris
 - 🚧 **Accounts (Comptes)**: Pla comptable
-- 📋 **HR (RRHH)**: Recursos humans (en desenvolupament)
 - 📋 **Accounting (Comptabilitat)**: Gestió comptable (en desenvolupament)
 - 📋 **Budgets (Pressupostos)**: Gestió de pressupostos (en desenvolupament)
 - 📋 **Finance (Finances)**: Gestió financera (en desenvolupament)

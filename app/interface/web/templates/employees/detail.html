@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ employee.full_name }} - ERP Català</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .detail-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .employee-header {
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .employee-name {
+            font-size: 2rem;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .employee-position {
+            font-size: 1.25rem;
+            color: #6b7280;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .info-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.125rem;
+            color: #1f2937;
+        }
+
+        .salary-highlight {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="color: white;">Detall de l'Empleat</h1>
+            <a href="/employees/" class="btn-back">← Tornar</a>
+        </div>
+
+        <div class="detail-card">
+            <div class="employee-header">
+                <h2 class="employee-name">{{ employee.full_name }}</h2>
+                <p class="employee-position">{{ employee.position }}</p>
+                {% if employee.is_active %}
+                <span class="badge badge-active">Actiu</span>
+                {% else %}
+                <span class="badge badge-inactive">Inactiu</span>
+                {% endif %}
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">DNI/NIE</div>
+                    <div class="info-value">{{ employee.dni }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ employee.email }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Telèfon</div>
+                    <div class="info-value">{{ employee.phone }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Departament</div>
+                    <div class="info-value">{{ employee.department }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Data d'Alta</div>
+                    <div class="info-value">{{ employee.hire_date.strftime('%d/%m/%Y') }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Salari Brut Mensual</div>
+                    <div class="info-value salary-highlight">{{ "%.2f"|format(employee.salary) }} €</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

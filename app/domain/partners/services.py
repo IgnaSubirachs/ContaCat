@@ -56,3 +56,36 @@ class PartnerService:
         """Get all suppliers."""
         all_partners = self._repository.list_all()
         return [p for p in all_partners if p.is_supplier]
+    
+    def update_partner(
+        self,
+        partner_id: str,
+        name: str,
+        email: str,
+        phone: str,
+        is_supplier: bool,
+        is_customer: bool
+    ) -> Partner:
+        """Update an existing partner."""
+        partner = self._repository.find_by_id(partner_id)
+        if not partner:
+            raise ValueError(f"No s'ha trobat el partner amb ID {partner_id}")
+        
+        # Update fields
+        partner.name = name
+        partner.email = email
+        partner.phone = phone
+        partner.is_supplier = is_supplier
+        partner.is_customer = is_customer
+        
+        partner.validate()
+        self._repository.update(partner)
+        return partner
+    
+    def delete_partner(self, partner_id: str) -> None:
+        """Delete a partner."""
+        partner = self._repository.find_by_id(partner_id)
+        if not partner:
+            raise ValueError(f"No s'ha trobat el partner amb ID {partner_id}")
+        
+        self._repository.delete(partner_id)
