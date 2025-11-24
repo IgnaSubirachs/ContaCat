@@ -9,4 +9,4 @@ COPY app ./app
 
 ENV PYTHONUNBUFFERED=1
 
-CMD ["python", "-m", "app.main"]
+CMD ["uvicorn", "app.interface.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
