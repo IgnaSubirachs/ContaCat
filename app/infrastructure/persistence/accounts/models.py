@@ -11,3 +11,6 @@ class AccountModel(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     account_type: Mapped[str] = mapped_column(String(20), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    def __repr__(self) -> str:
+        return f"<AccountModel {self.code} - {self.name}>"

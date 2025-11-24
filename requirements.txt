@@ -1,0 +1,5 @@
+SQLAlchemy==2.0.35
+fastapi
+uvicorn
+jinja2
+pymysql

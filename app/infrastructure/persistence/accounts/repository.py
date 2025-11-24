@@ -6,14 +6,14 @@ from sqlalchemy.orm import Session
 
 from app.domain.accounts.entities import Account
 from app.domain.accounts.repositories import AccountRepository
-from app.infrastructure.accounts.sqlalchemy_models import AccountModel
-from app.infrastructure.db.base import SessionFactory
+from app.infrastructure.persistence.accounts.models import AccountModel
+from app.infrastructure.db.base import SessionLocal
 
 
 class SqlAlchemyAccountRepository(AccountRepository):
     """SQLAlchemy-based implementation of AccountRepository."""
 
-    def __init__(self, session_factory: SessionFactory = SessionFactory):
+    def __init__(self, session_factory=SessionLocal):
         self._session_factory = session_factory
 
     def add(self, account: Account) -> None:

@@ -1,19 +1,20 @@
-from app.domain.accounts.services import AccountService
-from app.infrastructure.accounts.sqlalchemy_repository import SqlAlchemyAccountRepository
 from app.infrastructure.db.base import init_db
+from app.domain.accounts.services import AccountService
+from app.domain.accounts.repositories import AccountRepository
+from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository
 from app.interface.cli.menus import CliApp
 
 
 def main():
-    # Infraestructura
-    init_db()  # crea les taules si no existeixen
-    account_repo = SqlAlchemyAccountRepository()
+    # 1) Crear taules si no existeixen
+    init_db()
 
-    # Domini / Application
-    account_service = AccountService(repository=account_repo)
+    # 2) Wiring de dependències
+    account_repo: AccountRepository = SqlAlchemyAccountRepository()
+    account_service = AccountService(account_repo)
+    cli_app = CliApp(account_service)
 
-    # Interfície
-    cli_app = CliApp(account_service=account_service)
+    # 3) Arrencar CLI
     cli_app.run()
 
 
