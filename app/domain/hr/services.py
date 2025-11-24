@@ -97,3 +97,11 @@ class EmployeeService:
     def get_employee_by_id(self, employee_id: str) -> Optional[Employee]:
         """Get an employee by ID."""
         return self._repository.find_by_id(employee_id)
+    
+    def delete_employee(self, employee_id: str) -> None:
+        """Delete an employee."""
+        employee = self._repository.find_by_id(employee_id)
+        if not employee:
+            raise ValueError(f"No s'ha trobat l'empleat amb ID {employee_id}")
+        
+        self._repository.delete(employee_id)

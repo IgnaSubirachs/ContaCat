@@ -90,6 +90,58 @@ async def employee_detail(request: Request, employee_id: str):
     )
 
 
+@router.get("/edit/{employee_id}", response_class=HTMLResponse)
+async def edit_employee_form(request: Request, employee_id: str):
+    """Show edit employee form."""
+    employee = employee_service.get_employee_by_id(employee_id)
+    if not employee:
+        raise HTTPException(status_code=404, detail="Empleat no trobat")
+    
+    return templates.TemplateResponse(
+        "employees/edit.html",
+        {"request": request, "employee": employee}
+    )
+
+
+@router.post("/edit/{employee_id}")
+async def edit_employee(
+    employee_id: str,
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    email: str = Form(...),
+    phone: str = Form(...),
+    position: str = Form(...),
+    department: str = Form(...),
+    salary: str = Form(...),
+):
+    """Update an employee."""
+    try:
+        salary_decimal = Decimal(salary)
+        employee_service.update_employee(
+            employee_id=employee_id,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            position=position,
+            department=department,
+            salary=salary_decimal,
+        )
+        return RedirectResponse(url="/employees/", status_code=303)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/delete/{employee_id}")
+async def delete_employee(employee_id: str):
+    """Delete an employee."""
+    try:
+        employee_service.delete_employee(employee_id)
+        return RedirectResponse(url="/employees/", status_code=303)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # JSON API endpoints
 @router.get("/api/list")
 async def api_list_employees():

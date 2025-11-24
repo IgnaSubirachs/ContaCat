@@ -16,7 +16,22 @@ class PartnerService:
         email: str,
         phone: str,
         is_supplier: bool,
-        is_customer: bool
+        is_customer: bool,
+        # Fiscal data (optional with defaults)
+        document_type: str = "NIF",
+        address_street: str = "",
+        address_number: str = "",
+        address_floor: str = "",
+        postal_code: str = "",
+        city: str = "",
+        province: str = "",
+        country: str = "España",
+        vat_regime: str = "GENERAL",
+        is_intra_eu: bool = False,
+        eu_vat_number: str = "",
+        iban: str = "",
+        payment_method: str = "TRANSFER",
+        payment_days: int = 30,
     ) -> Partner:
         """Create a new partner."""
         # Check if tax_id already exists
@@ -31,7 +46,21 @@ class PartnerService:
             email=email,
             phone=phone,
             is_supplier=is_supplier,
-            is_customer=is_customer
+            is_customer=is_customer,
+            document_type=document_type,
+            address_street=address_street,
+            address_number=address_number,
+            address_floor=address_floor,
+            postal_code=postal_code,
+            city=city,
+            province=province,
+            country=country,
+            vat_regime=vat_regime,
+            is_intra_eu=is_intra_eu,
+            eu_vat_number=eu_vat_number,
+            iban=iban,
+            payment_method=payment_method,
+            payment_days=payment_days,
         )
         partner.validate()
         
@@ -64,7 +93,21 @@ class PartnerService:
         email: str,
         phone: str,
         is_supplier: bool,
-        is_customer: bool
+        is_customer: bool,
+        # Fiscal data
+        address_street: str = "",
+        address_number: str = "",
+        address_floor: str = "",
+        postal_code: str = "",
+        city: str = "",
+        province: str = "",
+        country: str = "España",
+        vat_regime: str = "GENERAL",
+        is_intra_eu: bool = False,
+        eu_vat_number: str = "",
+        iban: str = "",
+        payment_method: str = "TRANSFER",
+        payment_days: int = 30,
     ) -> Partner:
         """Update an existing partner."""
         partner = self._repository.find_by_id(partner_id)
@@ -77,6 +120,19 @@ class PartnerService:
         partner.phone = phone
         partner.is_supplier = is_supplier
         partner.is_customer = is_customer
+        partner.address_street = address_street
+        partner.address_number = address_number
+        partner.address_floor = address_floor
+        partner.postal_code = postal_code
+        partner.city = city
+        partner.province = province
+        partner.country = country
+        partner.vat_regime = vat_regime
+        partner.is_intra_eu = is_intra_eu
+        partner.eu_vat_number = eu_vat_number
+        partner.iban = iban
+        partner.payment_method = payment_method
+        partner.payment_days = payment_days
         
         partner.validate()
         self._repository.update(partner)

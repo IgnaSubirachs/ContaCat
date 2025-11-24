@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from typing import List
 import os
 
 from app.domain.partners.services import PartnerService
@@ -46,6 +45,11 @@ async def create_partner(
     phone: str = Form(...),
     is_supplier: bool = Form(False),
     is_customer: bool = Form(False),
+    # Fiscal fields (simplified for MVP)
+    address_street: str = Form(""),
+    postal_code: str = Form(""),
+    city: str = Form(""),
+    iban: str = Form(""),
 ):
     """Create a new partner."""
     try:
@@ -56,6 +60,10 @@ async def create_partner(
             phone=phone,
             is_supplier=is_supplier,
             is_customer=is_customer,
+            address_street=address_street,
+            postal_code=postal_code,
+            city=city,
+            iban=iban,
         )
         return RedirectResponse(url="/partners/", status_code=303)
     except ValueError as e:
@@ -83,6 +91,10 @@ async def edit_partner(
     phone: str = Form(...),
     is_supplier: bool = Form(False),
     is_customer: bool = Form(False),
+    address_street: str = Form(""),
+    postal_code: str = Form(""),
+    city: str = Form(""),
+    iban: str = Form(""),
 ):
     """Update a partner."""
     try:
@@ -93,6 +105,10 @@ async def edit_partner(
             phone=phone,
             is_supplier=is_supplier,
             is_customer=is_customer,
+            address_street=address_street,
+            postal_code=postal_code,
+            city=city,
+            iban=iban,
         )
         return RedirectResponse(url="/partners/", status_code=303)
     except ValueError as e:

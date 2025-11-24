@@ -130,3 +130,18 @@ class SqlAlchemyEmployeeRepository(EmployeeRepository):
             salary=model.salary,
             is_active=model.is_active,
         )
+    
+    def delete(self, employee_id: str) -> None:
+        session: Session = self._session_factory()
+        try:
+            stmt = select(EmployeeModel).where(EmployeeModel.id == employee_id)
+            result = session.execute(stmt)
+            model: EmployeeModel | None = result.scalars().first()
+            
+            if not model:
+                raise ValueError(f"No s'ha trobat l'empleat amb ID {employee_id}")
+            
+            session.delete(model)
+            session.commit()
+        finally:
+            session.close()

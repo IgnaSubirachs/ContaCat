@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Empleat - ERP Català</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .info-box {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-box p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1>Editar Empleat</h1>
+
+        <div class="info-box">
+            <p><strong>DNI:</strong> {{ employee.dni }} (no es pot modificar)</p>
+            <p><strong>Data d'Alta:</strong> {{ employee.hire_date.strftime('%d/%m/%Y') }} (no es pot modificar)</p>
+        </div>
+
+        <form method="POST" action="/employees/edit/{{ employee.id }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="first_name">Nom *</label>
+                    <input type="text" id="first_name" name="first_name" value="{{ employee.first_name }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="last_name">Cognoms *</label>
+                    <input type="text" id="last_name" name="last_name" value="{{ employee.last_name }}" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" value="{{ employee.email }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Telèfon *</label>
+                    <input type="text" id="phone" name="phone" value="{{ employee.phone }}" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="position">Càrrec *</label>
+                    <input type="text" id="position" name="position" value="{{ employee.position }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Departament *</label>
+                    <input type="text" id="department" name="department" value="{{ employee.department }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="salary">Salari Brut Mensual (€) *</label>
+                <input type="number" id="salary" name="salary" step="0.01" min="0" value="{{ employee.salary }}"
+                    required>
+            </div>
+
+            <div class="button-group">
+                <a href="/employees/" class="btn btn-secondary">Cancel·lar</a>
+                <button type="submit" class="btn btn-primary">Guardar Canvis</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

@@ -35,3 +35,8 @@ class EmployeeRepository(ABC):
     def find_by_dni(self, dni: str) -> Optional[Employee]:
         """Find an employee by DNI."""
         pass
+    
+    @abstractmethod
+    def delete(self, employee_id: str) -> None:
+        """Delete an employee."""
+        pass
