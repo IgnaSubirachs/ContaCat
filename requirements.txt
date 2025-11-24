@@ -4,3 +4,4 @@ uvicorn
 jinja2
 pymysql
 python-multipart
+python-dotenv
