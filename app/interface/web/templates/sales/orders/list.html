@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comandes - ERP</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>📦 Comandes de Venda</h1>
+
+        <div class="actions">
+            <a href="/" class="btn btn-secondary">← Tornar</a>
+        </div>
+
+        <div class="filters">
+            <a href="/sales/orders/" class="filter-btn {% if not current_status %}active{% endif %}">Totes</a>
+            <a href="/sales/orders/?status=confirmed"
+                class="filter-btn {% if current_status == 'confirmed' %}active{% endif %}">Confirmades</a>
+            <a href="/sales/orders/?status=delivered"
+                class="filter-btn {% if current_status == 'delivered' %}active{% endif %}">Lliurades</a>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Data</th>
+                    <th>Client</th>
+                    <th>Total</th>
+                    <th>Estat</th>
+                    <th>Accions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><a href="/sales/orders/{{ order.id }}">{{ order.order_number }}</a></td>
+                    <td>{{ order.order_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ order.partner_id[:8] }}</td>
+                    <td>{{ "%.2f"|format(order.total) }} €</td>
+                    <td>
+                        <span class="badge badge-{{ order.status.value.lower() }}">
+                            {{ order.status.value }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="/sales/orders/{{ order.id }}" class="btn-sm">Veure</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if not orders %}
+        <p class="no-data">No hi ha comandes.</p>
+        {% endif %}
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pressupost {{ quote.quote_number }} - ERP</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>📋 Pressupost {{ quote.quote_number }}</h1>
+
+        <div class="actions">
+            <a href="/quotes/" class="btn btn-secondary">← Tornar</a>
+
+            {% if quote.status.value == 'DRAFT' %}
+            <form action="/quotes/{{ quote.id }}/send" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-primary">Enviar</button>
+            </form>
+            <form action="/quotes/{{ quote.id }}/delete" method="post" style="display:inline;"
+                onsubmit="return confirm('Segur que vols eliminar aquest pressupost?');">
+                <button type="submit" class="btn btn-danger">Eliminar</button>
+            </form>
+            {% endif %}
+
+            {% if quote.status.value == 'SENT' %}
+            <form action="/quotes/{{ quote.id }}/accept" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-success">Acceptar</button>
+            </form>
+            <form action="/quotes/{{ quote.id }}/reject" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-danger">Rebutjar</button>
+            </form>
+            {% endif %}
+
+            {% if quote.status.value == 'ACCEPTED' %}
+            <form action="/sales/orders/from-quote/{{ quote.id }}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-primary">Crear Comanda</button>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Informació General</h2>
+            <div class="info-grid">
+                <div><strong>Número:</strong> {{ quote.quote_number }}</div>
+                <div><strong>Data:</strong> {{ quote.quote_date.strftime('%d/%m/%Y') }}</div>
+                <div><strong>Vàlid fins:</strong> {{ quote.valid_until.strftime('%d/%m/%Y') }}</div>
+                <div><strong>Estat:</strong> <span class="badge badge-{{ quote.status.value.lower() }}">{{
+                        quote.status.value }}</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Client</h2>
+            {% if partner %}
+            <p><strong>{{ partner.name }}</strong></p>
+            <p>{{ partner.tax_id }}</p>
+            <p>{{ partner.full_address }}</p>
+            {% else %}
+            <p>ID: {{ quote.partner_id }}</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Línies</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Producte</th>
+                        <th>Descripció</th>
+                        <th>Quantitat</th>
+                        <th>Preu Unit.</th>
+                        <th>Desc. %</th>
+                        <th>IVA %</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in quote.lines %}
+                    <tr>
+                        <td>{{ line.product_code }}</td>
+                        <td>{{ line.description }}</td>
+                        <td>{{ line.quantity }}</td>
+                        <td>{{ "%.2f"|format(line.unit_price) }} €</td>
+                        <td>{{ line.discount_percent }}%</td>
+                        <td>{{ line.tax_rate }}%</td>
+                        <td>{{ "%.2f"|format(line.total) }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Totals</h2>
+            <div class="totals">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span>{{ "%.2f"|format(quote.subtotal) }} €</span>
+                </div>
+                <div class="total-row">
+                    <span>IVA:</span>
+                    <span>{{ "%.2f"|format(quote.total_tax) }} €</span>
+                </div>
+                <div class="total-row total-final">
+                    <span><strong>TOTAL:</strong></span>
+                    <span><strong>{{ "%.2f"|format(quote.total) }} €</strong></span>
+                </div>
+            </div>
+        </div>
+
+        {% if quote.notes %}
+        <div class="card">
+            <h2>Notes</h2>
+            <p>{{ quote.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

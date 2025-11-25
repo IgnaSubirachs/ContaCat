@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Pressupost - ERP</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>📋 Nou Pressupost</h1>
+
+        <form action="/quotes/create" method="post">
+            <div class="form-group">
+                <label for="partner_id">Client *</label>
+                <select name="partner_id" id="partner_id" required>
+                    <option value="">Selecciona un client...</option>
+                    {% for customer in customers %}
+                    <option value="{{ customer.id }}">{{ customer.name }} ({{ customer.tax_id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quote_date">Data *</label>
+                    <input type="date" name="quote_date" id="quote_date" value="{{ today }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="valid_days">Dies de validesa *</label>
+                    <input type="number" name="valid_days" id="valid_days" value="30" min="1" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea name="notes" id="notes" rows="3"></textarea>
+            </div>
+
+            <p class="help-text">Nota: Les línies es poden afegir després de crear el pressupost.</p>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Crear Pressupost</button>
+                <a href="/quotes/" class="btn btn-secondary">Cancel·lar</a>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

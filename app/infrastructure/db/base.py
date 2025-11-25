@@ -27,5 +27,6 @@ def init_db():
     from app.infrastructure.persistence.documents.models import DocumentModel  # noqa: F401
     from app.infrastructure.persistence.accounting.models import AccountModel as AccAccountModel  # noqa: F401
     from app.infrastructure.persistence.accounting.models import JournalEntryModel, JournalLineModel  # noqa: F401
+    from app.infrastructure.persistence.sales.models import QuoteModel, SalesOrderModel, SalesInvoiceModel, SalesLineModel  # noqa: F401
 
     Base.metadata.create_all(bind=engine)

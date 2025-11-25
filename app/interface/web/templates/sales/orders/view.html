@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comanda {{ order.order_number }} - ERP</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>📦 Comanda {{ order.order_number }}</h1>
+
+        <div class="actions">
+            <a href="/sales/orders/" class="btn btn-secondary">← Tornar</a>
+
+            {% if order.status.value == 'DRAFT' %}
+            <form action="/sales/orders/{{ order.id }}/confirm" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-primary">Confirmar</button>
+            </form>
+            {% endif %}
+
+            {% if order.status.value == 'CONFIRMED' %}
+            <form action="/sales/orders/{{ order.id }}/deliver" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-success">Marcar com Lliurada</button>
+            </form>
+            {% endif %}
+
+            {% if order.status.value == 'DELIVERED' %}
+            <form action="/sales/invoices/from-order/{{ order.id }}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-primary">Crear Factura</button>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Informació General</h2>
+            <div class="info-grid">
+                <div><strong>Número:</strong> {{ order.order_number }}</div>
+                <div><strong>Data:</strong> {{ order.order_date.strftime('%d/%m/%Y') }}</div>
+                <div><strong>Estat:</strong> <span class="badge badge-{{ order.status.value.lower() }}">{{
+                        order.status.value }}</span></div>
+                {% if order.delivery_date %}
+                <div><strong>Data lliurament:</strong> {{ order.delivery_date.strftime('%d/%m/%Y') }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Client</h2>
+            {% if partner %}
+            <p><strong>{{ partner.name }}</strong></p>
+            <p>{{ partner.tax_id }}</p>
+            {% else %}
+            <p>ID: {{ order.partner_id }}</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Línies</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Producte</th>
+                        <th>Descripció</th>
+                        <th>Quantitat</th>
+                        <th>Preu Unit.</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in order.lines %}
+                    <tr>
+                        <td>{{ line.product_code }}</td>
+                        <td>{{ line.description }}</td>
+                        <td>{{ line.quantity }}</td>
+                        <td>{{ "%.2f"|format(line.unit_price) }} €</td>
+                        <td>{{ "%.2f"|format(line.total) }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Totals</h2>
+            <div class="totals">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span>{{ "%.2f"|format(order.subtotal) }} €</span>
+                </div>
+                <div class="total-row">
+                    <span>IVA:</span>
+                    <span>{{ "%.2f"|format(order.total_tax) }} €</span>
+                </div>
+                <div class="total-row total-final">
+                    <span><strong>TOTAL:</strong></span>
+                    <span><strong>{{ "%.2f"|format(order.total) }} €</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura {{ invoice.invoice_number }} - ERP</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧾 Factura {{ invoice.invoice_number }}</h1>
+
+        <div class="actions">
+            <a href="/sales/invoices/" class="btn btn-secondary">← Tornar</a>
+
+            {% if invoice.status.value == 'DRAFT' %}
+            <form action="/sales/invoices/{{ invoice.id }}/post" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-primary">Comptabilitzar</button>
+            </form>
+            {% endif %}
+
+            {% if invoice.status.value == 'POSTED' and invoice.payment_status.value == 'PENDING' %}
+            <form action="/sales/invoices/{{ invoice.id }}/mark-paid" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-success">Marcar com Pagada</button>
+            </form>
+            {% endif %}
+
+            {% if invoice.journal_entry_id %}
+            <a href="/accounting/journal/{{ invoice.journal_entry_id }}" class="btn btn-info">Veure Assentament</a>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Informació General</h2>
+            <div class="info-grid">
+                <div><strong>Número:</strong> {{ invoice.invoice_number }}</div>
+                <div><strong>Data:</strong> {{ invoice.invoice_date.strftime('%d/%m/%Y') }}</div>
+                <div><strong>Venciment:</strong> {{ invoice.due_date.strftime('%d/%m/%Y') }}</div>
+                <div><strong>Estat:</strong> <span class="badge badge-{{ invoice.status.value.lower() }}">{{
+                        invoice.status.value }}</span></div>
+                <div><strong>Pagament:</strong> <span class="badge badge-{{ invoice.payment_status.value.lower() }}">{{
+                        invoice.payment_status.value }}</span></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Client</h2>
+            {% if partner %}
+            <p><strong>{{ partner.name }}</strong></p>
+            <p>{{ partner.tax_id }}</p>
+            <p>{{ partner.full_address }}</p>
+            {% else %}
+            <p>ID: {{ invoice.partner_id }}</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Línies</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Producte</th>
+                        <th>Descripció</th>
+                        <th>Quantitat</th>
+                        <th>Preu Unit.</th>
+                        <th>Desc. %</th>
+                        <th>IVA %</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in invoice.lines %}
+                    <tr>
+                        <td>{{ line.product_code }}</td>
+                        <td>{{ line.description }}</td>
+                        <td>{{ line.quantity }}</td>
+                        <td>{{ "%.2f"|format(line.unit_price) }} €</td>
+                        <td>{{ line.discount_percent }}%</td>
+                        <td>{{ line.tax_rate }}%</td>
+                        <td>{{ "%.2f"|format(line.total) }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Desglossament d'IVA</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Tipus IVA</th>
+                        <th>Base Imposable</th>
+                        <th>IVA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rate, amounts in invoice.tax_breakdown.items() %}
+                    <tr>
+                        <td>{{ rate }}%</td>
+                        <td>{{ "%.2f"|format(amounts.base) }} €</td>
+                        <td>{{ "%.2f"|format(amounts.tax) }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Totals</h2>
+            <div class="totals">
+                <div class="total-row">
+                    <span>Base Imposable:</span>
+                    <span>{{ "%.2f"|format(invoice.subtotal) }} €</span>
+                </div>
+                <div class="total-row">
+                    <span>IVA:</span>
+                    <span>{{ "%.2f"|format(invoice.total_tax) }} €</span>
+                </div>
+                <div class="total-row total-final">
+                    <span><strong>TOTAL:</strong></span>
+                    <span><strong>{{ "%.2f"|format(invoice.total) }} €</strong></span>
+                </div>
+            </div>
+        </div>
+
+        {% if invoice.notes %}
+        <div class="card">
+            <h2>Notes</h2>
+            <p>{{ invoice.notes }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

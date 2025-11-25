@@ -41,8 +41,11 @@ Once running, open your browser:
 - **Home**: http://localhost:8000/
 - **Partners**: http://localhost:8000/partners/
 - **Employees**: http://localhost:8000/employees/
-- **Accounts (NEW)**: http://localhost:8000/accounts/
-- **Accounting (NEW)**: http://localhost:8000/accounting/journal
+- **Accounts**: http://localhost:8000/accounts/
+- **Accounting**: http://localhost:8000/accounting/journal
+- **Quotes (NEW)**: http://localhost:8000/quotes/
+- **Sales Orders (NEW)**: http://localhost:8000/sales/orders/
+- **Sales Invoices (NEW)**: http://localhost:8000/sales/invoices/
 
 ### API Documentation
 - **Swagger UI**: http://localhost:8000/docs

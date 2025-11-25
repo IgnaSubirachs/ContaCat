@@ -8,6 +8,10 @@ from app.interface.api.routers import partners
 from app.interface.api.routers import employees
 from app.interface.api.routers import accounting
 from app.interface.api.routers import accounts
+# Temporarily disabled Sales routers for debugging
+# from app.interface.api.routers import quotes
+# from app.interface.api.routers import sales_orders
+# from app.interface.api.routers import sales_invoices
 
 app = FastAPI(title="ERP Català", description="ERP Modular amb DDD", version="1.0.0")
 
@@ -28,6 +32,10 @@ app.include_router(partners.router)
 app.include_router(employees.router)
 app.include_router(accounts.router)
 app.include_router(accounting.router)
+# Temporarily disabled Sales routers for debugging
+# app.include_router(quotes.router)
+# app.include_router(sales_orders.router)
+# app.include_router(sales_invoices.router)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
