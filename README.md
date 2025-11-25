@@ -11,7 +11,14 @@ Sistema ERP modular desenvolupat amb Domain-Driven Design (DDD), FastAPI i MySQL
 
 ## Mòduls Implementats
 
-- ✅ **Partners (Clients i Proveïdors)**: Gestió completa de clients i proveïdors
+- ✅ **Partners (Clients i Proveïdors)**: Gestió completa de clients i proveïdors. Funcionalitats: llistat, creació, edició, supressió, gestió de documents adjunts i validació de NIF/CIF.
+  - **API REST**:
+    - `GET /partners/` – llista de partners
+    - `POST /partners/create` – crear nou partner
+    - `GET /partners/edit/{id}` – formulari d'edició
+    - `POST /partners/edit/{id}` – actualitzar partner
+    - `POST /partners/delete/{id}` – eliminar partner
+    - `GET /partners/api/list` – llista en JSON
 - ✅ **HR (RRHH)**: Gestió d'empleats, càrrecs, departaments i salaris
 - 🚧 **Accounts (Comptes)**: Pla comptable
 - 📋 **Accounting (Comptabilitat)**: Gestió comptable (en desenvolupament)
