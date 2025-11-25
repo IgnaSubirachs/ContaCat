@@ -1,36 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 from datetime import date
-from app.domain.accounting.entities import Account, JournalEntry
 
-
-class AccountRepository(ABC):
-    """Abstract repository for accounts."""
-    
-    @abstractmethod
-    def add(self, account: Account) -> None:
-        """Add a new account."""
-        pass
-    
-    @abstractmethod
-    def find_by_code(self, code: str) -> Optional[Account]:
-        """Find account by code."""
-        pass
-    
-    @abstractmethod
-    def list_all(self) -> List[Account]:
-        """List all accounts."""
-        pass
-    
-    @abstractmethod
-    def list_by_group(self, group: int) -> List[Account]:
-        """List accounts by group."""
-        pass
-    
-    @abstractmethod
-    def update(self, account: Account) -> None:
-        """Update an account."""
-        pass
+from app.domain.accounts.repositories import AccountRepository
+from app.domain.accounting.entities import JournalEntry
 
 
 class JournalRepository(ABC):

@@ -6,11 +6,9 @@ from decimal import Decimal
 import os
 
 from app.domain.accounting.services import AccountingService
-from app.domain.accounting.entities import AccountType
-from app.infrastructure.persistence.accounting.repository import (
-    SqlAlchemyAccountRepository,
-    SqlAlchemyJournalRepository
-)
+from app.domain.accounts.entities import AccountType
+from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository
+from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
 
 # Initialize templates
 current_dir = os.path.dirname(os.path.abspath(__file__))

@@ -1,28 +1,33 @@
-from typing import List
-from .entities import Account
+from typing import List, Optional
+from .entities import Account, AccountType
 from .repositories import AccountRepository
 
 
 class AccountService:
     """Application service for account-related use cases."""
 
-    VALID_TYPES = {"asset", "liability", "equity", "income", "expense"}
-
     def __init__(self, repository: AccountRepository):
         self._repository = repository
 
-    def create_account(self, code: str, name: str, account_type: str) -> None:
+    def create_account(
+        self, 
+        code: str, 
+        name: str, 
+        account_type: AccountType, 
+        group: int,
+        parent_code: Optional[str] = None
+    ) -> None:
         """Use case: create a new account."""
 
         code = code.strip()
         name = name.strip()
-        account_type = account_type.strip().lower()
-
+        
+        # Validate inputs
         if not code:
             raise ValueError("Account code cannot be empty.")
         if not name:
             raise ValueError("Account name cannot be empty.")
-        if account_type not in self.VALID_TYPES:
+        if not isinstance(account_type, AccountType):
             raise ValueError(f"Invalid account type: {account_type}")
 
         existing = self._repository.find_by_code(code)
@@ -33,10 +38,22 @@ class AccountService:
             code=code,
             name=name,
             account_type=account_type,
+            group=group,
+            parent_code=parent_code,
             is_active=True,
         )
+        account.validate() # Domain validation
+        
         self._repository.add(account)
 
-    def get_chart_of_accounts(self) -> List[Account]:
-        """Use case: list chart of accounts."""
+    def list_accounts(self) -> List[Account]:
+        """Use case: list all accounts."""
         return self._repository.list_all()
+
+    def list_accounts_by_group(self, group: int) -> List[Account]:
+        """Use case: list accounts by group."""
+        return self._repository.list_by_group(group)
+
+    def get_account_by_code(self, code: str) -> Optional[Account]:
+        """Use case: get account by code."""
+        return self._repository.find_by_code(code)

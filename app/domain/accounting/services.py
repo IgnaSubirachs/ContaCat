@@ -2,10 +2,10 @@ from typing import List, Optional, Dict
 from datetime import date
 from decimal import Decimal
 
-from app.domain.accounting.entities import (
-    Account, JournalEntry, JournalLine, AccountType, JournalEntryStatus
-)
-from app.domain.accounting.repositories import AccountRepository, JournalRepository
+from app.domain.accounts.entities import Account, AccountType
+from app.domain.accounts.repositories import AccountRepository
+from app.domain.accounting.entities import JournalEntry, JournalLine, JournalEntryStatus
+from app.domain.accounting.repositories import JournalRepository
 
 
 class AccountingService:
@@ -19,7 +19,7 @@ class AccountingService:
         self._account_repo = account_repo
         self._journal_repo = journal_repo
     
-    # Account operations
+    # Account operations (Delegated to AccountRepository, but ideally should be in AccountService)
     def create_account(
         self,
         code: str,
@@ -137,7 +137,7 @@ class AccountingService:
         if not account:
             raise ValueError(f"El compte {account_code} no existeix")
         
-        # Get all journal entries
+        # Get all journal entries (Optimization: should filter in DB)
         entries = self._journal_repo.list_all()
         
         total_debit = Decimal("0")

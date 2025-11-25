@@ -4,102 +4,13 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import Session, joinedload
 
 from app.domain.accounting.entities import (
-    Account, JournalEntry, JournalLine, AccountType, JournalEntryStatus
+    JournalEntry, JournalLine, JournalEntryStatus
 )
-from app.domain.accounting.repositories import AccountRepository, JournalRepository
+from app.domain.accounting.repositories import JournalRepository
 from app.infrastructure.persistence.accounting.models import (
-    AccountModel, JournalEntryModel, JournalLineModel
+    JournalEntryModel, JournalLineModel
 )
 from app.infrastructure.db.base import SessionLocal
-
-
-class SqlAlchemyAccountRepository(AccountRepository):
-    """SQLAlchemy implementation of AccountRepository."""
-
-    def __init__(self, session_factory=SessionLocal):
-        self._session_factory = session_factory
-
-    def add(self, account: Account) -> None:
-        session: Session = self._session_factory()
-        try:
-            model = AccountModel(
-                id=account.id,
-                code=account.code,
-                name=account.name,
-                account_type=account.account_type,
-                group=account.group,
-                is_active=account.is_active,
-                parent_code=account.parent_code
-            )
-            session.add(model)
-            session.commit()
-        finally:
-            session.close()
-
-    def find_by_code(self, code: str) -> Optional[Account]:
-        session: Session = self._session_factory()
-        try:
-            stmt = select(AccountModel).where(AccountModel.code == code)
-            result = session.execute(stmt)
-            model: AccountModel | None = result.scalars().first()
-            if not model:
-                return None
-            return self._model_to_entity(model)
-        finally:
-            session.close()
-
-    def list_all(self) -> List[Account]:
-        session: Session = self._session_factory()
-        try:
-            stmt = select(AccountModel).where(AccountModel.is_active == True).order_by(AccountModel.code)
-            result = session.execute(stmt)
-            models: List[AccountModel] = result.scalars().all()
-            return [self._model_to_entity(m) for m in models]
-        finally:
-            session.close()
-
-    def list_by_group(self, group: int) -> List[Account]:
-        session: Session = self._session_factory()
-        try:
-            stmt = select(AccountModel).where(
-                AccountModel.group == group,
-                AccountModel.is_active == True
-            ).order_by(AccountModel.code)
-            result = session.execute(stmt)
-            models: List[AccountModel] = result.scalars().all()
-            return [self._model_to_entity(m) for m in models]
-        finally:
-            session.close()
-
-    def update(self, account: Account) -> None:
-        session: Session = self._session_factory()
-        try:
-            stmt = select(AccountModel).where(AccountModel.id == account.id)
-            result = session.execute(stmt)
-            model: AccountModel | None = result.scalars().first()
-            
-            if not model:
-                raise ValueError(f"No s'ha trobat el compte amb ID {account.id}")
-            
-            model.name = account.name
-            model.is_active = account.is_active
-            model.parent_code = account.parent_code
-            
-            session.commit()
-        finally:
-            session.close()
-
-    def _model_to_entity(self, model: AccountModel) -> Account:
-        """Convert model to entity."""
-        return Account(
-            id=model.id,
-            code=model.code,
-            name=model.name,
-            account_type=AccountType(model.account_type),
-            group=model.group,
-            is_active=model.is_active,
-            parent_code=model.parent_code
-        )
 
 
 class SqlAlchemyJournalRepository(JournalRepository):

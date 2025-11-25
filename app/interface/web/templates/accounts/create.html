@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nou Compte - ERP Català</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4b5563;
+            font-weight: 500;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: #4f46e5;
+            color: white;
+            padding: 0.875rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #4338ca;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #6b7280;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1>Nou Compte Comptable</h1>
+        <form action="/accounts/create" method="POST">
+            <div class="form-group">
+                <label for="code">Codi Comptable</label>
+                <input type="text" id="code" name="code" placeholder="Ex: 4300001" required>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Nom del Compte</label>
+                <input type="text" id="name" name="name" placeholder="Ex: Client Principal S.L." required>
+            </div>
+
+            <div class="form-group">
+                <label for="account_type">Tipus de Compte</label>
+                <select id="account_type" name="account_type" required>
+                    {% for type in account_types %}
+                    <option value="{{ type.value }}">{{ type.value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="group">Grup (1-9)</label>
+                <input type="number" id="group" name="group" min="1" max="9" required>
+            </div>
+
+            <div class="form-group">
+                <label for="parent_code">Compte Pare (Opcional)</label>
+                <input type="text" id="parent_code" name="parent_code" placeholder="Ex: 430">
+            </div>
+
+            <button type="submit" class="btn-submit">Crear Compte</button>
+        </form>
+        <a href="/accounts/" class="back-link">← Tornar al llistat</a>
+    </div>
+</body>
+
+</html>

@@ -7,6 +7,7 @@ import os
 from app.interface.api.routers import partners
 from app.interface.api.routers import employees
 from app.interface.api.routers import accounting
+from app.interface.api.routers import accounts
 
 app = FastAPI(title="ERP Català", description="ERP Modular amb DDD", version="1.0.0")
 
@@ -25,6 +26,7 @@ templates = Jinja2Templates(directory=templates_dir)
 # Include routers
 app.include_router(partners.router)
 app.include_router(employees.router)
+app.include_router(accounts.router)
 app.include_router(accounting.router)
 
 @app.get("/", response_class=HTMLResponse)

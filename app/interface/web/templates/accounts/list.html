@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pla Comptable - ERP Català</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #4f46e5;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #4f46e5;
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            color: #1f2937;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="color: white; margin: 0;">Pla Comptable</h1>
+            <a href="/accounts/create" class="btn-primary">+ Nou Compte</a>
+        </div>
+
+        <div class="table-container">
+            {% if accounts %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Codi</th>
+                        <th>Nom</th>
+                        <th>Tipus</th>
+                        <th>Grup</th>
+                        <th>Pare</th>
+                        <th>Estat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in accounts %}
+                    <tr>
+                        <td><strong>{{ account.code }}</strong></td>
+                        <td>{{ account.name }}</td>
+                        <td>{{ account.account_type.value }}</td>
+                        <td>{{ account.group }}</td>
+                        <td>{{ account.parent_code or '-' }}</td>
+                        <td>
+                            {% if account.is_active %}
+                            <span class="badge" style="background: #d1fae5; color: #065f46;">Actiu</span>
+                            {% else %}
+                            <span class="badge" style="background: #fee2e2; color: #991b1b;">Inactiu</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; color: #6b7280; padding: 2rem;">
+                No hi ha comptes definits. Afegeix-ne un!
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>
