@@ -5,3 +5,6 @@ jinja2
 pymysql
 python-multipart
 python-dotenv
+reportlab
+openpyxl
+pandas

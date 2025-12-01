@@ -19,14 +19,11 @@ templates = Jinja2Templates(directory="app/interface/web/templates")
 
 def get_order_service():
     """Dependency to get SalesOrderService instance."""
-    session = SessionLocal()
-    try:
-        order_repo = SqlAlchemySalesOrderRepository(session)
-        quote_repo = SqlAlchemyQuoteRepository(session)
-        partner_repo = SqlAlchemyPartnerRepository(session)
-        return SalesOrderService(order_repo, quote_repo, partner_repo)
-    finally:
-        pass
+    # Pass SessionLocal factory directly
+    order_repo = SqlAlchemySalesOrderRepository(SessionLocal)
+    quote_repo = SqlAlchemyQuoteRepository(SessionLocal)
+    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
+    return SalesOrderService(order_repo, quote_repo, partner_repo)
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -60,10 +57,8 @@ async def view_order(request: Request, order_id: str):
         raise HTTPException(status_code=404, detail="Comanda no trobada")
     
     # Get partner details
-    session = SessionLocal()
-    partner_repo = SqlAlchemyPartnerRepository(session)
+    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
     partner = partner_repo.find_by_id(order.partner_id)
-    session.close()
     
     return templates.TemplateResponse("sales/orders/view.html", {
         "request": request,

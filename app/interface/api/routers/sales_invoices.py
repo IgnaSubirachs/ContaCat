@@ -24,17 +24,14 @@ templates = Jinja2Templates(directory="app/interface/web/templates")
 
 def get_invoice_service():
     """Dependency to get SalesInvoiceService instance."""
-    session = SessionLocal()
-    try:
-        invoice_repo = SqlAlchemySalesInvoiceRepository(session)
-        order_repo = SqlAlchemySalesOrderRepository(session)
-        partner_repo = SqlAlchemyPartnerRepository(session)
-        account_repo = SqlAlchemyAccountRepository(session)
-        journal_repo = SqlAlchemyJournalRepository(session)
-        accounting_service = AccountingService(account_repo, journal_repo)
-        return SalesInvoiceService(invoice_repo, order_repo, partner_repo, accounting_service)
-    finally:
-        pass
+    # Pass SessionLocal factory directly
+    invoice_repo = SqlAlchemySalesInvoiceRepository(SessionLocal)
+    order_repo = SqlAlchemySalesOrderRepository(SessionLocal)
+    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
+    account_repo = SqlAlchemyAccountRepository(SessionLocal)
+    journal_repo = SqlAlchemyJournalRepository(SessionLocal)
+    accounting_service = AccountingService(account_repo, journal_repo)
+    return SalesInvoiceService(invoice_repo, order_repo, partner_repo, accounting_service)
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -68,10 +65,8 @@ async def view_invoice(request: Request, invoice_id: str):
         raise HTTPException(status_code=404, detail="Factura no trobada")
     
     # Get partner details
-    session = SessionLocal()
-    partner_repo = SqlAlchemyPartnerRepository(session)
+    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
     partner = partner_repo.find_by_id(invoice.partner_id)
-    session.close()
     
     return templates.TemplateResponse("sales/invoices/view.html", {
         "request": request,

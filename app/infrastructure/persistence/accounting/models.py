@@ -35,7 +35,7 @@ class JournalLineModel(Base):
     __tablename__ = "journal_lines"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    journal_entry_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    journal_entry_id: Mapped[str] = mapped_column(String(36), ForeignKey("journal_entries.id"), nullable=False, index=True)
     account_code: Mapped[str] = mapped_column(String(20), ForeignKey("accounts.code"), nullable=False, index=True)
     debit: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, default=0)
     credit: Mapped[Decimal] = mapped_column(Numeric(15, 2), nullable=False, default=0)

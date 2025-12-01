@@ -176,3 +176,178 @@ class AccountingService:
                 }
         
         return trial_balance
+    
+    def get_balance_sheet(self, end_date: Optional[date] = None) -> Dict:
+        """Get balance sheet (balanç de situació).
+        
+        Returns a dictionary with:
+        - actiu: Dict with non_corrent and corrent assets
+        - passiu: Dict with non_corrent and corrent liabilities
+        - patrimoni_net: Dict with equity accounts
+        - total_actiu, total_passiu, total_patrimoni_net
+        """
+        accounts = self._account_repo.list_all()
+        
+        # Initialize structure
+        balance_sheet = {
+            "actiu": {
+                "no_corrent": {},  # Group 2
+                "corrent": {}      # Groups 3, 4, 5 (debit balance)
+            },
+            "passiu": {
+                "no_corrent": {},  # Group 1 (liability part)
+                "corrent": {}      # Group 4, 5 (credit balance)
+            },
+            "patrimoni_net": {}    # Group 1 (equity part)
+        }
+        
+        for account in accounts:
+            balance = self.get_account_balance(account.code, end_date)
+            if balance == 0:
+                continue
+            
+            account_data = {
+                "code": account.code,
+                "name": account.name,
+                "balance": balance
+            }
+            
+            # Classify by account type and group
+            if account.account_type == AccountType.ASSET:
+                if account.group == 2:
+                    balance_sheet["actiu"]["no_corrent"][account.code] = account_data
+                else:  # Groups 3, 4, 5
+                    balance_sheet["actiu"]["corrent"][account.code] = account_data
+            
+            elif account.account_type == AccountType.LIABILITY:
+                if account.group == 1:
+                    balance_sheet["passiu"]["no_corrent"][account.code] = account_data
+                else:
+                    balance_sheet["passiu"]["corrent"][account.code] = account_data
+            
+            elif account.account_type == AccountType.EQUITY:
+                balance_sheet["patrimoni_net"][account.code] = account_data
+        
+        # Calculate totals
+        balance_sheet["total_actiu_no_corrent"] = sum(
+            acc["balance"] for acc in balance_sheet["actiu"]["no_corrent"].values()
+        )
+        balance_sheet["total_actiu_corrent"] = sum(
+            acc["balance"] for acc in balance_sheet["actiu"]["corrent"].values()
+        )
+        balance_sheet["total_actiu"] = (
+            balance_sheet["total_actiu_no_corrent"] + 
+            balance_sheet["total_actiu_corrent"]
+        )
+        
+        balance_sheet["total_passiu_no_corrent"] = sum(
+            acc["balance"] for acc in balance_sheet["passiu"]["no_corrent"].values()
+        )
+        balance_sheet["total_passiu_corrent"] = sum(
+            acc["balance"] for acc in balance_sheet["passiu"]["corrent"].values()
+        )
+        balance_sheet["total_passiu"] = (
+            balance_sheet["total_passiu_no_corrent"] + 
+            balance_sheet["total_passiu_corrent"]
+        )
+        
+        balance_sheet["total_patrimoni_net"] = sum(
+            acc["balance"] for acc in balance_sheet["patrimoni_net"].values()
+        )
+        
+        balance_sheet["end_date"] = end_date
+        
+        return balance_sheet
+    
+    def get_profit_loss(
+        self, 
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None
+    ) -> Dict:
+        """Get profit and loss statement (compte de pèrdues i guanys).
+        
+        Returns a dictionary with:
+        - ingressos: Dict with income accounts (Group 7)
+        - despeses: Dict with expense accounts (Group 6)
+        - resultat: Net profit/loss
+        """
+        # Get all journal entries in the period
+        if start_date and end_date:
+            entries = self._journal_repo.list_by_date_range(start_date, end_date)
+        else:
+            entries = self._journal_repo.list_all()
+        
+        accounts = self._account_repo.list_all()
+        account_map = {acc.code: acc for acc in accounts}
+        
+        # Initialize structure
+        profit_loss = {
+            "ingressos": {},
+            "despeses": {},
+            "start_date": start_date,
+            "end_date": end_date
+        }
+        
+        # Accumulate balances for income and expense accounts
+        account_balances = {}
+        
+        for entry in entries:
+            if entry.status != JournalEntryStatus.POSTED:
+                continue
+            
+            # Filter by date if specified
+            if start_date and entry.entry_date < start_date:
+                continue
+            if end_date and entry.entry_date > end_date:
+                continue
+            
+            for line in entry.lines:
+                if line.account_code not in account_balances:
+                    account_balances[line.account_code] = {
+                        "debit": Decimal("0"),
+                        "credit": Decimal("0")
+                    }
+                
+                account_balances[line.account_code]["debit"] += line.debit
+                account_balances[line.account_code]["credit"] += line.credit
+        
+        # Classify accounts
+        for account_code, balances in account_balances.items():
+            if account_code not in account_map:
+                continue
+            
+            account = account_map[account_code]
+            
+            # Calculate balance based on account type
+            if account.account_type == AccountType.INCOME:
+                # Income accounts have credit balance
+                balance = balances["credit"] - balances["debit"]
+                if balance != 0:
+                    profit_loss["ingressos"][account_code] = {
+                        "code": account.code,
+                        "name": account.name,
+                        "balance": balance
+                    }
+            
+            elif account.account_type == AccountType.EXPENSE:
+                # Expense accounts have debit balance
+                balance = balances["debit"] - balances["credit"]
+                if balance != 0:
+                    profit_loss["despeses"][account_code] = {
+                        "code": account.code,
+                        "name": account.name,
+                        "balance": balance
+                    }
+        
+        # Calculate totals
+        profit_loss["total_ingressos"] = sum(
+            acc["balance"] for acc in profit_loss["ingressos"].values()
+        )
+        profit_loss["total_despeses"] = sum(
+            acc["balance"] for acc in profit_loss["despeses"].values()
+        )
+        profit_loss["resultat"] = (
+            profit_loss["total_ingressos"] - profit_loss["total_despeses"]
+        )
+        
+        return profit_loss

@@ -1,12 +1,14 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
-from typing import Optional
+from typing import Optional, Dict
 from decimal import Decimal
 import uuid
 
 from app.domain.validators.nif_cif_validator import DocumentValidator
 from app.domain.validators.nss_validator import NSSValidator
 from app.domain.validators.irpf_calculator import IRPFCalculator
+from app.domain.hr.social_security import SocialSecurityCalculator
+
 
 
 @dataclass

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balanç de Situació - ERP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border-radius: 25px;
+            transition: background 0.3s;
+        }
+
+        .back-link:hover {
+            background: #e0e0e0;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .filter-section label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .filter-section input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .filter-section button {
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .filter-section button:hover {
+            background: #5568d3;
+        }
+
+        .export-buttons {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+
+        .export-btn:hover {
+            background: #218838;
+        }
+
+        .export-btn.pdf {
+            background: #dc3545;
+        }
+
+        .export-btn.pdf:hover {
+            background: #c82333;
+        }
+
+        .balance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .subsection-title {
+            font-size: 1.2em;
+            color: #764ba2;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        td.amount {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background: #e9ecef;
+        }
+
+        .grand-total {
+            font-size: 1.3em;
+            color: #667eea;
+            background: #d4d8ff;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .summary {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #ffc107;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 1.1em;
+        }
+
+        .summary-item.total {
+            font-size: 1.3em;
+            font-weight: bold;
+            border-top: 2px solid #ffc107;
+            margin-top: 10px;
+            padding-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/accounting" class="back-link">← Tornar a Comptabilitat</a>
+
+        <h1>📊 Balanç de Situació</h1>
+        <p class="subtitle">
+            {% if balance_sheet.end_date %}
+            Data de tancament: {{ balance_sheet.end_date.strftime('%d/%m/%Y') }}
+            {% else %}
+            Situació actual
+            {% endif %}
+        </p>
+
+        <div class="filter-section">
+            <form method="get" action="/accounting/reports/balance-sheet">
+                <label for="end_date">Data de tancament:</label>
+                <input type="date" id="end_date" name="end_date" <div class="section">
+                <div class="section-title">ACTIU</div>
+
+                <div class="subsection-title">Actiu No Corrent</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Compte</th>
+                            <th>Nom</th>
+                            <th class="amount">Import</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for code, account in balance_sheet.actiu.no_corrent.items() %}
+                        <tr>
+                            <td>{{ account.code }}</td>
+                            <td>{{ account.name }}</td>
+                            <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #999;">No hi ha comptes</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td colspan="2">Total Actiu No Corrent</td>
+                            <td class="amount">{{ "%.2f"|format(balance_sheet.total_actiu_no_corrent) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="subsection-title">Actiu Corrent</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Compte</th>
+                            <th>Nom</th>
+                            <th class="amount">Import</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for code, account in balance_sheet.actiu.corrent.items() %}
+                        <tr>
+                            <td>{{ account.code }}</td>
+                            <td>{{ account.name }}</td>
+                            <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: #999;">No hi ha comptes</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td colspan="2">Total Actiu Corrent</td>
+                            <td class="amount">{{ "%.2f"|format(balance_sheet.total_actiu_corrent) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table>
+                    <tbody>
+                        <tr class="grand-total">
+                            <td colspan="2">TOTAL ACTIU</td>
+                            <td class="amount">{{ "%.2f"|format(balance_sheet.total_actiu) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+        </div>
+
+        <!-- PASSIU I PATRIMONI NET -->
+        <div class="section">
+            <div class="section-title">PATRIMONI NET I PASSIU</div>
+
+            <div class="subsection-title">Patrimoni Net</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Compte</th>
+                        <th>Nom</th>
+                        <th class="amount">Import</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for code, account in balance_sheet.patrimoni_net.items() %}
+                    <tr>
+                        <td>{{ account.code }}</td>
+                        <td>{{ account.name }}</td>
+                        <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #999;">No hi ha comptes</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="2">Total Patrimoni Net</td>
+                        <td class="amount">{{ "%.2f"|format(balance_sheet.total_patrimoni_net) }} €</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="subsection-title">Passiu No Corrent</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Compte</th>
+                        <th>Nom</th>
+                        <th class="amount">Import</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for code, account in balance_sheet.passiu.no_corrent.items() %}
+                    <tr>
+                        <td>{{ account.code }}</td>
+                        <td>{{ account.name }}</td>
+                        <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #999;">No hi ha comptes</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="2">Total Passiu No Corrent</td>
+                        <td class="amount">{{ "%.2f"|format(balance_sheet.total_passiu_no_corrent) }} €</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="subsection-title">Passiu Corrent</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Compte</th>
+                        <th>Nom</th>
+                        <th class="amount">Import</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for code, account in balance_sheet.passiu.corrent.items() %}
+                    <tr>
+                        <td>{{ account.code }}</td>
+                        <td>{{ account.name }}</td>
+                        <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #999;">No hi ha comptes</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="total-row">
+                        <td colspan="2">Total Passiu Corrent</td>
+                        <td class="amount">{{ "%.2f"|format(balance_sheet.total_passiu_corrent) }} €</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table>
+                <tbody>
+                    <tr class="total-row">
+                        <td colspan="2">TOTAL PASSIU</td>
+                        <td class="amount">{{ "%.2f"|format(balance_sheet.total_passiu) }} €</td>
+                    </tr>
+                    <tr class="grand-total">
+                        <td colspan="2">TOTAL PATRIMONI NET I PASSIU</td>
+                        <td class="amount">{{ "%.2f"|format(balance_sheet.total_patrimoni_net +
+                            balance_sheet.total_passiu) }} €</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="summary full-width">
+        <h3 style="margin-bottom: 15px;">Resum del Balanç</h3>
+        <div class="summary-item">
+            <span>Total Actiu:</span>
+            <span>{{ "%.2f"|format(balance_sheet.total_actiu) }} €</span>
+        </div>
+        <div class="summary-item">
+            <span>Total Patrimoni Net:</span>
+            <span>{{ "%.2f"|format(balance_sheet.total_patrimoni_net) }} €</span>
+        </div>
+        <div class="summary-item">
+            <span>Total Passiu:</span>
+            <span>{{ "%.2f"|format(balance_sheet.total_passiu) }} €</span>
+        </div>
+        <div class="summary-item total">
+            <span>Equilibri (ha de ser 0):</span>
+            <span>{{ "%.2f"|format(balance_sheet.total_actiu - balance_sheet.total_patrimoni_net -
+                balance_sheet.total_passiu) }} €</span>
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>

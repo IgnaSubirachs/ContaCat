@@ -8,16 +8,15 @@ import os
 # Add project root to path
 sys.path.append(os.getcwd())
 
-from app.infrastructure.db.base import Base, engine
+from app.infrastructure.db.base import init_db as create_tables_func, Base
 
 def init_database():
     """Initialize database by creating all tables."""
     print("[*] Initializing database...")
-    print(f"[*] Database URL: {engine.url}")
     
     try:
-        # Create all tables
-        Base.metadata.create_all(bind=engine)
+        # Create all tables using the function from base.py that has all imports
+        create_tables_func()
         print("[OK] All tables created successfully!")
         
         # List created tables

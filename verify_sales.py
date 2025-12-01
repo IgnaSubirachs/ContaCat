@@ -27,16 +27,14 @@ def verify_sales():
     print("SALES MODULE VERIFICATION")
     print("="*60 + "\n")
     
-    session = SessionLocal()
-    
     try:
-        # Initialize services
-        quote_repo = SqlAlchemyQuoteRepository(session)
-        order_repo = SqlAlchemySalesOrderRepository(session)
-        invoice_repo = SqlAlchemySalesInvoiceRepository(session)
-        partner_repo = SqlAlchemyPartnerRepository(session)
-        account_repo = SqlAlchemyAccountRepository(session)
-        journal_repo = SqlAlchemyJournalRepository(session)
+        # Initialize services with SessionLocal factory
+        quote_repo = SqlAlchemyQuoteRepository(SessionLocal)
+        order_repo = SqlAlchemySalesOrderRepository(SessionLocal)
+        invoice_repo = SqlAlchemySalesInvoiceRepository(SessionLocal)
+        partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
+        account_repo = SqlAlchemyAccountRepository(SessionLocal)
+        journal_repo = SqlAlchemyJournalRepository(SessionLocal)
         
         quote_service = QuoteService(quote_repo, partner_repo)
         order_service = SalesOrderService(order_repo, quote_repo, partner_repo)
@@ -151,8 +149,6 @@ def verify_sales():
         import traceback
         traceback.print_exc()
         return False
-    finally:
-        session.close()
 
 
 if __name__ == "__main__":

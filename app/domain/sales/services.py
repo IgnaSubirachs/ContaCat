@@ -449,15 +449,16 @@ class SalesInvoiceService:
         invoice.post()
         
         # Create journal entry
-        # Debit: Customer account (430XXXXX)
-        # Credit: Sales account (700XXXXX)
-        # Credit: VAT account (477XXXXX)
+        # Debit: Customer account (430)
+        # Credit: Sales account (700)
+        # Credit: VAT account (477)
         
         journal_lines = []
         
         # Debit: Customer account (total)
+        # Using standard customer receivables account
         journal_lines.append((
-            f"430{invoice.partner_id[:5]}",  # Customer account code
+            "43000000",  # Customer receivables account
             invoice.total,
             Decimal("0"),
             f"Factura {invoice.invoice_number}"
@@ -465,7 +466,7 @@ class SalesInvoiceService:
         
         # Credit: Sales account (subtotal)
         journal_lines.append((
-            "70000001",  # Sales account (should be configurable)
+            "70000000",  # Sales revenue account
             Decimal("0"),
             invoice.subtotal,
             f"Venda factura {invoice.invoice_number}"
@@ -476,7 +477,7 @@ class SalesInvoiceService:
         for rate, amounts in tax_breakdown.items():
             if amounts["tax"] > 0:
                 journal_lines.append((
-                    f"477000{int(rate):02d}",  # VAT account by rate
+                    "47700000",  # VAT payable account
                     Decimal("0"),
                     amounts["tax"],
                     f"IVA {rate}% factura {invoice.invoice_number}"

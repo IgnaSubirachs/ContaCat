@@ -182,6 +182,137 @@ async def trial_balance(request: Request):
     )
 
 
+@router.get("/reports/balance-sheet", response_class=HTMLResponse)
+async def balance_sheet(request: Request, end_date: str = None):
+    """Show balance sheet (Balanç de Situació)."""
+    end_date_obj = None
+    if end_date:
+        try:
+            end_date_obj = date.fromisoformat(end_date)
+        except ValueError:
+            pass
+    
+    balance_sheet = accounting_service.get_balance_sheet(end_date_obj)
+    
+    return templates.TemplateResponse(
+        "accounting/balance_sheet.html",
+        {"request": request, "balance_sheet": balance_sheet}
+    )
+
+
+@router.get("/reports/profit-loss", response_class=HTMLResponse)
+async def profit_loss(request: Request, start_date: str = None, end_date: str = None):
+    """Show profit and loss statement (Compte de Pèrdues i Guanys)."""
+    start_date_obj = None
+    end_date_obj = None
+    
+    if start_date:
+        try:
+            start_date_obj = date.fromisoformat(start_date)
+        except ValueError:
+            pass
+    
+    if end_date:
+        try:
+            end_date_obj = date.fromisoformat(end_date)
+        except ValueError:
+            pass
+    
+    profit_loss = accounting_service.get_profit_loss(start_date_obj, end_date_obj)
+    
+    return templates.TemplateResponse(
+        "accounting/profit_loss.html",
+        {"request": request, "profit_loss": profit_loss}
+    )
+
+
+# Export endpoints
+@router.get("/reports/balance-sheet/export")
+async def export_balance_sheet(format: str = "pdf", end_date: str = None):
+    """Export balance sheet to PDF or Excel."""
+    from fastapi.responses import FileResponse
+    from app.domain.accounting.export_utils import ReportExporter
+    import tempfile
+    
+    end_date_obj = None
+    if end_date:
+        try:
+            end_date_obj = date.fromisoformat(end_date)
+        except ValueError:
+            pass
+    
+    balance_sheet = accounting_service.get_balance_sheet(end_date_obj)
+    
+    # Create temporary file
+    suffix = ".pdf" if format == "pdf" else ".xlsx"
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    
+    try:
+        if format == "pdf":
+            ReportExporter.export_balance_sheet_to_pdf(balance_sheet, temp_file.name)
+            media_type = "application/pdf"
+            filename = f"balanc_situacio_{date.today().isoformat()}.pdf"
+        else:  # excel
+            ReportExporter.export_balance_sheet_to_excel(balance_sheet, temp_file.name)
+            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            filename = f"balanc_situacio_{date.today().isoformat()}.xlsx"
+        
+        return FileResponse(
+            temp_file.name,
+            media_type=media_type,
+            filename=filename
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generant l'exportació: {str(e)}")
+
+
+@router.get("/reports/profit-loss/export")
+async def export_profit_loss(format: str = "pdf", start_date: str = None, end_date: str = None):
+    """Export profit & loss statement to PDF or Excel."""
+    from fastapi.responses import FileResponse
+    from app.domain.accounting.export_utils import ReportExporter
+    import tempfile
+    
+    start_date_obj = None
+    end_date_obj = None
+    
+    if start_date:
+        try:
+            start_date_obj = date.fromisoformat(start_date)
+        except ValueError:
+            pass
+    
+    if end_date:
+        try:
+            end_date_obj = date.fromisoformat(end_date)
+        except ValueError:
+            pass
+    
+    profit_loss = accounting_service.get_profit_loss(start_date_obj, end_date_obj)
+    
+    # Create temporary file
+    suffix = ".pdf" if format == "pdf" else ".xlsx"
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+    
+    try:
+        if format == "pdf":
+            ReportExporter.export_profit_loss_to_pdf(profit_loss, temp_file.name)
+            media_type = "application/pdf"
+            filename = f"compte_pyg_{date.today().isoformat()}.pdf"
+        else:  # excel
+            ReportExporter.export_profit_loss_to_excel(profit_loss, temp_file.name)
+            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            filename = f"compte_pyg_{date.today().isoformat()}.xlsx"
+        
+        return FileResponse(
+            temp_file.name,
+            media_type=media_type,
+            filename=filename
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generant l'exportació: {str(e)}")
+
+
 # JSON API
 @router.get("/api/accounts")
 async def api_list_accounts():

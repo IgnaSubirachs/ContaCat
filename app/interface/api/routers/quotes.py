@@ -19,13 +19,10 @@ templates = Jinja2Templates(directory="app/interface/web/templates")
 
 def get_quote_service():
     """Dependency to get QuoteService instance."""
-    session = SessionLocal()
-    try:
-        quote_repo = SqlAlchemyQuoteRepository(session)
-        partner_repo = SqlAlchemyPartnerRepository(session)
-        return QuoteService(quote_repo, partner_repo)
-    finally:
-        pass  # Session will be closed after request
+    # Pass SessionLocal factory directly
+    quote_repo = SqlAlchemyQuoteRepository(SessionLocal)
+    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
+    return QuoteService(quote_repo, partner_repo)
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -53,11 +50,9 @@ async def list_quotes(request: Request, status: Optional[str] = None):
 async def create_quote_form(request: Request):
     """Show create quote form."""
     # Get partners for dropdown
-    session = SessionLocal()
-    partner_repo = SqlAlchemyPartnerRepository(session)
+    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
     partners = partner_repo.list_all()
     customers = [p for p in partners if p.is_customer]
-    session.close()
     
     return templates.TemplateResponse("quotes/create.html", {
         "request": request,
@@ -104,10 +99,9 @@ async def view_quote(request: Request, quote_id: str):
         raise HTTPException(status_code=404, detail="Pressupost no trobat")
     
     # Get partner details
-    session = SessionLocal()
-    partner_repo = SqlAlchemyPartnerRepository(session)
+    # Get partner details
+    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
     partner = partner_repo.find_by_id(quote.partner_id)
-    session.close()
     
     return templates.TemplateResponse("quotes/view.html", {
         "request": request,
