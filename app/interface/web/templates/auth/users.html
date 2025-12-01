@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestió d'Usuaris - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/auth/users-page">Usuaris</a>
+            <a href="#" onclick="logout()">Tancar Sessió</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Gestió d'Usuaris</h1>
+            <button class="btn" onclick="showCreateModal()">+ Afegir Usuari</button>
+        </div>
+
+        <div class="card">
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuari</th>
+                        <th>Rol</th>
+                        <th>Estat</th>
+                        <th>Accions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- Users will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Create/Edit User Modal -->
+    <div id="userModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000;">
+        <div
+            style="max-width: 500px; margin: 5rem auto; background: var(--card-bg); border-radius: 12px; padding: 2rem;">
+            <h2 id="modalTitle">Crear Usuari</h2>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem;">Usuari</label>
+                    <input type="text" id="username" required
+                        style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem;">Contrasenya</label>
+                    <input type="password" id="password"
+                        style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                    <small style="color: var(--text-secondary);">Deixa en blanc per mantenir l'actual</small>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem;">Rol</label>
+                    <select id="role" required
+                        style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                        <option value="ADMIN">Administrador</option>
+                        <option value="MANAGER">Gestor</option>
+                        <option value="USER">Usuari</option>
+                        <option value="READ_ONLY">Només Lectura</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="isActive" checked>
+                        <span>Actiu</span>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn">Guardar</button>
+                    <button type="button" class="btn" onclick="closeModal()"
+                        style="background: transparent; border: 1px solid var(--border-color);">Cancel·lar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/auth';
+
+        function getAuthHeaders() {
+            const token = localStorage.getItem('access_token');
+            return {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`, {
+                    headers: getAuthHeaders()
+                });
+
+                if (response.ok) {
+                    const users = await response.json();
+                    renderUsers(users);
+                } else if (response.status === 401) {
+                    window.location.href = '/auth/login-page';
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        function renderUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>${user.id}</td>
+                    <td><strong>${user.username}</strong></td>
+                    <td><span class="badge">${getRoleLabel(user.role)}</span></td>
+                    <td><span class="badge" style="background: ${user.is_active ? 'rgba(76, 217, 100, 0.1)' : 'rgba(255, 59, 48, 0.1)'}; color: ${user.is_active ? '#4cd964' : '#ff3b30'};">${user.is_active ? 'Actiu' : 'Inactiu'}</span></td>
+                    <td>
+                        <button class="btn" onclick="editUser(${user.id})" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.5rem;">Editar</button>
+                        <button class="btn" onclick="deleteUser(${user.id})" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: rgba(220, 38, 38, 0.1); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.2);">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getRoleLabel(role) {
+            const labels = {
+                'ADMIN': 'Administrador',
+                'MANAGER': 'Gestor',
+                'USER': 'Usuari',
+                'READ_ONLY': 'Només Lectura'
+            };
+            return labels[role] || role;
+        }
+
+        function showCreateModal() {
+            document.getElementById('modalTitle').textContent = 'Crear Usuari';
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+            document.getElementById('password').required = true;
+            document.getElementById('userModal').style.display = 'block';
+        }
+
+        async function editUser(userId) {
+            // In a real implementation, fetch user details first
+            document.getElementById('modalTitle').textContent = 'Editar Usuari';
+            document.getElementById('userId').value = userId;
+            document.getElementById('password').required = false;
+            document.getElementById('userModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('userModal').style.display = 'none';
+        }
+
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const userId = document.getElementById('userId').value;
+            const data = {
+                username: document.getElementById('username').value,
+                role: document.getElementById('role').value,
+                is_active: document.getElementById('isActive').checked
+            };
+
+            const password = document.getElementById('password').value;
+            if (password) {
+                data.password = password;
+            }
+
+            try {
+                const url = userId ? `${API_BASE}/users/${userId}` : `${API_BASE}/users`;
+                const method = userId ? 'PUT' : 'POST';
+
+                const response = await fetch(url, {
+                    method,
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    loadUsers();
+                } else {
+                    alert('Error al guardar l\'usuari');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de connexió');
+            }
+        });
+
+        async function deleteUser(userId) {
+            if (!confirm('Segur que vols eliminar aquest usuari?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+
+                if (response.ok) {
+                    loadUsers();
+                } else {
+                    alert('Error al eliminar l\'usuari');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de connexió');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = '/auth/login-page';
+        }
+
+        // Load users on page load
+        loadUsers();
+    </script>
+</body>
+
+</html>

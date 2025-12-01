@@ -8,3 +8,8 @@ python-dotenv
 reportlab
 openpyxl
 pandas
+pywebview
+pyinstaller
+passlib[bcrypt]
+python-jose[cryptography]
+

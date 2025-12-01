@@ -11,8 +11,9 @@ from app.interface.api.routers import accounts
 from app.interface.api.routers import quotes
 from app.interface.api.routers import sales_orders
 from app.interface.api.routers import sales_invoices
+from app.interface.api.routers import auth
 
-app = FastAPI(title="ERP Català", description="ERP Modular amb DDD", version="1.0.0")
+app = FastAPI(title="ContaCAT", description="ERP Modular amb DDD", version="2.0.0")
 
 # Determine paths relative to this file
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,6 +28,7 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 templates = Jinja2Templates(directory=templates_dir)
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(partners.router)
 app.include_router(employees.router)
 app.include_router(accounts.router)

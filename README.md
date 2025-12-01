@@ -21,17 +21,36 @@ Sistema ERP modular desenvolupat amb Domain-Driven Design (DDD), FastAPI i MySQL
     - `GET /partners/api/list` – llista en JSON
 - ✅ **HR (RRHH)**: Gestió d'empleats, càrrecs, departaments i salaris
 - 🚧 **Accounts (Comptes)**: Pla comptable
-- 📋 **Accounting (Comptabilitat)**: Gestió comptable (en desenvolupament)
+- ✅ **Accounting (Comptabilitat)**: Gestió comptable completa amb Pla General Comptable, Assentaments, Llibres i Informes Financers (Balanç i PyG).
+- ✅ **User Management (Gestió d'Usuaris)**: Sistema d'autenticació i autorització amb JWT. Rols: ADMIN, MANAGER, USER, READ_ONLY. Panell d'administració per a gestió d'usuaris.
 - 📋 **Budgets (Pressupostos)**: Gestió de pressupostos (en desenvolupament)
 - 📋 **Finance (Finances)**: Gestió financera (en desenvolupament)
 - 📋 **Banking (Conciliació)**: Conciliació bancària (en desenvolupament)
 
+## Versió Escriptori (Nou!)
+
+L'ERP ara disposa d'una versió d'escriptori nativa per a Windows.
+
+### Construcció i Execució
+
+1.  **Construir l'executable**:
+    ```bash
+    c:\ERP\build_exe.bat
+    ```
+    Això generarà l'arxiu `dist\ERP_Catala\ERP_Catala.exe`.
+
+2.  **Executar**:
+    - Assegura't que el servidor MySQL està en marxa.
+    - Executa `ERP_Catala.exe`.
+    - S'obrirà una finestra amb l'aplicació (sense navegador).
+
 ## Requisits
 
-- Docker
-- Docker Compose
+- Docker (per a la versió contenidoritzada)
+- Python 3.12+ (per a execució local/escriptori)
+- MySQL 8
 
-## Instal·lació i Execució
+## Instal·lació i Execució (Web / Docker)
 
 1. Clona el repositori
 2. Executa amb Docker Compose:
@@ -44,6 +63,28 @@ docker-compose up --build
    - Interfície Web: http://localhost:8000
    - Partners: http://localhost:8000/partners/
    - Documentació API: http://localhost:8000/docs
+
+4. Inicialitza l'usuari administrador (només la primera vegada):
+```bash
+python create_admin_user.py
+```
+Credencials per defecte: `admin` / `admin123` (canvia-les després del primer login!)
+
+## Interfície d'Usuari
+
+L'aplicació disposa d'una **interfície fosca professional** amb icones realistes 3D generades per IA. Tots els mòduls principals (Comptabilitat, RRHH, Partners, Vendes) tenen un disseny consistent i modern.
+
+## Gestió d'Usuaris i Seguretat
+
+- **Autenticació JWT**: Sistema d'autenticació segur amb tokens JWT
+- **Control d'Accés Basat en Rols (RBAC)**:
+  - **ADMIN**: Accés total, gestió d'usuaris
+  - **MANAGER**: Accés complet a mòduls de negoci
+  - **USER**: Accés estàndard
+  - **READ_ONLY**: Només lectura
+- **Panell d'Administració**: Gestió completa d'usuaris (només per a ADMIN)
+- **Login**: http://localhost:8000/auth/login-page
+- **Gestió d'Usuaris**: http://localhost:8000/auth/users-page
 
 ## Estructura del Projecte
 
@@ -74,5 +115,6 @@ app/
 - **Backend**: Python 3.12, FastAPI
 - **Base de Dades**: MySQL 8
 - **ORM**: SQLAlchemy 2.0
+- **Escriptori**: pywebview, PyInstaller
 - **Contenidors**: Docker, Docker Compose
 - **Frontend**: HTML, CSS (plantilles Jinja2)

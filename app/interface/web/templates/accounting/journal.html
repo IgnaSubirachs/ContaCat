@@ -5,143 +5,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Llibre Diari - ERP Català</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 2rem;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .btn-primary {
-            background: white;
-            color: #4f46e5;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-        }
-
-        .entry-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .entry-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .entry-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .entry-meta {
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            text-align: left;
-            padding: 0.5rem;
-            color: #4b5563;
-            font-size: 0.875rem;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        td {
-            padding: 0.5rem;
-            color: #1f2937;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .amount {
-            text-align: right;
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .badge-draft {
-            background: #f3f4f6;
-            color: #374151;
-        }
-
-        .badge-posted {
-            background: #d1fae5;
-            color: #065f46;
-        }
-    </style>
 </head>
 
 <body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/accounting">Comptabilitat</a>
+        </div>
+    </nav>
+
     <div class="container">
-        <div class="header">
-            <h1 style="color: white; margin: 0;">Llibre Diari</h1>
-            <a href="/accounting/journal/create" class="btn-primary">+ Nou Assentament</a>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Llibre Diari</h1>
+            <a href="/accounting/journal/create" class="btn">+ Nou Assentament</a>
         </div>
 
         {% if entries %}
         {% for entry in entries %}
-        <div class="entry-card">
-            <div class="entry-header">
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color);">
                 <div>
-                    <span class="entry-title">Assentament #{{ entry.entry_number }}</span>
-                    <span class="entry-meta"> - {{ entry.entry_date }}</span>
+                    <span style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary);">Assentament #{{
+                        entry.entry_number }}</span>
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;"> - {{ entry.entry_date }}</span>
                 </div>
                 <div>
                     {% if entry.status.value == 'DRAFT' %}
-                    <span class="badge badge-draft">ESBORRANY</span>
+                    <span
+                        style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);">ESBORRANY</span>
                     <form action="/accounting/journal/{{ entry.id }}/post" method="POST"
                         style="display: inline; margin-left: 1rem;">
-                        <button type="submit"
-                            style="background: #4f46e5; color: white; border: none; padding: 0.25rem 0.75rem; border-radius: 4px; cursor: pointer;">Comptabilitzar</button>
+                        <button type="submit" class="btn"
+                            style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Comptabilitzar</button>
                     </form>
                     {% else %}
-                    <span class="badge badge-posted">COMPTABILITZAT</span>
+                    <span
+                        style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: rgba(76, 217, 100, 0.1); color: #4cd964;">COMPTABILITZAT</span>
                     {% endif %}
                 </div>
             </div>
-            <p style="margin-bottom: 1rem; color: #4b5563;">{{ entry.description }}</p>
+            <p style="margin-bottom: 1rem; color: var(--text-secondary);">{{ entry.description }}</p>
             <table>
                 <thead>
                     <tr>
@@ -155,14 +62,14 @@
                     {% for line in entry.lines %}
                     <tr>
                         <td><strong><a href="/accounting/ledger/{{ line.account_code }}"
-                                    style="text-decoration: none; color: #4f46e5;">{{ line.account_code }}</a></strong>
-                        </td>
+                                    style="text-decoration: none; color: var(--accent-color);">{{ line.account_code
+                                    }}</a></strong></td>
                         <td>{{ line.description }}</td>
                         <td class="amount">{{ "%.2f"|format(line.debit) if line.debit > 0 else "" }} €</td>
                         <td class="amount">{{ "%.2f"|format(line.credit) if line.credit > 0 else "" }} €</td>
                     </tr>
                     {% endfor %}
-                    <tr style="font-weight: bold; background: #f9fafb;">
+                    <tr class="total-row">
                         <td colspan="2" style="text-align: right; padding-right: 1rem;">Total:</td>
                         <td class="amount">{{ "%.2f"|format(entry.total_debit) }} €</td>
                         <td class="amount">{{ "%.2f"|format(entry.total_credit) }} €</td>
@@ -172,8 +79,8 @@
         </div>
         {% endfor %}
         {% else %}
-        <div class="entry-card" style="text-align: center; padding: 3rem;">
-            <p style="color: #6b7280; font-size: 1.1rem;">No hi ha assentaments. Crea el primer!</p>
+        <div class="card" style="text-align: center; padding: 3rem;">
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">No hi ha assentaments. Crea el primer!</p>
         </div>
         {% endif %}
     </div>
