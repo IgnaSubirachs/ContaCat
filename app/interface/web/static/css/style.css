@@ -98,68 +98,7 @@ p {
     margin-bottom: 0.5rem;
 }
 
-.card-desc {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-.btn {
-    display: inline-block;
-    padding: 0.8rem 1.5rem;
-    background: var(--accent-color);
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: 500;
-    transition: background 0.2s;
-    border: none;
-    cursor: pointer;
-}
-
-.btn:hover {
-    background: var(--accent-hover);
-}
-
-/* Navbar if present */
-nav {
-    width: 100%;
-    padding: 1rem 2rem;
-    background: rgba(26, 26, 26, 0.95);
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: fixed;
-    top: 0;
-    z-index: 100;
-}
-
-nav a {
-    color: var(--text-primary);
-    text-decoration: none;
-    margin-left: 1.5rem;
-    font-weight: 500;
-}
-
-nav a:hover {
-    color: var(--accent-color);
-}
-
-/* Tables */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1.5rem;
-    background: var(--card-bg);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-th,
-td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
+border-bottom: 1px solid var(--border-color);
 }
 
 th {
