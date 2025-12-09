@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nou Article - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/inventory">Inventari</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 800px;">
+        <h1>Nou Article d'Inventari</h1>
+
+        <form action="/inventory/create" method="POST">
+            <div class="section">
+                <h3>Informació Bàsica</h3>
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="code">Codi (SKU):</label>
+                        <input type="text" id="code" name="code" required placeholder="Ex: SKU-001"
+                            style="width: 100%;">
+                    </div>
+                    <div>
+                        <label for="name">Nom:</label>
+                        <input type="text" id="name" name="name" required placeholder="Ex: Ordinador Portàtil"
+                            style="width: 100%;">
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label for="description">Descripció:</label>
+                    <textarea id="description" name="description" rows="3" style="width: 100%;"></textarea>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Dades d'Inventari</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="unit_price">Preu Unitari (€):</label>
+                        <input type="number" step="0.01" id="unit_price" name="unit_price" value="0.00"
+                            style="width: 100%;">
+                    </div>
+                    <div>
+                        <label for="quantity">Quantitat Inicial:</label>
+                        <input type="number" id="quantity" name="quantity" value="0" style="width: 100%;">
+                    </div>
+                    <div>
+                        <label for="location">Ubicació:</label>
+                        <input type="text" id="location" name="location" placeholder="Ex: Magatzem A"
+                            style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: right;">
+                <a href="/inventory" class="back-link" style="margin-right: 1rem;">Cancel·lar</a>
+                <button type="submit" class="btn">Crear Article</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

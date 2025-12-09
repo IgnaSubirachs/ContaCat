@@ -13,6 +13,7 @@ from app.interface.api.routers import sales_orders
 from app.interface.api.routers import sales_invoices
 from app.interface.api.routers import auth
 from app.interface.api.routers import assets
+from app.interface.api.routers import inventory
 
 app = FastAPI(title="ContaCAT", description="ERP Modular amb DDD", version="2.0.0")
 
@@ -37,6 +38,7 @@ app.include_router(sales_orders.router)
 app.include_router(sales_invoices.router)
 app.include_router(auth.router)
 app.include_router(assets.router)
+app.include_router(inventory.router)
 
 async def health_check():
     return {"status": "ok"}
