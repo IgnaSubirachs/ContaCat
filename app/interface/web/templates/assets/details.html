@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detall Actiu - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/assets">Actius</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>{{ asset.name }} <span style="font-size: 1rem; color: var(--text-secondary);">({{ asset.code }})</span>
+            </h1>
+            <span class="badge" style="background: var(--accent-color);">{{ asset.status.value }}</span>
+        </div>
+
+        <div class="modules-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 0;">
+            <div class="card" style="text-align: left; align-items: flex-start;">
+                <h3>Dades Econòmiques</h3>
+                <p><strong>Preu Compra:</strong> {{ "%.2f"|format(asset.purchase_price) }} €</p>
+                <p><strong>Data Compra:</strong> {{ asset.purchase_date }}</p>
+                <p><strong>Vida Útil:</strong> {{ asset.useful_life_years }} anys</p>
+                <p><strong>Valor Residual:</strong> {{ "%.2f"|format(asset.residual_value) }} €</p>
+            </div>
+            <div class="card" style="text-align: left; align-items: flex-start;">
+                <h3>Estat Amortització</h3>
+                <p><strong>Amortitzat:</strong> {{ "%.2f"|format(asset.accumulated_depreciation) }} €</p>
+                <p><strong>Pendent:</strong> {{ "%.2f"|format(asset.current_value - asset.residual_value) }} €</p>
+                <p><strong>Valor Comptable:</strong> <span
+                        style="font-size: 1.2rem; font-weight: 700; color: var(--accent-color);">{{
+                        "%.2f"|format(asset.current_value) }} €</span></p>
+            </div>
+        </div>
+
+        <div class="section" style="margin-top: 3rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3>Taula d'Amortització</h3>
+                <form action="/assets/{{ asset.id }}/depreciate" method="POST" style="display: flex; gap: 0.5rem;">
+                    <input type="number" name="year" value="2025" style="width: 80px;" required>
+                    <button type="submit" class="btn" style="padding: 0.4rem 1rem; font-size: 0.9rem;">Generar
+                        Amortització</button>
+                </form>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descripció</th>
+                        <th style="text-align: right;">Quota</th>
+                        <th style="text-align: right;">Amort. Acumulada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in asset.depreciation_entries %}
+                    <tr>
+                        <td>{{ entry.date }}</td>
+                        <td>{{ entry.description }}</td>
+                        <td class="amount">{{ "%.2f"|format(entry.amount) }} €</td>
+                        <td class="amount">{{ "%.2f"|format(entry.accumulated_depreciation) }} €</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

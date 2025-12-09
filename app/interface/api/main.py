@@ -12,6 +12,7 @@ from app.interface.api.routers import quotes
 from app.interface.api.routers import sales_orders
 from app.interface.api.routers import sales_invoices
 from app.interface.api.routers import auth
+from app.interface.api.routers import assets
 
 app = FastAPI(title="ContaCAT", description="ERP Modular amb DDD", version="2.0.0")
 
@@ -23,24 +24,19 @@ templates_dir = os.path.join(web_dir, "templates")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
-# Templates
+# Set up Jinja2 templates
 templates = Jinja2Templates(directory=templates_dir)
 
 # Include routers
-app.include_router(auth.router)
 app.include_router(partners.router)
 app.include_router(employees.router)
-app.include_router(accounts.router)
 app.include_router(accounting.router)
+app.include_router(accounts.router)
 app.include_router(quotes.router)
 app.include_router(sales_orders.router)
 app.include_router(sales_invoices.router)
+app.include_router(auth.router)
+app.include_router(assets.router)
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-@app.get("/health")
 async def health_check():
     return {"status": "ok"}

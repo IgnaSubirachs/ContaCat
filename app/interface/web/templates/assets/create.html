@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nou Actiu - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/assets">Actius</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 800px;">
+        <h1>Nou Actiu Fix</h1>
+
+        <form action="/assets/create" method="POST">
+            <div class="section">
+                <h3>Dades Generals</h3>
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="code">Codi Actiu:</label>
+                        <input type="text" id="code" name="code" required placeholder="Ex: ACT-001"
+                            style="width: 100%;">
+                    </div>
+                    <div>
+                        <label for="name">Nom:</label>
+                        <input type="text" id="name" name="name" required placeholder="Ex: Ordinador Portàtil"
+                            style="width: 100%;">
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label for="description">Descripció:</label>
+                    <input type="text" id="description" name="description" style="width: 100%;">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Dades Econòmiques</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="purchase_date">Data Compra:</label>
+                        <input type="date" id="purchase_date" name="purchase_date" required style="width: 100%;">
+                    </div>
+                    <div>
+                        <label for="purchase_price">Preu Compra (€):</label>
+                        <input type="number" step="0.01" id="purchase_price" name="purchase_price" required
+                            style="width: 100%;">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="useful_life_years">Vida Útil (Anys):</label>
+                        <input type="number" id="useful_life_years" name="useful_life_years" required value="5"
+                            style="width: 100%;">
+                    </div>
+                    <div>
+                        <label for="residual_value">Valor Residual (€):</label>
+                        <input type="number" step="0.01" id="residual_value" name="residual_value" value="0.00"
+                            style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Comptabilitat</h3>
+                <div style="margin-bottom: 1rem;">
+                    <label for="account_code_asset">Compte d'Actiu (Ex: 211):</label>
+                    <input type="text" id="account_code_asset" name="account_code_asset" required value="211000"
+                        style="width: 100%;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label for="account_code_accumulated_depreciation">Compte Amort. Acumulada (Ex: 281):</label>
+                    <input type="text" id="account_code_accumulated_depreciation"
+                        name="account_code_accumulated_depreciation" required value="281000" style="width: 100%;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label for="account_code_depreciation_expense">Compte Despesa Amortització (Ex: 681):</label>
+                    <input type="text" id="account_code_depreciation_expense" name="account_code_depreciation_expense"
+                        required value="681000" style="width: 100%;">
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: right;">
+                <a href="/assets" class="back-link" style="margin-right: 1rem;">Cancel·lar</a>
+                <button type="submit" class="btn">Crear Actiu</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

@@ -28,5 +28,16 @@ def init_db():
     from app.infrastructure.persistence.accounting.models import AccountModel as AccAccountModel  # noqa: F401
     from app.infrastructure.persistence.accounting.models import JournalEntryModel, JournalLineModel  # noqa: F401
     from app.infrastructure.persistence.sales.models import QuoteModel, SalesOrderModel, SalesInvoiceModel, SalesLineModel  # noqa: F401
+    from app.infrastructure.persistence.assets.models import AssetModel, DepreciationEntryModel  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+
+def get_db():
+    """
+    Dependency generator for FastAPI to get a database session.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

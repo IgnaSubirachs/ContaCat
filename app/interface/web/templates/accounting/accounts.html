@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pla Comptable - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/accounting">Comptabilitat</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Pla Comptable</h1>
+            <a href="/accounting/accounts/create" class="btn">+ Nou Compte</a>
+        </div>
+
+        <div class="filter-section">
+            <form action="/accounting/accounts" method="GET" style="display: flex; gap: 1rem; align-items: center;">
+                <label for="group">Filtrar per Grup:</label>
+                <select name="group" id="group" onchange="this.form.submit()">
+                    <option value="">Tots els grups</option>
+                    <option value="1" {% if selected_group==1 %}selected{% endif %}>Grup 1 - Finançament Bàsic</option>
+                    <option value="2" {% if selected_group==2 %}selected{% endif %}>Grup 2 - Actiu No Corrent</option>
+                    <option value="3" {% if selected_group==3 %}selected{% endif %}>Grup 3 - Existències</option>
+                    <option value="4" {% if selected_group==4 %}selected{% endif %}>Grup 4 - Creditors i Deutors
+                    </option>
+                    <option value="5" {% if selected_group==5 %}selected{% endif %}>Grup 5 - Comptes Financers</option>
+                    <option value="6" {% if selected_group==6 %}selected{% endif %}>Grup 6 - Compres i Despeses</option>
+                    <option value="7" {% if selected_group==7 %}selected{% endif %}>Grup 7 - Vendes i Ingressos</option>
+                </select>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Codi</th>
+                    <th style="width: 50%;">Nom del Compte</th>
+                    <th style="width: 15%;">Tipus</th>
+                    <th style="width: 20%;">Accions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for account in accounts %}
+                <tr>
+                    <td><strong><a href="/accounting/ledger/{{ account.code }}"
+                                style="text-decoration: none; color: var(--accent-color);">{{ account.code
+                                }}</a></strong></td>
+                    <td>{{ account.name }}</td>
+                    <td><span class="badge" style="background: rgba(255, 255, 255, 0.1);">{{ account.account_type.value
+                            }}</span></td>
+                    <td>
+                        <a href="/accounting/ledger/{{ account.code }}"
+                            style="color: var(--accent-color); text-decoration: none; margin-right: 1rem;">Veure
+                            Major</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>
