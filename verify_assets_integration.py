@@ -24,8 +24,8 @@ def verify_integration():
     try:
         print("Setting up repositories and services...")
         asset_repo = SqlAlchemyAssetRepository(session)
-        account_repo = SqlAlchemyAccountRepository(session)
-        journal_repo = SqlAlchemyJournalRepository(lambda: session)
+        account_repo = SqlAlchemyAccountRepository()
+        journal_repo = SqlAlchemyJournalRepository()
         
         accounting_service = AccountingService(account_repo, journal_repo)
         asset_service = AssetService(asset_repo, accounting_service)

@@ -76,17 +76,11 @@ class AssetService:
 
         entry = DepreciationEntry(
             asset_id=asset.id,
-            date=date(year, 12, 31), # End of year
+            date=date(year, 12, 31),
             amount=amount,
             accumulated_depreciation=asset.accumulated_depreciation + amount,
             description=f"Amortització {year} - {asset.name}",
-            journal_entry_id=journal_entry.entry_number # Using entry_number as ID for now, or should it be ID? 
-            # Checking JournalEntry definition in accounting/entities.py... 
-            # It seems JournalEntry has entry_number. Let's check if it has an ID.
-            # In services.py: create_journal_entry returns JournalEntry.
-            # Let's assume entry_number is the unique identifier or there is an id field.
-            # Looking at accounting/services.py, create_journal_entry calls journal_repo.add(entry).
-            # I should verify JournalEntry entity structure.
+            journal_entry_id=journal_entry.entry_number
         )
         
         saved_entry = self.asset_repository.add_depreciation_entry(entry)

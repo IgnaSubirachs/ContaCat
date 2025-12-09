@@ -25,20 +25,10 @@ from app.domain.accounting.services import AccountingService
 def get_asset_service(db: Session = Depends(get_db)) -> AssetService:
     asset_repository = SqlAlchemyAssetRepository(db)
     account_repository = SqlAlchemyAccountRepository(db)
-    journal_repository = SqlAlchemyJournalRepository(lambda: db) # Using lambda to match expected factory signature if needed, or just pass db if it accepts session.
-    # Checking SqlAlchemyJournalRepository __init__: def __init__(self, session_factory=SessionLocal):
-    # It expects a factory. But here we have a session 'db'.
-    # If I pass a lambda that returns 'db', it should work for the scope of the request.
-    # However, SqlAlchemyJournalRepository calls self._session_factory() to get a session, and then closes it.
-    # If we pass the fastapi dependency 'db', we don't want the repo to close it prematurely.
-    # Let's check how other services are instantiated.
-    # In main.py: account_repo: AccountRepository = SqlAlchemyAccountRepository() (uses default SessionLocal)
-    # In routers/accounting.py (I should check this).
-    
-    # Let's check accounting router first to see how it instantiates the service.
-    
+    journal_repository = SqlAlchemyJournalRepository(lambda: db)
     accounting_service = AccountingService(account_repository, journal_repository)
     return AssetService(asset_repository, accounting_service)
+
 
 @router.get("/", response_class=HTMLResponse)
 async def list_assets(
