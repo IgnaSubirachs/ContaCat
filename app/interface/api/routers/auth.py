@@ -149,3 +149,11 @@ async def users_page(
 ):
     """Render user management page (admin only)."""
     return templates.TemplateResponse("auth/users.html", {"request": request})
+
+@router.get("/logout")
+async def logout():
+    """Logout user by clearing the cookie."""
+    from fastapi.responses import RedirectResponse
+    response = RedirectResponse(url="/auth/login-page", status_code=302)
+    response.delete_cookie("access_token")
+    return response

@@ -10,8 +10,8 @@
 
 <body>
     <nav>
-        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
-        <div>
+        <a href="/" class="logo">ContaCAT</a>
+        <div class="nav-links">
             <a href="/">Inici</a>
             <a href="/inventory">Inventari</a>
             <a href="/partners">Partners</a>
@@ -43,11 +43,13 @@
                     <td>{{ item.name }}</td>
                     <td>{{ item.location or '-' }}</td>
                     <td class="amount">{{ "%.2f"|format(item.unit_price) }} €</td>
-                    <td class="amount" style="{% if item.quantity <= 0 %}color: #ff6b6b;{% elif item.quantity < 10 %}color: #ffd93d;{% else %}color: #6bcb77;{% endif %}">
+                    <td class="amount"
+                        style="{% if item.quantity <= 0 %}color: #ff6b6b;{% elif item.quantity < 10 %}color: #ffd93d;{% else %}color: #6bcb77;{% endif %}">
                         {{ item.quantity }}
                     </td>
                     <td>
-                        <a href="/inventory/{{ item.id }}" style="color: var(--accent-color); text-decoration: none;">Veure</a>
+                        <a href="/inventory/{{ item.id }}"
+                            style="color: var(--accent-color); text-decoration: none;">Veure</a>
                     </td>
                 </tr>
                 {% endfor %}

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ERP Català</title>
+    <title>ContaCAT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -12,65 +12,40 @@
 </head>
 
 <body>
+    <nav>
+        <a href="/" class="logo">ContaCAT</a>
+        <div class="nav-links">
+            <span style="color: var(--text-secondary);">{{ user.username }}</span>
+            <a href="/auth/logout" style="color: var(--accent-color);">Sortir</a>
+        </div>
+    </nav>
+
     <div class="container">
-        <h1>ERP Català</h1>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem;">Una solució modular, robusta i
-            elegant per a la gestió empresarial.</p>
+        <h1>Benvingut, {{ user.username }}!</h1>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem;">
+            Rol: <strong>{{ user.role.value }}</strong>
+        </p>
 
         <div class="modules">
             <h2>Mòduls Disponibles</h2>
 
             <div class="module-grid">
-                <a href="/partners/" class="module-card">
-                    <img src="/static/img/partners.png" alt="Partners" class="module-icon">
-                    <h3>Partners</h3>
-                    <p>Clients i Proveïdors</p>
+                {% for module in modules %}
+                <a href="{{ module.url }}" class="module-card">
+                    <img src="/static/img/{{ module.icon }}" alt="{{ module.name }}" class="module-icon">
+                    <h3>{{ module.name }}</h3>
+                    <p>{{ module.desc }}</p>
                 </a>
-
-                <a href="/employees/" class="module-card">
-                    <img src="/static/img/hr.png" alt="RRHH" class="module-icon">
-                    <h3>RRHH</h3>
-                    <p>Empleats i Nòmines</p>
-                </a>
-
-                <a href="/accounts/" class="module-card">
-                    <img src="/static/img/accounting.png" alt="Comptes" class="module-icon">
-                    <h3>Comptes</h3>
-                    <p>Pla Comptable</p>
-                </a>
-
-                <a href="/accounting/" class="module-card">
-                    <img src="/static/img/accounting.png" alt="Comptabilitat" class="module-icon">
-                    <h3>Comptabilitat</h3>
-                    <p>Gestió Financera</p>
-                </a>
-
-                <a href="/assets/" class="module-card">
-                    <img src="/static/img/accounting.png" alt="Actius" class="module-icon">
-                    <h3>Actius Fixos</h3>
-                    <p>Gestió d'Immobilitzat</p>
-                </a>
-
-                <a href="/quotes/" class="module-card">
-                    <img src="/static/img/sales.png" alt="Pressupostos" class="module-icon">
-                    <h3>Pressupostos</h3>
-                    <p>Gestió de Quotes</p>
-                </a>
-
-                <a href="/sales/orders/" class="module-card">
-                    <img src="/static/img/sales.png" alt="Comandes" class="module-icon">
-                    <h3>Comandes</h3>
-                    <p>Sales Orders</p>
-                </a>
-
-                <a href="/sales/invoices/" class="module-card">
-                    <img src="/static/img/sales.png" alt="Factures" class="module-icon">
-                    <h3>Factures</h3>
-                    <p>Sales Invoices</p>
-                </a>
+                {% endfor %}
             </div>
         </div>
     </div>
+
+    <footer style="text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.85rem;">
+        <p style="margin: 0;">© 2025 <strong>Ignasi Subirachs Ferrer</strong></p>
+        <p style="margin: 0.5rem 0 0 0;">Llicència MIT · <a href="https://github.com/IgnaSubirachs/ContaCat-DEMO"
+                style="color: var(--accent-color);">GitHub</a></p>
+    </footer>
 
 </body>
 

@@ -4,34 +4,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - ERP Català</title>
+    <title>Login - ContaCAT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            justify-content: center;
+            align-items: center;
+        }
+
         .login-container {
-            max-width: 400px;
-            margin: 10rem auto;
+            max-width: 420px;
+            width: 90%;
         }
 
         .login-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: var(--glass-shadow);
         }
 
         .login-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
-        .login-header h1 {
-            margin: 0 0 0.5rem 0;
-            color: var(--text-primary);
-        }
-
-        .login-header p {
-            color: var(--text-secondary);
+        .logo-text {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent-color);
             margin: 0;
+            letter-spacing: -0.03em;
+        }
+
+        .logo-sub {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-top: 0.5rem;
         }
 
         .form-group {
@@ -47,12 +65,14 @@
 
         .form-group input {
             width: 100%;
-            padding: 0.75rem;
-            background: var(--bg-primary);
+            padding: 0.85rem 1rem;
+            background: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             color: var(--text-primary);
             font-size: 1rem;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
         }
 
         .form-group input:focus {
@@ -65,10 +85,23 @@
             font-size: 0.875rem;
             margin-top: 0.5rem;
             display: none;
+            text-align: center;
         }
 
         .error-message.show {
             display: block;
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .login-footer a {
+            color: var(--accent-color);
+            text-decoration: none;
         }
     </style>
 </head>
@@ -77,23 +110,31 @@
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <h1>ERP Català</h1>
-                <p>Inicia sessió per continuar</p>
+                <h1 class="logo-text">ContaCAT</h1>
+                <p class="logo-sub">Gestió Empresarial</p>
             </div>
             <form id="loginForm">
                 <div class="form-group">
                     <label for="username">Usuari</label>
-                    <input type="text" id="username" name="username" required autocomplete="username">
+                    <input type="text" id="username" name="username" required autocomplete="username"
+                        placeholder="El teu usuari">
                 </div>
                 <div class="form-group">
                     <label for="password">Contrasenya</label>
-                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                    <input type="password" id="password" name="password" required autocomplete="current-password"
+                        placeholder="La teva contrasenya">
                 </div>
                 <div class="error-message" id="errorMessage"></div>
-                <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Iniciar Sessió</button>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; padding: 1rem;">Iniciar
+                    Sessió</button>
             </form>
         </div>
     </div>
+
+    <footer class="login-footer">
+        <p>© 2025 <strong>Ignasi Subirachs Ferrer</strong></p>
+        <p>Llicència MIT · <a href="https://github.com/IgnaSubirachs/ContaCat-DEMO">GitHub</a></p>
+    </footer>
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -117,7 +158,8 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    localStorage.setItem('access_token', data.access_token);
+                    // Set cookie for web sessions
+                    document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
                     window.location.href = '/';
                 } else {
                     errorMessage.textContent = 'Usuari o contrasenya incorrectes';
@@ -129,6 +171,7 @@
             }
         });
     </script>
+
 </body>
 
 </html>
