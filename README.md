@@ -20,12 +20,14 @@ Sistema ERP modular desenvolupat amb Domain-Driven Design (DDD), FastAPI i MySQL
     - `POST /partners/delete/{id}` – eliminar partner
     - `GET /partners/api/list` – llista en JSON
 - ✅ **HR (RRHH)**: Gestió d'empleats, càrrecs, departaments i salaris
-- 🚧 **Accounts (Comptes)**: Pla comptable
+- ✅ **Accounts (Comptes)**: Pla comptable amb grups i tipus de comptes
 - ✅ **Accounting (Comptabilitat)**: Gestió comptable completa amb Pla General Comptable, Assentaments, Llibres i Informes Financers (Balanç i PyG).
+- ✅ **Assets (Actius Fixes)**: Gestió d'actius fixes amb amortització automàtica i integració amb Comptabilitat (assentaments automàtics).
 - ✅ **User Management (Gestió d'Usuaris)**: Sistema d'autenticació i autorització amb JWT. Rols: ADMIN, MANAGER, USER, READ_ONLY. Panell d'administració per a gestió d'usuaris.
 - 📋 **Budgets (Pressupostos)**: Gestió de pressupostos (en desenvolupament)
 - 📋 **Finance (Finances)**: Gestió financera (en desenvolupament)
 - 📋 **Banking (Conciliació)**: Conciliació bancària (en desenvolupament)
+
 
 ## Versió Escriptori (Nou!)
 
@@ -118,3 +120,7 @@ app/
 - **Escriptori**: pywebview, PyInstaller
 - **Contenidors**: Docker, Docker Compose
 - **Frontend**: HTML, CSS (plantilles Jinja2)
+
+## Llicència
+
+Aquest projecte està publicat sota la [Llicència MIT](LICENSE).
