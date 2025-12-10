@@ -47,3 +47,36 @@ class EmployeeModel(Base):
 
     def __repr__(self) -> str:
         return f"<EmployeeModel {self.dni} - {self.first_name} {self.last_name}>"
+
+
+class PayrollModel(Base):
+    """SQLAlchemy model for payrolls table."""
+    __tablename__ = "payrolls"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    employee_id: Mapped[str] = mapped_column(String(36), index=True)
+    month: Mapped[int] = mapped_column(Integer, nullable=False)
+    year: Mapped[int] = mapped_column(Integer, nullable=False)
+    
+    # Salary components
+    gross_salary: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    base_salary: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    supplements: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=0)
+    
+    # Deductions
+    social_security_employee: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    social_security_company: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    irpf_base: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    irpf_rate: Mapped[Decimal] = mapped_column(Numeric(5, 2), nullable=False)
+    irpf_amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    
+    net_salary: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    
+    # Metadata
+    period_start: Mapped[date] = mapped_column(Date, nullable=False)
+    period_end: Mapped[date] = mapped_column(Date, nullable=False)
+    working_days: Mapped[int] = mapped_column(Integer, default=30)
+    status: Mapped[str] = mapped_column(String(20), default="DRAFT")
+    
+    def __repr__(self) -> str:
+        return f"<PayrollModel {self.year}-{self.month} emp={self.employee_id}>"

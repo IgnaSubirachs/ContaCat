@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h4 class="mb-0"><i class="fas fa-university me-2"></i>Nou Compte Bancari</h4>
+            </div>
+            <div class="card-body">
+                <form action="/treasury/accounts" method="post">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nom del Banc / Compte *</label>
+                        <input type="text" class="form-control" id="name" name="name"
+                            placeholder="ex: La Caixa Principal" required>
+                        <div class="form-text">Nom descriptiu per identificar el compte.</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="iban" class="form-label">IBAN *</label>
+                            <input type="text" class="form-control font-monospace" id="iban" name="iban"
+                                placeholder="ES91..." required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="bic" class="form-label">BIC/SWIFT</label>
+                            <input type="text" class="form-control" id="bic" name="bic">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="account_code" class="form-label">Compte Comptable Associat</label>
+                        <input type="text" class="form-control" id="account_code" name="account_code"
+                            placeholder="572000...">
+                        <div class="form-text">Codi del compte al Pla General Comptable (grup 57).</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="/treasury/accounts" class="btn btn-outline-secondary">Cancel·lar</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Crear Compte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

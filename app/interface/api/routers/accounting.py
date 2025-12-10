@@ -9,6 +9,7 @@ from app.domain.accounting.services import AccountingService
 from app.domain.accounts.entities import AccountType
 from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository
 from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
+from app.domain.accounting.reporting_service import ReportingService
 
 # Initialize templates
 from app.interface.api.templates import templates
@@ -17,6 +18,7 @@ from app.interface.api.templates import templates
 account_repo = SqlAlchemyAccountRepository()
 journal_repo = SqlAlchemyJournalRepository()
 accounting_service = AccountingService(account_repo, journal_repo)
+reporting_service = ReportingService(accounting_service)
 
 router = APIRouter(prefix="/accounting", tags=["accounting"])
 
@@ -190,7 +192,7 @@ async def balance_sheet(request: Request, end_date: str = None):
         except ValueError:
             pass
     
-    balance_sheet = accounting_service.get_balance_sheet(end_date_obj)
+    balance_sheet = reporting_service.get_balance_sheet_report(end_date_obj)
     
     return templates.TemplateResponse(
         "accounting/balance_sheet.html",
@@ -216,7 +218,7 @@ async def profit_loss(request: Request, start_date: str = None, end_date: str = 
         except ValueError:
             pass
     
-    profit_loss = accounting_service.get_profit_loss(start_date_obj, end_date_obj)
+    profit_loss = reporting_service.get_profit_loss_report(start_date_obj, end_date_obj)
     
     return templates.TemplateResponse(
         "accounting/profit_loss.html",
@@ -239,7 +241,7 @@ async def export_balance_sheet(format: str = "pdf", end_date: str = None):
         except ValueError:
             pass
     
-    balance_sheet = accounting_service.get_balance_sheet(end_date_obj)
+    balance_sheet = reporting_service.get_balance_sheet_report(end_date_obj)
     
     # Create temporary file
     suffix = ".pdf" if format == "pdf" else ".xlsx"
@@ -286,7 +288,7 @@ async def export_profit_loss(format: str = "pdf", start_date: str = None, end_da
         except ValueError:
             pass
     
-    profit_loss = accounting_service.get_profit_loss(start_date_obj, end_date_obj)
+    profit_loss = reporting_service.get_profit_loss_report(start_date_obj, end_date_obj)
     
     # Create temporary file
     suffix = ".pdf" if format == "pdf" else ".xlsx"

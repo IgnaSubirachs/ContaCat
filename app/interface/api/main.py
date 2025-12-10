@@ -17,9 +17,15 @@ from app.interface.api.routers import assets
 from app.interface.api.routers import inventory
 from app.interface.api.routers import fiscal
 from app.interface.api.routers import analytics
+from app.interface.api.routers import payrolls
 
 from app.domain.auth.dependencies import get_current_user_or_redirect, can_access_module
 from app.domain.auth.entities import User
+app.include_router(partners.router)
+app.include_router(employees.router)
+app.include_router(payrolls.router)
+app.include_router(accounting.router)
+# ...
 
 app = FastAPI(title="ContaCAT", description="ERP Modular amb DDD", version="2.0.0")
 
@@ -36,20 +42,24 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 # Import centralized templates
 from app.interface.api.templates import templates
 
+# Import routers
+from app.interface.api.routers import accounting, accounts, sales_invoices, sales_orders, quotes, partners, employees, auth, payrolls, assets, analytics, fiscal, inventory, treasury
+
 # Include routers
+app.include_router(auth.router)
+app.include_router(accounts.router)
+app.include_router(accounting.router)
+app.include_router(sales_invoices.router)
+app.include_router(sales_orders.router)
+app.include_router(quotes.router)
 app.include_router(partners.router)
 app.include_router(employees.router)
-app.include_router(accounting.router)
-app.include_router(accounts.router)
-app.include_router(quotes.router)
-app.include_router(sales_orders.router)
-app.include_router(sales_invoices.router)
-app.include_router(auth.router)
+app.include_router(payrolls.router)
 app.include_router(assets.router)
-app.include_router(inventory.router)
-app.include_router(fiscal.router)
 app.include_router(analytics.router)
-
+app.include_router(fiscal.router)
+app.include_router(inventory.router)
+app.include_router(treasury.router)
 
 
 @app.get("/", response_class=HTMLResponse)

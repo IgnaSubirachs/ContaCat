@@ -32,6 +32,7 @@ def init_db():
     from app.infrastructure.persistence.inventory.models import StockItemModel, StockMovementModel  # noqa: F401
     from app.infrastructure.persistence.auth.repositories import UserModel  # noqa: F401
     from app.infrastructure.persistence.fiscal.models import FiscalYearModel  # noqa: F401
+    from app.infrastructure.persistence.treasury.models import BankAccountModel  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
 

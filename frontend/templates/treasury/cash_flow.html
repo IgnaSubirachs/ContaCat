@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-chart-line me-2"></i>Previsió de Tresoreria</h1>
+        <p class="text-muted">Anàlisi de fluxos de caixa futurs (Cash Flow)</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+            <a href="?days=30" class="btn btn-outline-primary {% if days == 30 %}active{% endif %}">30 Dies</a>
+            <a href="?days=60" class="btn btn-outline-primary {% if days == 60 %}active{% endif %}">60 Dies</a>
+            <a href="?days=90" class="btn btn-outline-primary {% if days == 90 %}active{% endif %}">90 Dies</a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-success shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Entrades Previstes</h5>
+                <h3>{{ "%.2f"|format(forecast.total_inflow) }} €</h3>
+                <p class="mb-0"><small>Factures de Venda Pendents</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-danger shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Sortides Previstes</h5>
+                <h3>{{ "%.2f"|format(forecast.total_outflow) }} €</h3>
+                <p class="mb-0"><small>Factures de Compra / Despeses</small></p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white {% if forecast.net_flow >= 0 %}bg-primary{% else %}bg-warning{% endif %} shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Flux Net</h5>
+                <h3>{{ "%.2f"|format(forecast.net_flow) }} €</h3>
+                <p class="mb-0"><small>Resultat del període</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-arrow-down me-2"></i>Entrades (Inflow)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data</th>
+                                <th>Concepte</th>
+                                <th class="text-end">Import</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in forecast.inflow %}
+                            <tr>
+                                <td>{{ item.date.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ item.description }}</td>
+                                <td class="text-end text-success fw-bold">+{{ "%.2f"|format(item.amount) }} €</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center py-3 text-muted">No hi ha entrades previstes.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-arrow-up me-2"></i>Sortides (Outflow)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Data</th>
+                                <th>Concepte</th>
+                                <th class="text-end">Import</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in forecast.outflow %}
+                            <tr>
+                                <td>{{ item.date.strftime('%d/%m/%Y') }}</td>
+                                <td>{{ item.description }}</td>
+                                <td class="text-end text-danger fw-bold">-{{ "%.2f"|format(item.amount) }} €</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center py-3 text-muted">No hi ha sortides previstes.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
