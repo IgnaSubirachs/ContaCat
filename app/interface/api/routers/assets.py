@@ -16,7 +16,7 @@ router = APIRouter(
     dependencies=[Depends(get_current_active_user)]
 )
 
-templates = Jinja2Templates(directory="app/interface/web/templates")
+from app.interface.api.templates import templates
 
 from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
 from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository

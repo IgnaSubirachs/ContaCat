@@ -14,6 +14,8 @@
 
         <div class="actions">
             <a href="/sales/invoices/" class="btn btn-secondary">← Tornar</a>
+            <a href="/sales/invoices/{{ invoice.id }}/pdf" class="btn btn-primary" target="_blank">📥 Descarregar
+                PDF</a>
 
             {% if invoice.status.value == 'DRAFT' %}
             <form action="/sales/invoices/{{ invoice.id }}/post" method="post" style="display:inline;">

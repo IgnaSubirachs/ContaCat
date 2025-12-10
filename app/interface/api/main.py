@@ -24,15 +24,17 @@ from app.domain.auth.entities import User
 app = FastAPI(title="ContaCAT", description="ERP Modular amb DDD", version="2.0.0")
 
 # Determine paths relative to this file
+# app is at c:\ERP\app\interface\api\main.py
+# static is at c:\ERP\frontend\static
 current_dir = os.path.dirname(os.path.abspath(__file__))
-web_dir = os.path.join(current_dir, "../web")
-static_dir = os.path.join(web_dir, "static")
-templates_dir = os.path.join(web_dir, "templates")
+project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
+static_dir = os.path.join(project_root, "frontend/static")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
-# Set up Jinja2 templates
-templates = Jinja2Templates(directory=templates_dir)
+
+# Import centralized templates
+from app.interface.api.templates import templates
 
 # Include routers
 app.include_router(partners.router)

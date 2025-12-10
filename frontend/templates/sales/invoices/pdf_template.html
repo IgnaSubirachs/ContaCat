@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Factura {{ invoice.invoice_number }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+
+        .header-table {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .company-info {
+            font-size: 9pt;
+            color: #555;
+        }
+
+        .invoice-title {
+            font-size: 24pt;
+            font-weight: bold;
+            color: #e63946;
+            /* Accent color */
+            text-transform: uppercase;
+        }
+
+        .info-box {
+            width: 45%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #e63946;
+            font-size: 9pt;
+            text-transform: uppercase;
+        }
+
+        table.lines {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        table.lines th {
+            background-color: #333;
+            color: #fff;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 9pt;
+        }
+
+        table.lines td {
+            border-bottom: 1px solid #eee;
+            padding: 8px;
+        }
+
+        .totals-table {
+            width: 40%;
+            margin-left: auto;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        .totals-table td {
+            padding: 5px;
+            text-align: right;
+        }
+
+        .total-row {
+            font-weight: bold;
+            font-size: 12pt;
+            border-top: 2px solid #333;
+        }
+
+        .footer {
+            margin-top: 50px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            font-size: 8pt;
+            text-align: center;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header: Logo/Company & Invoice Title -->
+    <table class="header-table">
+        <tr>
+            <td valign="top" width="60%">
+                <!-- Placeholder for Logo if we could resolve path, for now Text -->
+                <div style="font-size: 20pt; font-weight: bold; color: #333;">{{ company.name }}</div>
+                <div class="company-info">
+                    {{ company.address }}<br>
+                    NIF: {{ company.tax_id }}<br>
+                    {{ company.email }} | {{ company.phone }}
+                </div>
+            </td>
+            <td valign="top" align="right" width="40%">
+                <div class="invoice-title">FACTURA</div>
+                <table style="width: 100%; margin-top: 10px; text-align: right;">
+                    <tr>
+                        <td style="font-weight: bold;">Número:</td>
+                        <td>{{ invoice.invoice_number }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Data:</td>
+                        <td>{{ invoice.invoice_date.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold;">Venciment:</td>
+                        <td>{{ invoice.due_date.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Customer & Shipping Info -->
+    <table width="100%" cellspacing="10">
+        <tr>
+            <td width="50%" valign="top">
+                <div class="info-box">
+                    <div class="info-title">Client</div>
+                    <strong>{{ partner.name }}</strong><br>
+                    NIF: {{ partner.tax_id }}<br>
+                    <!-- Address would go here if available in partner entity -->
+                </div>
+            </td>
+            <td width="50%" valign="top">
+                <!-- Can be used for specific shipping address or payment details -->
+            </td>
+        </tr>
+    </table>
+
+    <!-- Invoice Lines -->
+    <table class="lines">
+        <thead>
+            <tr>
+                <th width="40%">Descripció</th>
+                <th width="10%" align="right">Quantitat</th>
+                <th width="15%" align="right">Preu Unit.</th>
+                <th width="15%" align="right">Descompte</th>
+                <th width="20%" align="right">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in invoice.lines %}
+            <tr>
+                <td>{{ line.description }}</td>
+                <td align="right">{{ line.quantity }}</td>
+                <td align="right">{{ "%.2f"|format(line.unit_price) }} €</td>
+                <td align="right">{{ "%.2f"|format(line.discount) }} %</td>
+                <td align="right">{{ "%.2f"|format(line.amount) }} €</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Totals -->
+    <table class="totals-table">
+        <tr>
+            <td>Base Imposable:</td>
+            <td>{{ "%.2f"|format(invoice.tax_base) }} €</td>
+        </tr>
+        <tr>
+            <td>IVA (21%):</td>
+            <td>{{ "%.2f"|format(invoice.total_tax) }} €</td>
+        </tr>
+        <tr class="total-row">
+            <td>TOTAL:</td>
+            <td>{{ "%.2f"|format(invoice.total_amount) }} €</td>
+        </tr>
+    </table>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Forma de pagament: Transferència Bancària</p>
+        <p>Gràcies per la seva confiança.</p>
+    </div>
+
+</body>
+
+</html>

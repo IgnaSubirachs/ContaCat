@@ -19,7 +19,7 @@ from app.infrastructure.persistence.accounting.repository import SqlAlchemyJourn
 
 
 router = APIRouter(prefix="/sales/invoices", tags=["sales_invoices"])
-templates = Jinja2Templates(directory="app/interface/web/templates")
+from app.interface.api.templates import templates
 
 
 def get_invoice_service():
@@ -109,3 +109,29 @@ async def create_from_order(order_id: str, series: str = Form("A")):
         return RedirectResponse(url=f"/sales/invoices/{invoice.id}", status_code=303)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+from fastapi import Response
+from app.domain.sales.pdf_service import PdfService
+
+@router.get("/{invoice_id}/pdf")
+async def get_invoice_pdf(invoice_id: str):
+    """Generate and download PDF for invoice."""
+    service = get_invoice_service()
+    invoice = service.get_invoice(invoice_id)
+    
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Factura no trobada")
+        
+    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
+    partner = partner_repo.find_by_id(invoice.partner_id)
+    
+    pdf_service = PdfService(templates)
+    pdf_bytes = pdf_service.generate_invoice_pdf(invoice, partner)
+    
+    filename = f"Factura_{invoice.invoice_number}.pdf"
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )

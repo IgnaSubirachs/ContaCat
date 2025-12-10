@@ -10,12 +10,14 @@ from app.domain.auth.dependencies import get_auth_service, get_current_active_us
 from app.domain.auth.entities import User, UserRole
 from app.domain.auth.schemas import Token, UserCreate, UserUpdate, UserResponse
 
+from app.interface.api.templates import templates
+
 router = APIRouter(prefix="/auth", tags=["auth"])
-templates = Jinja2Templates(directory="app/interface/web/templates")
 
 @router.post("/login", response_model=Token)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
+    remember_me: bool = False,
     auth_service: AuthService = Depends(get_auth_service)
 ):
     """Login endpoint that returns a JWT token."""
@@ -27,7 +29,10 @@ async def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    # 7 days for remember me, otherwise default (30 mins)
+    expire_minutes = 60 * 24 * 7 if remember_me else ACCESS_TOKEN_EXPIRE_MINUTES
+    access_token_expires = timedelta(minutes=expire_minutes)
+    
     access_token = auth_service.create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )

@@ -13,7 +13,10 @@
 
 <body>
     <nav>
-        <a href="/" class="logo">ContaCAT</a>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <img src="/static/img/logo.png" alt="ContaCAT Logo" style="height: 40px;">
+            <a href="/" class="logo">ContaCAT</a>
+        </div>
         <div class="nav-links">
             <span style="color: var(--text-secondary);">{{ user.username }}</span>
             <a href="/auth/logout" style="color: var(--accent-color);">Sortir</a>

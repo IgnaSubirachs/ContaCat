@@ -7,9 +7,7 @@ from app.domain.partners.services import PartnerService
 from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
 
 # Initialize templates
-current_dir = os.path.dirname(os.path.abspath(__file__))
-templates_dir = os.path.join(current_dir, "../../web/templates")
-templates = Jinja2Templates(directory=templates_dir)
+from app.interface.api.templates import templates
 
 # Initialize service
 partner_repo = SqlAlchemyPartnerRepository()

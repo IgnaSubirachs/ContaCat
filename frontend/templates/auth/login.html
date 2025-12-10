@@ -124,6 +124,11 @@
                     <input type="password" id="password" name="password" required autocomplete="current-password"
                         placeholder="La teva contrasenya">
                 </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <input type="checkbox" id="remember_me" name="remember_me" style="width: auto; margin: 0;">
+                    <label for="remember_me"
+                        style="margin: 0; font-weight: 400; font-size: 0.9rem; color: var(--text-primary);">Recorda'm</label>
+                </div>
                 <div class="error-message" id="errorMessage"></div>
                 <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; padding: 1rem;">Iniciar
                     Sessió</button>
@@ -150,6 +155,7 @@
                 const formData = new FormData();
                 formData.append('username', username);
                 formData.append('password', password);
+                formData.append('remember_me', document.getElementById('remember_me').checked);
 
                 const response = await fetch('/auth/login', {
                     method: 'POST',

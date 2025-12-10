@@ -11,9 +11,7 @@ from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccount
 from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
 
 # Initialize templates
-current_dir = os.path.dirname(os.path.abspath(__file__))
-templates_dir = os.path.join(current_dir, "../../web/templates")
-templates = Jinja2Templates(directory=templates_dir)
+from app.interface.api.templates import templates
 
 # Initialize service
 account_repo = SqlAlchemyAccountRepository()

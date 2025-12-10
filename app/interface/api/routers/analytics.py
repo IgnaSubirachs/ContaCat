@@ -5,17 +5,23 @@ from typing import Optional
 import json
 
 from app.domain.analytics.services import AnalyticsService
+from app.domain.accounting.services import AccountingService
+from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository
+from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
 from app.domain.auth.dependencies import get_current_active_user, require_role
 from app.domain.auth.entities import User, UserRole
-from app.infrastructure.db.base import get_db
 from sqlalchemy.orm import Session
 
+from app.interface.api.templates import templates
+
 router = APIRouter(prefix="/analytics", tags=["analytics"])
-templates = Jinja2Templates(directory="app/interface/web/templates")
 
 
-def get_analytics_service(db: Session = Depends(get_db)) -> AnalyticsService:
-    return AnalyticsService(db)
+def get_analytics_service() -> AnalyticsService:
+    account_repo = SqlAlchemyAccountRepository()
+    journal_repo = SqlAlchemyJournalRepository()
+    accounting_service = AccountingService(account_repo, journal_repo)
+    return AnalyticsService(accounting_service)
 
 
 @router.get("/", response_class=HTMLResponse)

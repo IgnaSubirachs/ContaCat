@@ -11,10 +11,10 @@ from app.domain.sales.services import QuoteService
 from app.domain.sales.entities import QuoteStatus
 from app.infrastructure.persistence.sales.repository import SqlAlchemyQuoteRepository
 from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
+from app.interface.api.templates import templates
 
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
-templates = Jinja2Templates(directory="app/interface/web/templates")
 
 
 def get_quote_service():

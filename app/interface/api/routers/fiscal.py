@@ -10,8 +10,9 @@ from app.infrastructure.persistence.fiscal.repositories import SqlAlchemyFiscalY
 from app.domain.auth.dependencies import get_current_active_user, require_role
 from app.domain.auth.entities import User, UserRole
 
+from app.interface.api.templates import templates
+
 router = APIRouter(prefix="/fiscal", tags=["fiscal"])
-templates = Jinja2Templates(directory="app/interface/web/templates")
 
 
 def get_fiscal_service() -> FiscalYearService:
