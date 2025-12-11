@@ -1,0 +1,80 @@
+<div class="bg-corporate" id="sidebar-wrapper">
+    <div
+        class="sidebar-heading text-center py-4 primary-text fs-4 fw-bold text-uppercase border-bottom border-secondary">
+        <i class="fas fa-chart-line me-2"></i>ContaCAT
+    </div>
+
+    <div class="list-group list-group-flush my-3">
+        <!-- Dashboard -->
+        <a href="/"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.url.path == '/' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt me-2"></i>Inici
+        </a>
+
+        <!-- Vendes -->
+        <div class="sidebar-category">Vendes</div>
+        <a href="/quotes"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'quotes' in request.url.path %}active{% endif %}">
+            <i class="fas fa-file-contract me-2"></i>Pressupostos
+        </a>
+        <a href="/sales-orders"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'sales-orders' in request.url.path %}active{% endif %}">
+            <i class="fas fa-shopping-cart me-2"></i>Comandes
+        </a>
+        <a href="/sales-invoices"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'sales-invoices' in request.url.path %}active{% endif %}">
+            <i class="fas fa-file-invoice-dollar me-2"></i>Factures
+        </a>
+        <a href="/partners"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'partners' in request.url.path %}active{% endif %}">
+            <i class="fas fa-users me-2"></i>Clients/Prov.
+        </a>
+
+        <!-- Tresoreria -->
+        <div class="sidebar-category">Tresoreria</div>
+        <a href="/treasury/accounts"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'treasury/accounts' in request.url.path %}active{% endif %}">
+            <i class="fas fa-university me-2"></i>Bancs
+        </a>
+        <a href="/treasury/cash-flow"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'treasury/cash-flow' in request.url.path %}active{% endif %}">
+            <i class="fas fa-money-bill-wave me-2"></i>Previsió
+        </a>
+
+        <!-- RRHH -->
+        <div class="sidebar-category">Recurs. Humans</div>
+        <a href="/employees"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'employees' in request.url.path %}active{% endif %}">
+            <i class="fas fa-user-tie me-2"></i>Empleats
+        </a>
+        <a href="/payrolls"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'payrolls' in request.url.path %}active{% endif %}">
+            <i class="fas fa-file-alt me-2"></i>Nòmines
+        </a>
+
+        <!-- Comptabilitat i Informes -->
+        <div class="sidebar-category">Financer</div>
+        <a href="/accounting/reports/balance-sheet"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'balance-sheet' in request.url.path %}active{% endif %}">
+            <i class="fas fa-balance-scale me-2"></i>Balanç
+        </a>
+        <a href="/accounting/reports/profit-loss"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'profit-loss' in request.url.path %}active{% endif %}">
+            <i class="fas fa-calculator me-2"></i>Pèrdues i G.
+        </a>
+        <a href="/analytics"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'analytics' in request.url.path %}active{% endif %}">
+            <i class="fas fa-chart-pie me-2"></i>Analítica
+        </a>
+
+        <!-- Configuració -->
+        <div class="sidebar-category">Sistema</div>
+        <a href="/fiscal"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'fiscal' in request.url.path %}active{% endif %}">
+            <i class="fas fa-calendar-alt me-2"></i>Exercicis
+        </a>
+        <a href="/logout" class="list-group-item list-group-item-action bg-transparent second-text fw-bold text-danger">
+            <i class="fas fa-power-off me-2"></i>Sortir
+        </a>
+    </div>
+</div>
