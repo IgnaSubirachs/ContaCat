@@ -11,6 +11,7 @@ from app.domain.hr.social_security import SocialSecurityCalculator
 
 
 
+
 @dataclass
 class Employee:
     """Employee entity representing a company employee."""
@@ -148,3 +149,55 @@ class Employee:
         # Validate disability degree
         if self.disability_degree not in [0, 33, 65]:
             raise ValueError("El grau de discapacitat ha de ser 0, 33 o 65")
+
+
+from enum import Enum
+
+class PayrollStatus(str, Enum):
+    DRAFT = "DRAFT"
+    PAID = "PAID"
+
+@dataclass
+class Payroll:
+    """Payroll entity representing a monthly payslip."""
+    employee_id: str
+    month: int
+    year: int
+    gross_salary: Decimal  # Salari brut
+    base_salary: Decimal   # Salari base
+    supplements: Decimal   # Complements
+    
+    # Deductions
+    social_security_employee: Decimal # Quota obrera (Treballador)
+    social_security_company: Decimal  # Quota patronal (Empresa) - Informativa a nòmina
+    irpf_base: Decimal     # Base IRPF
+    irpf_rate: Decimal     # Tipus IRPF (%)
+    irpf_amount: Decimal   # Import IRPF
+    
+    net_salary: Decimal    # Líquid a percebre
+    
+    # Metadata
+    period_start: date
+    period_end: date
+    working_days: int = 30
+    
+    status: PayrollStatus = PayrollStatus.DRAFT
+    id: Optional[str] = None
+    
+    # Calculated on retrieval if needed, not persisted directly if lazy
+    employee: Optional[Employee] = None 
+    
+    def __post_init__(self):
+        if self.id is None:
+            self.id = str(uuid.uuid4())
+            
+    def validate(self) -> None:
+        """Validate payroll data."""
+        if self.gross_salary < 0:
+            raise ValueError("El salari brut no pot ser negatiu")
+        if self.net_salary < 0:
+            raise ValueError("El salari net no pot ser negatiu")
+        if not (1 <= self.month <= 12):
+            raise ValueError("El mes ha de ser entre 1 i 12")
+        if self.year < 2000:
+            raise ValueError("L'any no és vàlid")

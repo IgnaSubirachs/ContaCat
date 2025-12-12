@@ -11,10 +11,10 @@ from app.domain.sales.services import SalesOrderService
 from app.domain.sales.entities import OrderStatus
 from app.infrastructure.persistence.sales.repository import SqlAlchemySalesOrderRepository, SqlAlchemyQuoteRepository
 from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
+from app.interface.api.templates import templates
 
 
 router = APIRouter(prefix="/sales/orders", tags=["sales_orders"])
-templates = Jinja2Templates(directory="app/interface/web/templates")
 
 
 def get_order_service():

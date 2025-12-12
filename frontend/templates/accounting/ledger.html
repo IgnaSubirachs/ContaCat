@@ -1,0 +1,19 @@
+{% set ns.running_balance = ns.running_balance + entry.debit - entry.credit %}
+{% else %}
+{% set ns.running_balance = ns.running_balance + entry.credit - entry.debit %}
+{% endif %}
+<td class="amount" style="font-weight: bold;">{{ "%.2f"|format(ns.running_balance) }} €</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% else %}
+<p style="text-align: center; color: #6b7280; padding: 2rem;">
+    Aquest compte no té moviments.
+</p>
+{% endif %}
+</div>
+</div>
+</body>
+
+</html>

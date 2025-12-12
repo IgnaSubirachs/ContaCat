@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balanç de Situació - ERP</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/accounting">Comptabilitat</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/accounting" class="back-link">← Tornar a Comptabilitat</a>
+
+        <h1>Balanç de Situació</h1>
+        <p>
+            {% if balance_sheet.end_date %}
+            Data de tancament: {{ balance_sheet.end_date.strftime('%d/%m/%Y') }}
+            {% else %}
+            Situació actual
+            {% endif %}
+        </p>
+
+        <div class="filter-section">
+            <form method="get" action="/accounting/reports/balance-sheet"
+                style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+                <label for="end_date">Data de tancament:</label>
+                <input type="date" id="end_date" name="end_date"
+                    value="{{ balance_sheet.end_date.isoformat() if balance_sheet.end_date else '' }}">
+                <button type="submit" class="btn">Filtrar</button>
+            </form>
+        </div>
+
+        <div class="export-buttons">
+            <a href="/accounting/reports/balance-sheet/export?format=pdf{% if balance_sheet.end_date %}&end_date={{ balance_sheet.end_date.isoformat() }}{% endif %}"
+                class="export-btn pdf">📄 Exportar PDF</a>
+            <a href="/accounting/reports/balance-sheet/export?format=excel{% if balance_sheet.end_date %}&end_date={{ balance_sheet.end_date.isoformat() }}{% endif %}"
+                class="export-btn excel">📊 Exportar Excel</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <!-- ACTIU -->
+            <div class="section">
+                <div class="section-title">ACTIU</div>
+
+                <div class="subsection-title">Actiu No Corrent</div>
+                <table>
+                    <tbody>
+                        {% for group_name, group_data in balance_sheet.actiu.no_corrent.groups.items() %}
+                        <tr class="group-header">
+                            <td colspan="3">{{ group_name }}</td>
+                        </tr>
+                        {% for account in group_data.accounts %}
+                        <tr>
+                            <td style="padding-left: 20px;">{{ account.code }}</td>
+                            <td>{{ account.name }}</td>
+                            <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="group-total">
+                            <td colspan="2" style="padding-left: 20px;">Total {{ group_name }}</td>
+                            <td class="amount">{{ "%.2f"|format(group_data.total) }} €</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; opacity: 0.5;">No hi ha comptes</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td colspan="2">Total Actiu No Corrent</td>
+                            <td class="amount">{{ "%.2f"|format(balance_sheet.actiu.no_corrent.total) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="subsection-title">Actiu Corrent</div>
+                <table>
+                    <tbody>
+                        {% for group_name, group_data in balance_sheet.actiu.corrent.groups.items() %}
+                        <tr class="group-header">
+                            <td colspan="3">{{ group_name }}</td>
+                        </tr>
+                        {% for account in group_data.accounts %}
+                        <tr>
+                            <td style="padding-left: 20px;">{{ account.code }}</td>
+                            <td>{{ account.name }}</td>
+                            <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="group-total">
+                            <td colspan="2" style="padding-left: 20px;">Total {{ group_name }}</td>
+                            <td class="amount">{{ "%.2f"|format(group_data.total) }} €</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; opacity: 0.5;">No hi ha comptes</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td colspan="2">Total Actiu Corrent</td>
+                            <td class="amount">{{ "%.2f"|format(balance_sheet.actiu.corrent.total) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table>
+                    <tbody>
+                        <tr class="grand-total">
+                            <td colspan="2">TOTAL ACTIU</td>
+                            <td class="amount">{{ "%.2f"|format(balance_sheet.actiu.total) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PASSIU I PATRIMONI NET -->
+            <div class="section">
+                <div class="section-title">PATRIMONI NET I PASSIU</div>
+
+                <div class="subsection-title">Patrimoni Net</div>
+                <table>
+                    <tbody>
+                        {% for group_name, group_data in
+                        balance_sheet.patrimoni_net_i_passiu.patrimoni_net.groups.items() %}
+                        <tr class="group-header">
+                            <td colspan="3">{{ group_name }}</td>
+                        </tr>
+                        {% for account in group_data.accounts %}
+                        <tr>
+                            <td style="padding-left: 20px;">{{ account.code }}</td>
+                            <td>{{ account.name }}</td>
+                            <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="group-total">
+                            <td colspan="2" style="padding-left: 20px;">Total {{ group_name }}</td>
+                            <td class="amount">{{ "%.2f"|format(group_data.total) }} €</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; opacity: 0.5;">No hi ha comptes</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td colspan="2">Total Patrimoni Net</td>
+                            <td class="amount">{{
+                                "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.patrimoni_net.total) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="subsection-title">Passiu No Corrent</div>
+                <table>
+                    <tbody>
+                        {% for group_name, group_data in
+                        balance_sheet.patrimoni_net_i_passiu.passiu_no_corrent.groups.items() %}
+                        <tr class="group-header">
+                            <td colspan="3">{{ group_name }}</td>
+                        </tr>
+                        {% for account in group_data.accounts %}
+                        <tr>
+                            <td style="padding-left: 20px;">{{ account.code }}</td>
+                            <td>{{ account.name }}</td>
+                            <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="group-total">
+                            <td colspan="2" style="padding-left: 20px;">Total {{ group_name }}</td>
+                            <td class="amount">{{ "%.2f"|format(group_data.total) }} €</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; opacity: 0.5;">No hi ha comptes</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td colspan="2">Total Passiu No Corrent</td>
+                            <td class="amount">{{
+                                "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.passiu_no_corrent.total) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="subsection-title">Passiu Corrent</div>
+                <table>
+                    <tbody>
+                        {% for group_name, group_data in
+                        balance_sheet.patrimoni_net_i_passiu.passiu_corrent.groups.items() %}
+                        <tr class="group-header">
+                            <td colspan="3">{{ group_name }}</td>
+                        </tr>
+                        {% for account in group_data.accounts %}
+                        <tr>
+                            <td style="padding-left: 20px;">{{ account.code }}</td>
+                            <td>{{ account.name }}</td>
+                            <td class="amount">{{ "%.2f"|format(account.balance) }} €</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="group-total">
+                            <td colspan="2" style="padding-left: 20px;">Total {{ group_name }}</td>
+                            <td class="amount">{{ "%.2f"|format(group_data.total) }} €</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; opacity: 0.5;">No hi ha comptes</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td colspan="2">Total Passiu Corrent</td>
+                            <td class="amount">{{
+                                "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.passiu_corrent.total) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table>
+                    <tbody>
+                        <tr class="total-row">
+                            <td colspan="2">TOTAL PASSIU</td>
+                            <td class="amount">{{
+                                "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.passiu_no_corrent.total +
+                                balance_sheet.patrimoni_net_i_passiu.passiu_corrent.total) }} €</td>
+                        </tr>
+                        <tr class="grand-total">
+                            <td colspan="2">TOTAL PATRIMONI NET I PASSIU</td>
+                            <td class="amount">{{ "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.total) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="summary">
+            <h3 style="margin-bottom: 1rem; color: var(--text-primary);">Resum del Balanç</h3>
+            <div class="summary-item">
+                <span>Total Actiu:</span>
+                <span class="amount">{{ "%.2f"|format(balance_sheet.actiu.total) }} €</span>
+            </div>
+            <div class="summary-item">
+                <span>Total Patrimoni Net:</span>
+                <span class="amount">{{ "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.patrimoni_net.total) }}
+                    €</span>
+            </div>
+            <div class="summary-item">
+                <span>Total Passiu:</span>
+                <span class="amount">{{ "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.passiu_no_corrent.total +
+                    balance_sheet.patrimoni_net_i_passiu.passiu_corrent.total) }} €</span>
+            </div>
+            <div class="summary-item total">
+                <span>Equilibri (ha de ser 0):</span>
+                <span class="amount">{{ "%.2f"|format(balance_sheet.actiu.total -
+                    balance_sheet.patrimoni_net_i_passiu.total) }} €</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

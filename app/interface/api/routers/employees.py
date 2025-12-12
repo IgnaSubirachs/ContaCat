@@ -9,9 +9,7 @@ from app.domain.hr.services import EmployeeService
 from app.infrastructure.persistence.hr.repository import SqlAlchemyEmployeeRepository
 
 # Initialize templates
-current_dir = os.path.dirname(os.path.abspath(__file__))
-templates_dir = os.path.join(current_dir, "../../web/templates")
-templates = Jinja2Templates(directory=templates_dir)
+from app.interface.api.templates import templates
 
 # Initialize service
 employee_repo = SqlAlchemyEmployeeRepository()

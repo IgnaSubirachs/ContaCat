@@ -40,3 +40,32 @@ class EmployeeRepository(ABC):
     def delete(self, employee_id: str) -> None:
         """Delete an employee."""
         pass
+
+
+class PayrollRepository(ABC):
+    """Abstract repository for Payroll entities."""
+    
+    @abstractmethod
+    def add(self, payroll: 'Payroll') -> None:
+        """Add a new payroll."""
+        pass
+    
+    @abstractmethod
+    def update(self, payroll: 'Payroll') -> None:
+        """Update an existing payroll."""
+        pass
+    
+    @abstractmethod
+    def find_by_id(self, payroll_id: str) -> Optional['Payroll']:
+        """Find a payroll by ID."""
+        pass
+    
+    @abstractmethod
+    def list_by_employee(self, employee_id: str) -> List['Payroll']:
+        """List payrolls for an employee."""
+        pass
+    
+    @abstractmethod
+    def list_by_period(self, month: int, year: int) -> List['Payroll']:
+        """List payrolls for a specific month/year."""
+        pass

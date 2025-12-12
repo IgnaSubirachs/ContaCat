@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nou Assentament - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        function addLine() {
+            const tbody = document.getElementById('lines-body');
+            const rowCount = tbody.rows.length;
+            const row = tbody.insertRow(rowCount);
+
+            row.innerHTML = `
+                <td>
+                    <select name="account_code_${rowCount}" required style="width: 100%;">
+                        <option value="">Selecciona compte...</option>
+                        {% for account in accounts %}
+                        <option value="{{ account.code }}">{{ account.code }} - {{ account.name }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><input type="text" name="description_${rowCount}" required style="width: 100%;"></td>
+                <td><input type="number" step="0.01" name="debit_${rowCount}" value="0.00" onchange="updateTotals()" style="width: 100%; text-align: right;"></td>
+                <td><input type="number" step="0.01" name="credit_${rowCount}" value="0.00" onchange="updateTotals()" style="width: 100%; text-align: right;"></td>
+                <td style="text-align: center;"><button type="button" onclick="removeLine(this)" class="btn" style="background: var(--danger-color); padding: 0.2rem 0.5rem;">X</button></td>
+            `;
+        }
+
+        function removeLine(btn) {
+            const row = btn.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+            updateTotals();
+        }
+
+        function updateTotals() {
+            let totalDebit = 0;
+            let totalCredit = 0;
+
+            const debits = document.querySelectorAll('input[name^="debit_"]');
+            const credits = document.querySelectorAll('input[name^="credit_"]');
+
+            debits.forEach(input => totalDebit += parseFloat(input.value || 0));
+            credits.forEach(input => totalCredit += parseFloat(input.value || 0));
+
+            document.getElementById('total-debit').textContent = totalDebit.toFixed(2) + ' €';
+            document.getElementById('total-credit').textContent = totalCredit.toFixed(2) + ' €';
+
+            const diff = Math.abs(totalDebit - totalCredit);
+            const status = document.getElementById('balance-status');
+
+            if (diff < 0.01) {
+                status.textContent = "Equilibrat";
+                status.className = "text-success";
+            } else {
+                status.textContent = "Desequilibrat (" + diff.toFixed(2) + " €)";
+                status.className = "text-danger";
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/accounting">Comptabilitat</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Nou Assentament</h1>
+
+        <form action="/accounting/journal/create" method="POST">
+            <div class="section">
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <label for="date">Data:</label>
+                        <input type="date" id="date" name="date" required value="{{ today }}">
+                    </div>
+                    <div>
+                        <label for="description">Descripció General:</label>
+                        <input type="text" id="description" name="description" required style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>Línies de l'Assentament</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Compte</th>
+                            <th style="width: 30%;">Descripció</th>
+                            <th style="width: 15%; text-align: right;">Deure</th>
+                            <th style="width: 15%; text-align: right;">Haver</th>
+                            <th style="width: 10%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="lines-body">
+                        <!-- Initial lines -->
+                        <tr>
+                            <td>
+                                <select name="account_code_0" required style="width: 100%;">
+                                    <option value="">Selecciona compte...</option>
+                                    {% for account in accounts %}
+                                    <option value="{{ account.code }}">{{ account.code }} - {{ account.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td><input type="text" name="description_0" required style="width: 100%;"></td>
+                            <td><input type="number" step="0.01" name="debit_0" value="0.00" onchange="updateTotals()"
+                                    style="width: 100%; text-align: right;"></td>
+                            <td><input type="number" step="0.01" name="credit_0" value="0.00" onchange="updateTotals()"
+                                    style="width: 100%; text-align: right;"></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <select name="account_code_1" required style="width: 100%;">
+                                    <option value="">Selecciona compte...</option>
+                                    {% for account in accounts %}
+                                    <option value="{{ account.code }}">{{ account.code }} - {{ account.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td><input type="text" name="description_1" required style="width: 100%;"></td>
+                            <td><input type="number" step="0.01" name="debit_1" value="0.00" onchange="updateTotals()"
+                                    style="width: 100%; text-align: right;"></td>
+                            <td><input type="number" step="0.01" name="credit_1" value="0.00" onchange="updateTotals()"
+                                    style="width: 100%; text-align: right;"></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="2" style="text-align: right;">Totals:</td>
+                            <td id="total-debit" style="text-align: right;">0.00 €</td>
+                            <td id="total-credit" style="text-align: right;">0.00 €</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                    <button type="button" onclick="addLine()" class="btn"
+                        style="background: var(--card-bg); border: 1px solid var(--border-color);">+ Afegir
+                        Línia</button>
+                    <div id="balance-status" class="text-success" style="font-weight: 700;">Equilibrat</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: right;">
+                <a href="/accounting/journal" class="back-link" style="margin-right: 1rem;">Cancel·lar</a>
+                <button type="submit" class="btn">Guardar Assentament</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

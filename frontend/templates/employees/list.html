@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empleats - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/employees">RRHH</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Empleats</h1>
+            <div style="display: flex; gap: 1rem;">
+                <a href="/employees/?filter=all" class="btn"
+                    style="background: {% if filter == 'all' %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Tots</a>
+                <a href="/employees/?filter=active" class="btn"
+                    style="background: {% if filter == 'active' %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Actius</a>
+                <a href="/employees/create" class="btn">+ Afegir Empleat</a>
+            </div>
+        </div>
+
+        <div class="card">
+            {% if employees %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>DNI</th>
+                        <th>Càrrec</th>
+                        <th>Departament</th>
+                        <th>Email</th>
+                        <th>Salari</th>
+                        <th>Estat</th>
+                        <th>Accions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td>
+                            <a href="/employees/{{ employee.id }}"
+                                style="color: var(--accent-color); text-decoration: none; font-weight: 600;">
+                                {{ employee.full_name }}
+                            </a>
+                        </td>
+                        <td>{{ employee.dni }}</td>
+                        <td>{{ employee.position }}</td>
+                        <td>{{ employee.department }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td class="amount">{{ "%.2f"|format(employee.salary) }} €</td>
+                        <td>
+                            {% if employee.is_active %}
+                            <span class="badge"
+                                style="background: rgba(76, 217, 100, 0.1); color: #4cd964;">Actiu</span>
+                            {% else %}
+                            <span class="badge"
+                                style="background: rgba(255, 59, 48, 0.1); color: #ff3b30;">Inactiu</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/employees/edit/{{ employee.id }}" class="btn"
+                                style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.5rem;">✏️ Editar</a>
+                            <form method="POST" action="/employees/delete/{{ employee.id }}" style="display: inline;"
+                                onsubmit="return confirm('Segur que vols eliminar aquest empleat?');">
+                                <button type="submit" class="btn"
+                                    style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: rgba(220, 38, 38, 0.1); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.2);">🗑️
+                                    Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                No hi ha empleats. Afegeix-ne un!
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>

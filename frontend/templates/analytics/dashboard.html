@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analítiques - ContaCAT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .chart-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container h3 {
+            margin: 0 0 1rem 0;
+            color: var(--text-primary);
+        }
+
+        .ratios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .ratio-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .ratio-item .label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .ratio-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .ratio-item .value.good {
+            color: #4cd964;
+        }
+
+        .ratio-item .value.warning {
+            color: #ffcc00;
+        }
+
+        .ratio-item .value.bad {
+            color: #ff3b30;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="/" class="logo">ContaCAT</a>
+        <div class="nav-links">
+            <a href="/">Inici</a>
+            <a href="/fiscal">Exercicis</a>
+            <a href="/accounting">Comptabilitat</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="back-link">← Tornar</a>
+        <h1>📊 Dashboard d'Analítiques</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Visió general de l'estat financer</p>
+
+        <!-- Summary Cards -->
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <h3>Ingressos Totals</h3>
+                <div class="value">{{ "%.2f"|format(summary.total_income) }} €</div>
+            </div>
+            <div class="stat-card">
+                <h3>Despeses Totals</h3>
+                <div class="value">{{ "%.2f"|format(summary.total_expenses) }} €</div>
+            </div>
+            <div class="stat-card">
+                <h3>Benefici Net</h3>
+                <div class="value">{{ "%.2f"|format(summary.net_profit) }} €</div>
+            </div>
+            <div class="stat-card">
+                <h3>Patrimoni</h3>
+                <div class="value">{{ "%.2f"|format(summary.equity) }} €</div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-container">
+            <h3>Evolució Mensual</h3>
+            <canvas id="monthlyChart" height="100"></canvas>
+        </div>
+
+        <!-- Financial Ratios -->
+        <h2 style="margin-top: 2rem;">Ràtios Financers</h2>
+        <div class="ratios-grid">
+            <div class="ratio-item">
+                <div class="label">Ràtio de Solvència</div>
+                <div
+                    class="value {% if ratios.solvency_ratio and ratios.solvency_ratio > 1.5 %}good{% elif ratios.solvency_ratio and ratios.solvency_ratio > 1 %}warning{% else %}bad{% endif %}">
+                    {{ "%.2f"|format(ratios.solvency_ratio or 0) }}
+                </div>
+            </div>
+            <div class="ratio-item">
+                <div class="label">Ràtio d'Endeutament</div>
+                <div
+                    class="value {% if ratios.debt_ratio and ratios.debt_ratio < 0.5 %}good{% elif ratios.debt_ratio and ratios.debt_ratio < 1 %}warning{% else %}bad{% endif %}">
+                    {{ "%.2f"|format(ratios.debt_ratio or 0) }}
+                </div>
+            </div>
+            <div class="ratio-item">
+                <div class="label">ROA (Rendibilitat Econòmica)</div>
+                <div
+                    class="value {% if ratios.roa and ratios.roa > 0.1 %}good{% elif ratios.roa and ratios.roa > 0 %}warning{% else %}bad{% endif %}">
+                    {{ "%.2f"|format((ratios.roa or 0) * 100) }}%
+                </div>
+            </div>
+            <div class="ratio-item">
+                <div class="label">ROE (Rendibilitat Financera)</div>
+                <div
+                    class="value {% if ratios.roe and ratios.roe > 0.15 %}good{% elif ratios.roe and ratios.roe > 0 %}warning{% else %}bad{% endif %}">
+                    {{ "%.2f"|format((ratios.roe or 0) * 100) }}%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chartData = {{ chart_data | safe }};
+
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.monthly_income.labels,
+                datasets: [
+                    {
+                        label: 'Ingressos',
+                        data: chartData.monthly_income.data,
+                        backgroundColor: 'rgba(0, 122, 255, 0.7)',
+                        borderColor: 'rgba(0, 122, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Despeses',
+                        data: chartData.monthly_expenses.data,
+                        backgroundColor: 'rgba(255, 59, 48, 0.7)',
+                        borderColor: 'rgba(255, 59, 48, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#888' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    x: {
+                        ticks: { color: '#888' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#ccc' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

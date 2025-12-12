@@ -1,0 +1,146 @@
+:root {
+    /* Corporate Palette (SAP/Sage inspired) */
+    --bs-primary: #0a2540;
+    /* Deep Navy Blue */
+    --bs-secondary: #4a5568;
+    /* Slate Grey */
+    --bs-success: #2d8a4e;
+    /* Professional Green */
+    --bs-info: #0078d4;
+    /* Corporate Blue */
+    --bs-warning: #d97706;
+    /* Muted Orange */
+    --bs-danger: #cf304a;
+    /* Muted Red */
+    --bs-light: #f8f9fa;
+    --bs-dark: #1a202c;
+
+    /* Layout Variables */
+    --sidebar-width: 260px;
+    --topbar-height: 60px;
+}
+
+body {
+    background-color: #f3f4f6;
+    /* Light grey background */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.9rem;
+    /* Slightly smaller for data density */
+    overflow-x: hidden;
+}
+
+/* Layout Structure */
+#wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#sidebar-wrapper {
+    min-width: var(--sidebar-width);
+    max-width: var(--sidebar-width);
+    min-height: 100vh;
+    background-color: var(--bs-primary);
+    color: #fff;
+    transition: all 0.3s;
+    position: fixed;
+    z-index: 1000;
+}
+
+#page-content-wrapper {
+    width: 100%;
+    margin-left: var(--sidebar-width);
+    padding-top: var(--topbar-height);
+    transition: all 0.3s;
+}
+
+/* Topbar */
+.topbar {
+    height: var(--topbar-height);
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: var(--sidebar-width);
+    z-index: 999;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Sidebar Links */
+.sidebar-heading {
+    padding: 1.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.list-group-item {
+    background-color: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+.list-group-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.list-group-item.active {
+    background-color: var(--bs-info);
+    color: #fff;
+    border-left: 4px solid #fff;
+}
+
+.sidebar-category {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.4);
+    padding: 1rem 1.5rem 0.5rem;
+    margin-top: 0.5rem;
+}
+
+/* Compact Tables */
+.table-compact td,
+.table-compact th {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+}
+
+.table thead th {
+    background-color: #e9ecef;
+    color: var(--bs-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+/* Card Styling */
+.card {
+    border: none;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+}
+
+/* Utilities */
+.text-corporate {
+    color: var(--bs-primary) !important;
+}
+
+.bg-corporate {
+    background-color: var(--bs-primary) !important;
+}

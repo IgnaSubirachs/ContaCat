@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ item.name }} - Inventari - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <a href="/" class="logo">ContaCAT</a>
+        <div class="nav-links">
+            <a href="/">Inici</a>
+            <a href="/inventory">Inventari</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>{{ item.name }} <span style="font-size: 1rem; color: var(--text-secondary);">({{ item.code }})</span>
+            </h1>
+            <div>
+                <a href="/inventory/{{ item.id }}/edit" class="btn" style="margin-right: 0.5rem;">Editar</a>
+                <form action="/inventory/{{ item.id }}/delete" method="POST" style="display: inline;"
+                    onsubmit="return confirm('Segur que vols eliminar aquest article?');">
+                    <button type="submit" class="btn"
+                        style="background: rgba(255, 107, 107, 0.2); color: #ff6b6b;">Eliminar</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="modules-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 0;">
+            <div class="card" style="text-align: left; align-items: flex-start;">
+                <h3>Informació</h3>
+                <p><strong>Codi:</strong> {{ item.code }}</p>
+                <p><strong>Nom:</strong> {{ item.name }}</p>
+                <p><strong>Descripció:</strong> {{ item.description or '-' }}</p>
+                <p><strong>Ubicació:</strong> {{ item.location or '-' }}</p>
+                <p><strong>Preu Unitari:</strong> {{ "%.2f"|format(item.unit_price) }} €</p>
+            </div>
+            <div class="card" style="text-align: left; align-items: flex-start;">
+                <h3>Stock</h3>
+                <p
+                    style="font-size: 3rem; font-weight: 700; color: {% if item.quantity <= 0 %}#ff6b6b{% elif item.quantity < 10 %}#ffd93d{% else %}#6bcb77{% endif %};">
+                    {{ item.quantity }}
+                </p>
+                <p style="color: var(--text-secondary);">unitats disponibles</p>
+
+                <h4 style="margin-top: 1.5rem;">Registrar Moviment</h4>
+                <form action="/inventory/{{ item.id }}/movement" method="POST"
+                    style="display: flex; gap: 0.5rem; align-items: end;">
+                    <div>
+                        <label for="quantity" style="font-size: 0.85rem;">Quantitat:</label>
+                        <input type="number" name="quantity" placeholder="+/-" style="width: 80px;" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="description" style="font-size: 0.85rem;">Motiu:</label>
+                        <input type="text" name="description" placeholder="Ex: Venda, Compra..." style="width: 100%;">
+                    </div>
+                    <button type="submit" class="btn" style="padding: 0.5rem 1rem;">Registrar</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="section" style="margin-top: 3rem;">
+            <h3>Historial de Moviments</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Descripció</th>
+                        <th style="text-align: right;">Quantitat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mov in movements %}
+                    <tr>
+                        <td>{{ mov.date }}</td>
+                        <td>{{ mov.description or '-' }}</td>
+                        <td class="amount"
+                            style="{% if mov.quantity > 0 %}color: #6bcb77;{% else %}color: #ff6b6b;{% endif %}">
+                            {% if mov.quantity > 0 %}+{% endif %}{{ mov.quantity }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not movements %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 2rem;">No hi ha moviments registrats</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <a href="/inventory" class="back-link">← Tornar a Inventari</a>
+        </div>
+    </div>
+</body>
+
+</html>

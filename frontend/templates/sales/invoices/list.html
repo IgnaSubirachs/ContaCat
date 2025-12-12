@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factures - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/sales/invoices">Factures</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h1>Factures de Venda</h1>
+            <div style="display: flex; gap: 1rem;">
+                <a href="/sales/invoices/" class="btn"
+                    style="background: {% if not current_status %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Totes</a>
+                <a href="/sales/invoices/?status=draft" class="btn"
+                    style="background: {% if current_status == 'draft' %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Esborranys</a>
+                <a href="/sales/invoices/?status=posted" class="btn"
+                    style="background: {% if current_status == 'posted' %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Comptabilitzades</a>
+                <a href="/sales/invoices/?status=paid" class="btn"
+                    style="background: {% if current_status == 'paid' %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Pagades</a>
+            </div>
+        </div>
+
+        <div class="card">
+            {% if invoices %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Data</th>
+                        <th>Venciment</th>
+                        <th>Client</th>
+                        <th>Total</th>
+                        <th>Estat</th>
+                        <th>Pagament</th>
+                        <th>Accions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td><a href="/sales/invoices/{{ invoice.id }}"
+                                style="color: var(--accent-color); text-decoration: none; font-weight: 600;">{{
+                                invoice.invoice_number }}</a></td>
+                        <td>{{ invoice.invoice_date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ invoice.due_date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ invoice.partner_id[:8] }}</td>
+                        <td class="amount">{{ "%.2f"|format(invoice.total) }} €</td>
+                        <td>
+                            <span class="badge" style="
+                                {% if invoice.status.value == 'DRAFT' %}background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);
+                                {% elif invoice.status.value == 'POSTED' %}background: rgba(76, 217, 100, 0.1); color: #4cd964;
+                                {% elif invoice.status.value == 'CANCELLED' %}background: rgba(255, 59, 48, 0.1); color: #ff3b30;
+                                {% endif %}">
+                                {{ invoice.status.value }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge" style="
+                                {% if invoice.payment_status.value == 'PAID' %}background: rgba(76, 217, 100, 0.1); color: #4cd964;
+                                {% elif invoice.payment_status.value == 'NOT_PAID' %}background: rgba(255, 59, 48, 0.1); color: #ff3b30;
+                                {% elif invoice.payment_status.value == 'PARTIALLY_PAID' %}background: rgba(255, 149, 0, 0.1); color: #ff9500;
+                                {% endif %}">
+                                {{ invoice.payment_status.value }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/sales/invoices/{{ invoice.id }}" class="btn"
+                                style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Veure</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                No hi ha factures.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>

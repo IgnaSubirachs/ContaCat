@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nou Compte - ERP Català</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/accounting">Comptabilitat</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 600px;">
+        <h1>Nou Compte Comptable</h1>
+
+        <form action="/accounting/accounts/create" method="POST">
+            <div class="section">
+                <div style="margin-bottom: 1rem;">
+                    <label for="code">Codi del Compte:</label>
+                    <input type="text" id="code" name="code" required placeholder="Ex: 572000" style="width: 100%;">
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">El codi ha de ser
+                        únic.</p>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label for="name">Nom del Compte:</label>
+                    <input type="text" id="name" name="name" required placeholder="Ex: Banc Sabadell"
+                        style="width: 100%;">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label for="account_type">Tipus de Compte:</label>
+                    <select name="account_type" id="account_type" required style="width: 100%;">
+                        <option value="ASSET">Actiu (Asset)</option>
+                        <option value="LIABILITY">Passiu (Liability)</option>
+                        <option value="EQUITY">Patrimoni Net (Equity)</option>
+                        <option value="INCOME">Ingrés (Income)</option>
+                        <option value="EXPENSE">Despesa (Expense)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label for="group">Grup PGC:</label>
+                    <select name="group" id="group" required style="width: 100%;">
+                        <option value="1">Grup 1 - Finançament Bàsic</option>
+                        <option value="2">Grup 2 - Actiu No Corrent</option>
+                        <option value="3">Grup 3 - Existències</option>
+                        <option value="4">Grup 4 - Creditors i Deutors</option>
+                        <option value="5">Grup 5 - Comptes Financers</option>
+                        <option value="6">Grup 6 - Compres i Despeses</option>
+                        <option value="7">Grup 7 - Vendes i Ingressos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: right;">
+                <a href="/accounting/accounts" class="back-link" style="margin-right: 1rem;">Cancel·lar</a>
+                <button type="submit" class="btn">Crear Compte</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

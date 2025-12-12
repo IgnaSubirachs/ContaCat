@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercicis Fiscals - ContaCAT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <a href="/" class="logo">ContaCAT</a>
+        <div class="nav-links">
+            <a href="/">Inici</a>
+            <a href="/fiscal">Exercicis</a>
+            <a href="/accounting">Comptabilitat</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="back-link">← Tornar</a>
+        <h1>Exercicis Fiscals</h1>
+
+        {% if user.role.value == 'ADMIN' %}
+        <div style="text-align: right; margin-bottom: 1.5rem;">
+            <a href="/fiscal/create" class="btn">+ Nou Exercici</a>
+        </div>
+        {% endif %}
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Data Inici</th>
+                    <th>Data Fi</th>
+                    <th>Estat</th>
+                    {% if user.role.value == 'ADMIN' %}
+                    <th>Accions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for year in fiscal_years %}
+                <tr>
+                    <td><strong>{{ year.name }}</strong></td>
+                    <td>{{ year.start_date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ year.end_date.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        {% if year.status.value == 'OPEN' %}
+                        <span class="badge bg-success text-success">Obert</span>
+                        {% else %}
+                        <span class="badge bg-danger text-danger">Tancat</span>
+                        {% endif %}
+                    </td>
+                    {% if user.role.value == 'ADMIN' %}
+                    <td>
+                        {% if year.status.value == 'OPEN' %}
+                        <form action="/fiscal/{{ year.id }}/close" method="POST" style="display: inline;">
+                            <button type="submit" class="btn"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #ff3b30;">
+                                Tancar
+                            </button>
+                        </form>
+                        {% else %}
+                        <form action="/fiscal/{{ year.id }}/reopen" method="POST" style="display: inline;">
+                            <button type="submit" class="btn"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: #4cd964;">
+                                Reobrir
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem;">
+                        No hi ha exercicis fiscals creats.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

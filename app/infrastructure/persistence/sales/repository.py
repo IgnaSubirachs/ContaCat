@@ -1,5 +1,6 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy import select, func
+from sqlalchemy.orm import Session, joinedload
 from decimal import Decimal
 
 from app.domain.sales.entities import (
@@ -12,6 +13,605 @@ from app.domain.sales.repositories import (
 from app.infrastructure.persistence.sales.models import (
     QuoteModel, SalesOrderModel, SalesInvoiceModel, SalesLineModel
 )
+
+
+class SqlAlchemyQuoteRepository(QuoteRepository):
+    """SQLAlchemy implementation of QuoteRepository."""
+    
+    def __init__(self, session_factory):
+        self._session_factory = session_factory
+    
+    def _to_entity(self, model: QuoteModel) -> Quote:
+        """Convert model to entity."""
+        lines = [
+            SalesLine(
+                id=line.id,
+                product_code=line.product_code,
+                description=line.description,
+                quantity=Decimal(str(line.quantity)),
+                unit_price=Decimal(str(line.unit_price)),
+                discount_percent=Decimal(str(line.discount_percent)),
+                tax_rate=Decimal(str(line.tax_rate))
+            )
+            for line in model.lines
+        ]
+        
+        return Quote(
+            id=model.id,
+            quote_number=model.quote_number,
+            quote_date=model.quote_date,
+            valid_until=model.valid_until,
+            partner_id=model.partner_id,
+            lines=lines,
+            status=model.status,
+            notes=model.notes
+        )
+    
+    def _to_model(self, entity: Quote) -> QuoteModel:
+        """Convert entity to model."""
+        model = QuoteModel(
+            id=entity.id,
+            quote_number=entity.quote_number,
+            quote_date=entity.quote_date,
+            valid_until=entity.valid_until,
+            partner_id=entity.partner_id,
+            status=entity.status,
+            notes=entity.notes
+        )
+        
+        # Add lines
+        for line in entity.lines:
+            line_model = SalesLineModel(
+                id=line.id,
+                product_code=line.product_code,
+                description=line.description,
+                quantity=float(line.quantity),
+                unit_price=float(line.unit_price),
+                discount_percent=float(line.discount_percent),
+                tax_rate=float(line.tax_rate),
+                quote_id=entity.id
+            )
+            model.lines.append(line_model)
+        
+        return model
+    
+    def add(self, quote: Quote) -> None:
+        session = self._session_factory()
+        try:
+            model = self._to_model(quote)
+            session.add(model)
+            session.commit()
+        finally:
+            session.close()
+    
+    def update(self, quote: Quote) -> None:
+        session = self._session_factory()
+        try:
+            # Delete existing lines
+            session.query(SalesLineModel).filter(
+                SalesLineModel.quote_id == quote.id
+            ).delete()
+            
+            # Update quote
+            # Use query for update to keep it simple, or select for consistency. 
+            # Keeping legacy query for update/delete is fine, but fetching needs optimization.
+            model = session.query(QuoteModel).filter(QuoteModel.id == quote.id).first()
+            if model:
+                model.quote_number = quote.quote_number
+                model.quote_date = quote.quote_date
+                model.valid_until = quote.valid_until
+                model.partner_id = quote.partner_id
+                model.status = quote.status
+                model.notes = quote.notes
+                
+                # Add new lines
+                for line in quote.lines:
+                    line_model = SalesLineModel(
+                        id=line.id,
+                        product_code=line.product_code,
+                        description=line.description,
+                        quantity=float(line.quantity),
+                        unit_price=float(line.unit_price),
+                        discount_percent=float(line.discount_percent),
+                        tax_rate=float(line.tax_rate),
+                        quote_id=quote.id
+                    )
+                    session.add(line_model)
+                
+                session.commit()
+        finally:
+            session.close()
+    
+    def delete(self, quote_id: str) -> None:
+        session = self._session_factory()
+        try:
+            session.query(QuoteModel).filter(QuoteModel.id == quote_id).delete()
+            session.commit()
+        finally:
+            session.close()
+    
+    def find_by_id(self, quote_id: str) -> Optional[Quote]:
+        session = self._session_factory()
+        try:
+            stmt = select(QuoteModel).options(joinedload(QuoteModel.lines)).where(QuoteModel.id == quote_id)
+            result = session.execute(stmt)
+            model = result.scalars().unique().first()
+            return self._to_entity(model) if model else None
+        finally:
+            session.close()
+    
+    def find_by_number(self, quote_number: str) -> Optional[Quote]:
+        session = self._session_factory()
+        try:
+            stmt = select(QuoteModel).options(joinedload(QuoteModel.lines)).where(QuoteModel.quote_number == quote_number)
+            result = session.execute(stmt)
+            model = result.scalars().unique().first()
+            return self._to_entity(model) if model else None
+        finally:
+            session.close()
+    
+    def list_all(self) -> List[Quote]:
+        session = self._session_factory()
+        try:
+            stmt = select(QuoteModel).options(joinedload(QuoteModel.lines)).order_by(QuoteModel.quote_date.desc())
+            result = session.execute(stmt)
+            models = result.scalars().unique().all()
+            return [self._to_entity(model) for model in models]
+        finally:
+            session.close()
+    
+    def list_by_partner(self, partner_id: str) -> List[Quote]:
+        session = self._session_factory()
+        try:
+            stmt = select(QuoteModel).options(joinedload(QuoteModel.lines)).where(
+                QuoteModel.partner_id == partner_id
+            ).order_by(QuoteModel.quote_date.desc())
+            result = session.execute(stmt)
+            models = result.scalars().unique().all()
+            return [self._to_entity(model) for model in models]
+        finally:
+            session.close()
+    
+    def list_by_status(self, status: QuoteStatus) -> List[Quote]:
+        session = self._session_factory()
+        try:
+            stmt = select(QuoteModel).options(joinedload(QuoteModel.lines)).where(
+                QuoteModel.status == status
+            ).order_by(QuoteModel.quote_date.desc())
+            result = session.execute(stmt)
+            models = result.scalars().unique().all()
+            return [self._to_entity(model) for model in models]
+        finally:
+            session.close()
+    
+    def get_next_quote_number(self) -> str:
+        session = self._session_factory()
+        try:
+            stmt = select(QuoteModel).order_by(QuoteModel.quote_number.desc()).limit(1)
+            result = session.execute(stmt)
+            last_quote = result.scalars().first()
+            
+            if last_quote:
+                try:
+                    parts = last_quote.quote_number.split("-")
+                    if len(parts) == 3:
+                        last_num = int(parts[2])
+                        return f"PRE-{parts[1]}-{last_num + 1:03d}"
+                except:
+                    pass
+            
+            from datetime import date
+            return f"PRE-{date.today().year}-001"
+        finally:
+            session.close()
+
+
+class SqlAlchemySalesOrderRepository(SalesOrderRepository):
+    """SQLAlchemy implementation of SalesOrderRepository."""
+    
+    def __init__(self, session_factory):
+        self._session_factory = session_factory
+    
+    def _to_entity(self, model: SalesOrderModel) -> SalesOrder:
+        """Convert model to entity."""
+        lines = [
+            SalesLine(
+                id=line.id,
+                product_code=line.product_code,
+                description=line.description,
+                quantity=Decimal(str(line.quantity)),
+                unit_price=Decimal(str(line.unit_price)),
+                discount_percent=Decimal(str(line.discount_percent)),
+                tax_rate=Decimal(str(line.tax_rate))
+            )
+            for line in model.lines
+        ]
+        
+        return SalesOrder(
+            id=model.id,
+            order_number=model.order_number,
+            order_date=model.order_date,
+            partner_id=model.partner_id,
+            lines=lines,
+            status=model.status,
+            quote_id=model.quote_id,
+            delivery_date=model.delivery_date,
+            delivery_address=model.delivery_address,
+            notes=model.notes
+        )
+    
+    def _to_model(self, entity: SalesOrder) -> SalesOrderModel:
+        """Convert entity to model."""
+        model = SalesOrderModel(
+            id=entity.id,
+            order_number=entity.order_number,
+            order_date=entity.order_date,
+            partner_id=entity.partner_id,
+            quote_id=entity.quote_id,
+            status=entity.status,
+            delivery_date=entity.delivery_date,
+            delivery_address=entity.delivery_address,
+            notes=entity.notes
+        )
+        
+        # Add lines
+        for line in entity.lines:
+            line_model = SalesLineModel(
+                id=line.id,
+                product_code=line.product_code,
+                description=line.description,
+                quantity=float(line.quantity),
+                unit_price=float(line.unit_price),
+                discount_percent=float(line.discount_percent),
+                tax_rate=float(line.tax_rate),
+                order_id=entity.id
+            )
+            model.lines.append(line_model)
+        
+        return model
+    
+    def add(self, order: SalesOrder) -> None:
+        session = self._session_factory()
+        try:
+            model = self._to_model(order)
+            session.add(model)
+            session.commit()
+        finally:
+            session.close()
+    
+    def update(self, order: SalesOrder) -> None:
+        session = self._session_factory()
+        try:
+            # Delete existing lines
+            session.query(SalesLineModel).filter(
+                SalesLineModel.order_id == order.id
+            ).delete()
+            
+            # Update order
+            model = session.query(SalesOrderModel).filter(SalesOrderModel.id == order.id).first()
+            if model:
+                model.order_number = order.order_number
+                model.order_date = order.order_date
+                model.partner_id = order.partner_id
+                model.quote_id = order.quote_id
+                model.status = order.status
+                model.delivery_date = order.delivery_date
+                model.delivery_address = order.delivery_address
+                model.notes = order.notes
+                
+                # Add new lines
+                for line in order.lines:
+                    line_model = SalesLineModel(
+                        id=line.id,
+                        product_code=line.product_code,
+                        description=line.description,
+                        quantity=float(line.quantity),
+                        unit_price=float(line.unit_price),
+                        discount_percent=float(line.discount_percent),
+                        tax_rate=float(line.tax_rate),
+                        order_id=order.id
+                    )
+                    session.add(line_model)
+                
+                session.commit()
+        finally:
+            session.close()
+    
+    def delete(self, order_id: str) -> None:
+        session = self._session_factory()
+        try:
+            session.query(SalesOrderModel).filter(SalesOrderModel.id == order_id).delete()
+            session.commit()
+        finally:
+            session.close()
+    
+    def find_by_id(self, order_id: str) -> Optional[SalesOrder]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesOrderModel).options(joinedload(SalesOrderModel.lines)).where(SalesOrderModel.id == order_id)
+            result = session.execute(stmt)
+            model = result.scalars().unique().first()
+            return self._to_entity(model) if model else None
+        finally:
+            session.close()
+    
+    def find_by_number(self, order_number: str) -> Optional[SalesOrder]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesOrderModel).options(joinedload(SalesOrderModel.lines)).where(SalesOrderModel.order_number == order_number)
+            result = session.execute(stmt)
+            model = result.scalars().unique().first()
+            return self._to_entity(model) if model else None
+        finally:
+            session.close()
+    
+    def list_all(self) -> List[SalesOrder]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesOrderModel).options(joinedload(SalesOrderModel.lines)).order_by(SalesOrderModel.order_date.desc())
+            result = session.execute(stmt)
+            models = result.scalars().unique().all()
+            return [self._to_entity(model) for model in models]
+        finally:
+            session.close()
+    
+    def list_by_partner(self, partner_id: str) -> List[SalesOrder]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesOrderModel).options(joinedload(SalesOrderModel.lines)).where(
+                SalesOrderModel.partner_id == partner_id
+            ).order_by(SalesOrderModel.order_date.desc())
+            result = session.execute(stmt)
+            models = result.scalars().unique().all()
+            return [self._to_entity(model) for model in models]
+        finally:
+            session.close()
+    
+    def list_by_status(self, status: OrderStatus) -> List[SalesOrder]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesOrderModel).options(joinedload(SalesOrderModel.lines)).where(
+                SalesOrderModel.status == status
+            ).order_by(SalesOrderModel.order_date.desc())
+            result = session.execute(stmt)
+            models = result.scalars().unique().all()
+            return [self._to_entity(model) for model in models]
+        finally:
+            session.close()
+    
+    def get_next_order_number(self) -> str:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesOrderModel).order_by(SalesOrderModel.order_number.desc()).limit(1)
+            result = session.execute(stmt)
+            last_order = result.scalars().first()
+            
+            if last_order:
+                try:
+                    parts = last_order.order_number.split("-")
+                    if len(parts) == 3:
+                        last_num = int(parts[2])
+                        return f"ORD-{parts[1]}-{last_num + 1:03d}"
+                except:
+                    pass
+            
+            from datetime import date
+            return f"ORD-{date.today().year}-001"
+        finally:
+            session.close()
+
+
+class SqlAlchemySalesInvoiceRepository(SalesInvoiceRepository):
+    """SQLAlchemy implementation of SalesInvoiceRepository."""
+    
+    def __init__(self, session_factory):
+        self._session_factory = session_factory
+    
+    def _to_entity(self, model: SalesInvoiceModel) -> SalesInvoice:
+        """Convert model to entity."""
+        lines = [
+            SalesLine(
+                id=line.id,
+                product_code=line.product_code,
+                description=line.description,
+                quantity=Decimal(str(line.quantity)),
+                unit_price=Decimal(str(line.unit_price)),
+                discount_percent=Decimal(str(line.discount_percent)),
+                tax_rate=Decimal(str(line.tax_rate))
+            )
+            for line in model.lines
+        ]
+        
+        return SalesInvoice(
+            id=model.id,
+            series=model.series,
+            year=model.year,
+            number=model.number,
+            invoice_date=model.invoice_date,
+            due_date=model.due_date,
+            partner_id=model.partner_id,
+            lines=lines,
+            status=model.status,
+            payment_status=model.payment_status,
+            order_id=model.order_id,
+            journal_entry_id=model.journal_entry_id,
+            notes=model.notes
+        )
+    
+    def _to_model(self, entity: SalesInvoice) -> SalesInvoiceModel:
+        """Convert entity to model."""
+        model = SalesInvoiceModel(
+            id=entity.id,
+            series=entity.series,
+            year=entity.year,
+            number=entity.number,
+            invoice_date=entity.invoice_date,
+            due_date=entity.due_date,
+            partner_id=entity.partner_id,
+            order_id=entity.order_id,
+            status=entity.status,
+            payment_status=entity.payment_status,
+            journal_entry_id=entity.journal_entry_id,
+            notes=entity.notes
+        )
+        
+        # Add lines
+        for line in entity.lines:
+            line_model = SalesLineModel(
+                id=line.id,
+                product_code=line.product_code,
+                description=line.description,
+                quantity=float(line.quantity),
+                unit_price=float(line.unit_price),
+                discount_percent=float(line.discount_percent),
+                tax_rate=float(line.tax_rate),
+                invoice_id=entity.id
+            )
+            model.lines.append(line_model)
+        
+        return model
+    
+    def add(self, invoice: SalesInvoice) -> None:
+        session = self._session_factory()
+        try:
+            model = self._to_model(invoice)
+            session.add(model)
+            session.commit()
+        finally:
+            session.close()
+    
+    def update(self, invoice: SalesInvoice) -> None:
+        session = self._session_factory()
+        try:
+            # Delete existing lines
+            session.query(SalesLineModel).filter(
+                SalesLineModel.invoice_id == invoice.id
+            ).delete()
+            
+            # Update invoice
+            model = session.query(SalesInvoiceModel).filter(SalesInvoiceModel.id == invoice.id).first()
+            if model:
+                model.series = invoice.series
+                model.year = invoice.year
+                model.number = invoice.number
+                model.invoice_date = invoice.invoice_date
+                model.due_date = invoice.due_date
+                model.partner_id = invoice.partner_id
+                model.order_id = invoice.order_id
+                model.status = invoice.status
+                model.payment_status = invoice.payment_status
+                model.journal_entry_id = invoice.journal_entry_id
+                model.notes = invoice.notes
+                
+                # Add new lines
+                for line in invoice.lines:
+                    line_model = SalesLineModel(
+                        id=line.id,
+                        product_code=line.product_code,
+                        description=line.description,
+                        quantity=float(line.quantity),
+                        unit_price=float(line.unit_price),
+                        discount_percent=float(line.discount_percent),
+                        tax_rate=float(line.tax_rate),
+                        invoice_id=invoice.id
+                    )
+                    session.add(line_model)
+                
+                session.commit()
+        finally:
+            session.close()
+    
+    def delete(self, invoice_id: str) -> None:
+        session = self._session_factory()
+        try:
+            session.query(SalesInvoiceModel).filter(SalesInvoiceModel.id == invoice_id).delete()
+            session.commit()
+        finally:
+            session.close()
+    
+    def find_by_id(self, invoice_id: str) -> Optional[SalesInvoice]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesInvoiceModel).options(joinedload(SalesInvoiceModel.lines)).where(SalesInvoiceModel.id == invoice_id)
+            result = session.execute(stmt)
+            model = result.scalars().unique().first()
+            return self._to_entity(model) if model else None
+        finally:
+            session.close()
+    
+    def find_by_number(self, series: str, year: int, number: int) -> Optional[SalesInvoice]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesInvoiceModel).options(joinedload(SalesInvoiceModel.lines)).where(
+                SalesInvoiceModel.series == series,
+                SalesInvoiceModel.year == year,
+                SalesInvoiceModel.number == number
+            )
+            result = session.execute(stmt)
+            model = result.scalars().unique().first()
+            return self._to_entity(model) if model else None
+        finally:
+            session.close()
+    
+    def list_all(self) -> List[SalesInvoice]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesInvoiceModel).options(joinedload(SalesInvoiceModel.lines)).order_by(
+                SalesInvoiceModel.year.desc(),
+                SalesInvoiceModel.number.desc()
+            )
+            result = session.execute(stmt)
+            models = result.scalars().unique().all()
+            return [self._to_entity(model) for model in models]
+        finally:
+            session.close()
+    
+    def list_by_partner(self, partner_id: str) -> List[SalesInvoice]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesInvoiceModel).options(joinedload(SalesInvoiceModel.lines)).where(
+                SalesInvoiceModel.partner_id == partner_id
+            ).order_by(
+                SalesInvoiceModel.year.desc(),
+                SalesInvoiceModel.number.desc()
+            )
+            result = session.execute(stmt)
+            models = result.scalars().unique().all()
+            return [self._to_entity(model) for model in models]
+        finally:
+            session.close()
+    
+    def list_by_status(self, status: InvoiceStatus) -> List[SalesInvoice]:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesInvoiceModel).options(joinedload(SalesInvoiceModel.lines)).where(
+                SalesInvoiceModel.status == status
+            ).order_by(
+                SalesInvoiceModel.year.desc(),
+                SalesInvoiceModel.number.desc()
+            )
+            result = session.execute(stmt)
+            models = result.scalars().unique().all()
+            return [self._to_entity(model) for model in models]
+        finally:
+            session.close()
+    
+    def get_next_invoice_number(self, series: str, year: int) -> int:
+        session = self._session_factory()
+        try:
+            stmt = select(SalesInvoiceModel).where(
+                SalesInvoiceModel.series == series,
+                SalesInvoiceModel.year == year
+            ).order_by(SalesInvoiceModel.number.desc()).limit(1)
+            result = session.execute(stmt)
+            last_invoice = result.scalars().first()
+            
+            if last_invoice:
+                return last_invoice.number + 1
+            else:
+                return 1
+        finally:
+            session.close()
 
 
 class SqlAlchemyQuoteRepository(QuoteRepository):

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContaCAT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <img src="/static/img/logo.png" alt="ContaCAT Logo" style="height: 40px;">
+            <a href="/" class="logo">ContaCAT</a>
+        </div>
+        <div class="nav-links">
+            <span style="color: var(--text-secondary);">{{ user.username }}</span>
+            <a href="/auth/logout" style="color: var(--accent-color);">Sortir</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Benvingut, {{ user.username }}!</h1>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem;">
+            Rol: <strong>{{ user.role.value }}</strong>
+        </p>
+
+        <div class="modules">
+            <h2>Mòduls Disponibles</h2>
+
+            <div class="module-grid">
+                {% for module in modules %}
+                <a href="{{ module.url }}" class="module-card">
+                    <img src="/static/img/{{ module.icon }}" alt="{{ module.name }}" class="module-icon">
+                    <h3>{{ module.name }}</h3>
+                    <p>{{ module.desc }}</p>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.85rem;">
+        <p style="margin: 0;">© 2025 <strong>Ignasi Subirachs Ferrer</strong></p>
+        <p style="margin: 0.5rem 0 0 0;">Llicència MIT · <a href="https://github.com/IgnaSubirachs/ContaCat-DEMO"
+                style="color: var(--accent-color);">GitHub</a></p>
+    </footer>
+
+</body>
+
+</html>

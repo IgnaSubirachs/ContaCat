@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comptabilitat - ERP</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
+        <div>
+            <a href="/">Inici</a>
+            <a href="/accounting">Comptabilitat</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Comptabilitat</h1>
+        <p>Gestió financera integral i informes</p>
+
+        <div class="modules-grid">
+            <a href="/accounting/accounts" class="card">
+                <img src="/static/img/accounting.png" alt="Pla Comptable" class="card-icon">
+                <div class="card-title">Pla Comptable</div>
+                <div class="card-desc">Gestió del PGC i comptes</div>
+            </a>
+
+            <a href="/accounting/journal" class="card">
+                <img src="/static/img/accounting.png" alt="Llibre Diari" class="card-icon">
+                <div class="card-title">Llibre Diari</div>
+                <div class="card-desc">Assentaments i moviments</div>
+            </a>
+
+            <a href="/accounting/reports/trial-balance" class="card">
+                <img src="/static/img/accounting.png" alt="Balanç de Comprovació" class="card-icon">
+                <div class="card-title">Balanç de Comprovació</div>
+                <div class="card-desc">Saldos i sumes</div>
+            </a>
+
+            <a href="/accounting/reports/balance-sheet" class="card">
+                <img src="/static/img/accounting.png" alt="Balanç de Situació" class="card-icon">
+                <div class="card-title">Balanç de Situació</div>
+                <div class="card-desc">Actiu, Passiu i Patrimoni</div>
+            </a>
+
+            <a href="/accounting/reports/profit-loss" class="card">
+                <img src="/static/img/sales.png" alt="Compte de PyG" class="card-icon">
+                <div class="card-title">Compte de PyG</div>
+                <div class="card-desc">Ingressos i Despeses</div>
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

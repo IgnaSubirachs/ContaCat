@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nòmina {{ payroll.month }}/{{ payroll.year }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+
+        .header-table {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .company-info {
+            font-size: 9pt;
+            color: #555;
+        }
+
+        .header-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #333;
+            text-transform: uppercase;
+            text-align: right;
+        }
+
+        .info-box {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 9pt;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 2px;
+        }
+
+        table.details {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+
+        table.details td {
+            padding: 4px;
+        }
+
+        table.lines {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table.lines th {
+            background-color: #eee;
+            color: #333;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 9pt;
+            border-bottom: 2px solid #ccc;
+        }
+
+        table.lines td {
+            border-bottom: 1px solid #eee;
+            padding: 8px;
+        }
+
+        .section-header {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        .totals-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        .totals-table td {
+            padding: 10px;
+            text-align: right;
+            border-top: 2px solid #333;
+            font-size: 12pt;
+        }
+
+        .net-salary {
+            font-weight: bold;
+            font-size: 14pt;
+        }
+
+        .footer {
+            margin-top: 50px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            font-size: 8pt;
+            text-align: center;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header: Company & Title -->
+    <table class="header-table">
+        <tr>
+            <td valign="top" width="50%">
+                <div style="font-size: 14pt; font-weight: bold;">{{ company.name }}</div>
+                <div class="company-info">
+                    {{ company.address }}<br>
+                    NIF: {{ company.tax_id }}<br>
+                    CCC: {{ company.ccc }}
+                </div>
+            </td>
+            <td valign="top" width="50%">
+                <div class="header-title">REBUT DE SALARIS</div>
+                <div style="text-align: right; margin-top: 5px;">
+                    Període: {{ payroll.period_start.strftime('%d/%m/%Y') }} - {{
+                    payroll.period_end.strftime('%d/%m/%Y') }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Employee Info -->
+    <div class="info-box">
+        <div class="info-title">Treballador</div>
+        <table class.details>
+            <tr>
+                <td width="50%"><strong>Nom:</strong> {{ employee.full_name }}</td>
+                <td width="50%"><strong>NIF:</strong> {{ employee.dni }}</td>
+            </tr>
+            <tr>
+                <td><strong>NSS:</strong> {{ employee.nss }}</td>
+                <td><strong>Categoria:</strong> {{ employee.position }}</td>
+            </tr>
+            <tr>
+                <td><strong>Grup Cotització:</strong> {{ employee.social_security_group }}</td>
+                <td><strong>Antiguitat:</strong> {{ employee.hire_date.strftime('%d/%m/%Y') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Devengos (Salary Components) -->
+    <table class="lines">
+        <thead>
+            <tr>
+                <th width="60%">Concepte</th>
+                <th width="20%" align="right">Unitats</th>
+                <th width="20%" align="right">Meritacions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="section-header" colspan="3">WEBINGS I SALARIS</td>
+            </tr>
+            <tr>
+                <td>Salari Base</td>
+                <td align="right">30 dies</td>
+                <td align="right">{{ "%.2f"|format(payroll.base_salary) }} €</td>
+            </tr>
+            {% if payroll.supplements > 0 %}
+            <tr>
+                <td>Complements Salarials</td>
+                <td align="right"></td>
+                <td align="right">{{ "%.2f"|format(payroll.supplements) }} €</td>
+            </tr>
+            {% endif %}
+
+            <tr style="font-weight: bold; background-color: #fafafa;">
+                <td colspan="2" align="right">TOTAL MERITAT (BRUT):</td>
+                <td align="right">{{ "%.2f"|format(payroll.gross_salary) }} €</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Deductions -->
+    <table class="lines">
+        <thead>
+            <tr>
+                <th width="60%">Deduccions</th>
+                <th width="20%" align="right">Percentatge</th>
+                <th width="20%" align="right">Import</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="section-header" colspan="3">APORTACIONS SEGURETAT SOCIAL</td>
+            </tr>
+            <tr>
+                <td>Contingències Comunes</td>
+                <td align="right">4.70 %</td>
+                <td align="right">{{ "%.2f"|format(ss_common) }} €</td>
+            </tr>
+            <tr>
+                <td>Desocupació i Formació Professional</td>
+                <td align="right">1.65 %</td>
+                <td align="right">{{ "%.2f"|format(ss_training) }} €</td>
+            </tr>
+
+            <tr>
+                <td class="section-header" colspan="3">IMPOST SOBRE LA RENDA (IRPF)</td>
+            </tr>
+            <tr>
+                <td>Retenció IRPF</td>
+                <td align="right">{{ "%.2f"|format(payroll.irpf_rate) }} %</td>
+                <td align="right">{{ "%.2f"|format(payroll.irpf_amount) }} €</td>
+            </tr>
+
+            <tr style="font-weight: bold; background-color: #fafafa;">
+                <td colspan="2" align="right">TOTAL DEDUCCIONS:</td>
+                <td align="right">{{ "%.2f"|format(payroll.social_security_employee + payroll.irpf_amount) }} €</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Net Salary -->
+    <table class="totals-table">
+        <tr>
+            <td>
+                LÍQUID A PERCEBRE: <span class="net-salary">{{ "%.2f"|format(payroll.net_salary) }} €</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>Aquest document serveix com a comprovant de pagament de salari.</p>
+        <p>Transferència realitzada a la data {{ payroll.period_end.strftime('%d/%m/%Y') }}</p>
+    </div>
+
+</body>
+
+</html>
