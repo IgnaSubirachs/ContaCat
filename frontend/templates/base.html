@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ContaCAT - ERP Professional</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="/static/css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        {% include 'components/sidebar.html' %}
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <!-- Topbar -->
+            {% include 'components/topbar.html' %}
+
+            <!-- Main Content -->
+            <div class="container-fluid px-4">
+                {% block content %}{% endblock %}
+            </div>
+
+            <!-- Footer -->
+            <footer class="text-center text-muted py-4 mt-auto">
+                <small>&copy; 2025 ContaCAT | Ignasi Subirachs | v2.0 Professional</small>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {% block scripts %}{% endblock %}
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        var el = document.getElementById("wrapper");
+        var toggleButton = document.getElementById("sidebarToggle");
+
+        toggleButton.onclick = function () {
+            el.classList.toggle("toggled");
+            // Simple logic to hide/show sidebar - CSS handles transitions
+            var sidebar = document.getElementById("sidebar-wrapper");
+            if (sidebar.style.marginLeft === "-260px") {
+                sidebar.style.marginLeft = "0";
+            } else {
+                sidebar.style.marginLeft = "-260px";
+            }
+        };
+    </script>
+</body>
+
+</html>

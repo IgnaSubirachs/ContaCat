@@ -5,45 +5,21 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import Optional
 import os
 
-from app.interface.api.routers import partners
-from app.interface.api.routers import employees
-from app.interface.api.routers import accounting
-from app.interface.api.routers import accounts
-from app.interface.api.routers import quotes
-from app.interface.api.routers import sales_orders
-from app.interface.api.routers import sales_invoices
-from app.interface.api.routers import auth
-from app.interface.api.routers import assets
-from app.interface.api.routers import inventory
-from app.interface.api.routers import fiscal
-from app.interface.api.routers import analytics
-from app.interface.api.routers import payrolls
-
+from app.interface.api.routers import partners, employees, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, payrolls, treasury
 from app.domain.auth.dependencies import get_current_user_or_redirect, can_access_module
 from app.domain.auth.entities import User
-app.include_router(partners.router)
-app.include_router(employees.router)
-app.include_router(payrolls.router)
-app.include_router(accounting.router)
-# ...
+from app.interface.api.templates import templates
 
+# Initialize App
 app = FastAPI(title="ContaCAT", description="ERP Modular amb DDD", version="2.0.0")
 
 # Determine paths relative to this file
-# app is at c:\ERP\app\interface\api\main.py
-# static is at c:\ERP\frontend\static
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
 static_dir = os.path.join(project_root, "frontend/static")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
-# Import centralized templates
-from app.interface.api.templates import templates
-
-# Import routers
-from app.interface.api.routers import accounting, accounts, sales_invoices, sales_orders, quotes, partners, employees, auth, payrolls, assets, analytics, fiscal, inventory, treasury
 
 # Include routers
 app.include_router(auth.router)

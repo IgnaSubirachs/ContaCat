@@ -1,256 +1,159 @@
-<!DOCTYPE html>
-<html lang="ca">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compte de Pèrdues i Guanys - ERP</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-
-<body>
-    <nav>
-        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
-        <div>
-            <a href="/">Inici</a>
-            <a href="/accounting">Comptabilitat</a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <a href="/accounting" class="back-link">← Tornar a Comptabilitat</a>
-
-        <h1>Compte de Pèrdues i Guanys</h1>
-        <p>
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="fas fa-file-invoice-dollar me-2"></i>Compte de Pèrdues i Guanys</h1>
+        <p class="text-muted">
             {% if profit_loss.start_date and profit_loss.end_date %}
-            Període: {{ profit_loss.start_date.strftime('%d/%m/%Y') }} - {{ profit_loss.end_date.strftime('%d/%m/%Y') }}
+            Resultat del període: {{ profit_loss.start_date.strftime('%d/%m/%Y') }} - {{
+            profit_loss.end_date.strftime('%d/%m/%Y') }}
             {% elif profit_loss.end_date %}
-            Fins a: {{ profit_loss.end_date.strftime('%d/%m/%Y') }}
+            Acumulat fins a: {{ profit_loss.end_date.strftime('%d/%m/%Y') }}
             {% else %}
-            Tot el període
+            Visió global de l'exercici
             {% endif %}
         </p>
-
-        <div class="filter-section">
-            <form method="get" action="/accounting/reports/profit-loss"
-                style="display: flex; align-items: center; gap: 1rem; width: 100%;">
-                <label for="start_date">Data inici:</label>
-                <input type="date" id="start_date" name="start_date"
+    </div>
+    <div class="col-md-6 text-end">
+        <form method="get" action="/accounting/reports/profit-loss"
+            class="d-flex justify-content-end align-items-center gap-2">
+            <div class="input-group input-group-sm w-auto">
+                <span class="input-group-text bg-white">Des de</span>
+                <input type="date" name="start_date" class="form-control"
                     value="{{ profit_loss.start_date.isoformat() if profit_loss.start_date else '' }}">
-
-                <label for="end_date">Data fi:</label>
-                <input type="date" id="end_date" name="end_date"
+            </div>
+            <div class="input-group input-group-sm w-auto">
+                <span class="input-group-text bg-white">Fins</span>
+                <input type="date" name="end_date" class="form-control"
                     value="{{ profit_loss.end_date.isoformat() if profit_loss.end_date else '' }}">
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary">
+                <i class="fas fa-filter"></i>
+            </button>
+            <div class="btn-group btn-group-sm ms-2">
+                <a href="/accounting/reports/profit-loss/export?format=pdf{% if profit_loss.start_date %}&start_date={{ profit_loss.start_date.isoformat() }}{% endif %}{% if profit_loss.end_date %}&end_date={{ profit_loss.end_date.isoformat() }}{% endif %}"
+                    class="btn btn-outline-danger">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </a>
+                <a href="/accounting/reports/profit-loss/export?format=excel{% if profit_loss.start_date %}&start_date={{ profit_loss.start_date.isoformat() }}{% endif %}{% if profit_loss.end_date %}&end_date={{ profit_loss.end_date.isoformat() }}{% endif %}"
+                    class="btn btn-outline-success">
+                    <i class="fas fa-file-excel"></i> Excel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
 
-                <button type="submit" class="btn">Filtrar</button>
-            </form>
-        </div>
-
-        <div class="export-buttons">
-            <a href="/accounting/reports/profit-loss/export?format=pdf{% if profit_loss.start_date %}&start_date={{ profit_loss.start_date.isoformat() }}{% endif %}{% if profit_loss.end_date %}&end_date={{ profit_loss.end_date.isoformat() }}{% endif %}"
-                class="export-btn pdf">📄 Exportar PDF</a>
-            <a href="/accounting/reports/profit-loss/export?format=excel{% if profit_loss.start_date %}&start_date={{ profit_loss.start_date.isoformat() }}{% endif %}{% if profit_loss.end_date %}&end_date={{ profit_loss.end_date.isoformat() }}{% endif %}"
-                class="export-btn excel">📊 Exportar Excel</a>
-        </div>
-
-        <div class="summary-cards">
-            <div class="summary-card">
-                <div class="label">Resultat d'Explotació</div>
-                <div class="value {{ 'positive' if profit_loss.resultat_explotacio >= 0 else 'negative' }}">
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Resultat d'Explotació</div>
+                <div
+                    class="h3 mb-0 font-weight-bold {{ 'text-success' if profit_loss.resultat_explotacio >= 0 else 'text-danger' }}">
                     {{ "%.2f"|format(profit_loss.resultat_explotacio) }} €
                 </div>
             </div>
-            <div class="summary-card">
-                <div class="label">Resultat Financer</div>
-                <div class="value {{ 'positive' if profit_loss.resultat_financer >= 0 else 'negative' }}">
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-start border-info border-4 h-100">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Resultat Financer</div>
+                <div
+                    class="h3 mb-0 font-weight-bold {{ 'text-success' if profit_loss.resultat_financer >= 0 else 'text-danger' }}">
                     {{ "%.2f"|format(profit_loss.resultat_financer) }} €
                 </div>
             </div>
-            <div class="summary-card total">
-                <div class="label">Resultat de l'Exercici</div>
-                <div class="value {{ 'positive' if profit_loss.resultat_exercici >= 0 else 'negative' }}">
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-start border-success border-4 h-100 bg-light">
+            <div class="card-body">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Resultat de l'Exercici</div>
+                <div
+                    class="h3 mb-0 font-weight-bold {{ 'text-success' if profit_loss.resultat_exercici >= 0 else 'text-danger' }}">
                     {{ "%.2f"|format(profit_loss.resultat_exercici) }} €
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <div class="report-container">
-            <h3>A) OPERACIONS CONTINUADES</h3>
-
-            <table class="report-table">
-                <thead>
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="m-0 font-weight-bold text-dark">Detall del Compte de resultats (PYG)</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
                     <tr>
-                        <th style="width: 60%">Partida</th>
-                        <th style="width: 20%; text-align: right;">Nota</th>
-                        <th style="width: 20%; text-align: right;">Import</th>
+                        <th style="width: 60%" class="ps-4">Partida / Compte</th>
+                        <th style="width: 20%" class="text-end">Codi</th>
+                        <th style="width: 20%" class="text-end pe-4">Import</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <tr class="table-active fw-bold">
+                        <td colspan="3" class="ps-4">A) OPERACIONS CONTINUADES</td>
+                    </tr>
+
                     {% for group_name, group_data in profit_loss.groups.items()|sort %}
-                    <tr class="group-row">
-                        <td colspan="2" class="group-name">{{ group_name }}</td>
-                        <td class="amount {{ 'positive' if group_data.total >= 0 else 'negative' }}">
+                    <tr class="bg-light fw-bold">
+                        <td colspan="2" class="ps-4">{{ group_name }}</td>
+                        <td class="text-end pe-4 {{ 'text-success' if group_data.total >= 0 else 'text-danger' }}">
                             {{ "%.2f"|format(group_data.total) }} €
                         </td>
                     </tr>
                     {% for item in group_data.items %}
-                    <tr class="item-row">
-                        <td class="item-name">
-                            <span class="account-code">{{ item.code }}</span> {{ item.name }}
-                        </td>
-                        <td></td>
-                        <td class="amount sub-amount">
+                    <tr>
+                        <td class="ps-5 text-muted">{{ item.name }}</td>
+                        <td class="text-end text-muted font-monospace small px-2">{{ item.code }}</td>
+                        <td class="text-end pe-4 font-monospace text-dark">
                             {{ "%.2f"|format(item.amount) }} €
                         </td>
                     </tr>
                     {% endfor %}
                     {% endfor %}
 
-                    <tr class="result-row">
-                        <td colspan="2">A.1) RESULTAT D'EXPLOTACIÓ</td>
-                        <td class="amount {{ 'positive' if profit_loss.resultat_explotacio >= 0 else 'negative' }}">
+                    <!-- Results Section -->
+                    <tr class="table-secondary fw-bold border-top border-dark">
+                        <td colspan="2" class="ps-4 text-uppercase">A.1) Resultat d'Explotació</td>
+                        <td
+                            class="text-end pe-4 {{ 'text-success' if profit_loss.resultat_explotacio >= 0 else 'text-danger' }}">
                             {{ "%.2f"|format(profit_loss.resultat_explotacio) }} €
                         </td>
                     </tr>
 
-                    <tr class="result-row">
-                        <td colspan="2">A.2) RESULTAT FINANCER</td>
-                        <td class="amount {{ 'positive' if profit_loss.resultat_financer >= 0 else 'negative' }}">
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="2" class="ps-4 text-uppercase">A.2) Resultat Financer</td>
+                        <td
+                            class="text-end pe-4 {{ 'text-success' if profit_loss.resultat_financer >= 0 else 'text-danger' }}">
                             {{ "%.2f"|format(profit_loss.resultat_financer) }} €
                         </td>
                     </tr>
 
-                    <tr class="result-row grand-total">
-                        <td colspan="2">A.3) RESULTAT ABANS D'IMPOSTOS</td>
-                        <td class="amount {{ 'positive' if profit_loss.resultat_abans_impostos >= 0 else 'negative' }}">
+                    <tr class="table-info fw-bold border-top border-dark">
+                        <td colspan="2" class="ps-4 text-uppercase">A.3) Resultat Abans d'Impostos</td>
+                        <td
+                            class="text-end pe-4 {{ 'text-success' if profit_loss.resultat_abans_impostos >= 0 else 'text-danger' }}">
                             {{ "%.2f"|format(profit_loss.resultat_abans_impostos) }} €
                         </td>
                     </tr>
 
-                    <tr class="result-row grand-total final">
-                        <td colspan="2">A.4) RESULTAT DE L'EXERCICI</td>
-                        <td class="amount {{ 'positive' if profit_loss.resultat_exercici >= 0 else 'negative' }}">
+                    <tr class="table-success fw-bold border-top border-dark fs-5">
+                        <td colspan="2" class="ps-4 text-uppercase">A.4) RESULTAT DE L'EXERCICI</td>
+                        <td
+                            class="text-end pe-4 {{ 'text-success' if profit_loss.resultat_exercici >= 0 else 'text-danger' }}">
                             {{ "%.2f"|format(profit_loss.resultat_exercici) }} €
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-
-        <style>
-            .summary-cards {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 1.5rem;
-                margin-bottom: 2rem;
-            }
-
-            .summary-card {
-                background: white;
-                padding: 1.5rem;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-                border-left: 4px solid #e5e5ea;
-            }
-
-            .summary-card.total {
-                border-left-color: var(--primary-color);
-                background: #f8f9fa;
-            }
-
-            .summary-card .label {
-                color: var(--text-secondary);
-                font-size: 0.9rem;
-                margin-bottom: 0.5rem;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-
-            .summary-card .value {
-                font-size: 1.5rem;
-                font-weight: 700;
-            }
-
-            .value.positive {
-                color: #34c759;
-            }
-
-            .value.negative {
-                color: #ff3b30;
-            }
-
-            .report-table {
-                width: 100%;
-                border-collapse: collapse;
-                background: white;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }
-
-            .report-table th {
-                background: #f2f2f7;
-                padding: 12px 16px;
-                text-align: left;
-                font-weight: 600;
-                color: var(--text-secondary);
-                font-size: 0.85rem;
-                text-transform: uppercase;
-            }
-
-            .group-row td {
-                background: #f9f9fb;
-                font-weight: 600;
-                color: var(--text-primary);
-                padding: 12px 16px;
-                border-bottom: 1px solid #e5e5ea;
-            }
-
-            .item-row td {
-                padding: 8px 16px 8px 32px;
-                color: var(--text-secondary);
-                font-size: 0.95rem;
-                border-bottom: 1px solid #f2f2f7;
-            }
-
-            .account-code {
-                display: inline-block;
-                min-width: 60px;
-                opacity: 0.7;
-                font-family: monospace;
-            }
-
-            .amount {
-                font-family: 'SF Mono', 'Menlo', monospace;
-                font-weight: 600;
-                text-align: right;
-            }
-
-            .sub-amount {
-                font-weight: 400;
-                opacity: 0.8;
-            }
-
-            .result-row td {
-                background: #e5e5ea;
-                /* Darker gray for results */
-                font-weight: 700;
-                padding: 16px;
-                text-transform: uppercase;
-            }
-
-            .grand-total td {
-                background: #d1d1d6;
-                font-size: 1.1rem;
-            }
-
-            .grand-total.final td {
-                background: var(--primary-color);
-                color: white;
-            }
-
-            .grand-total.final .amount {
-                color: white;
-            }
-        </style>
-</body>
-
-</html>
+    </div>
+</div>
+{% endblock %}

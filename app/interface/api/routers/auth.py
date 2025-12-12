@@ -21,8 +21,18 @@ async def login(
     auth_service: AuthService = Depends(get_auth_service)
 ):
     """Login endpoint that returns a JWT token."""
-    user = auth_service.authenticate_user(form_data.username, form_data.password)
+    print(f"DEBUG: Login attempt for user {form_data.username}")
+    try:
+        user = auth_service.authenticate_user(form_data.username, form_data.password)
+        print(f"DEBUG: User authenticated: {user}")
+    except Exception as e:
+        print(f"DEBUG: Authentication error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise e
+
     if not user:
+        print("DEBUG: User not found or invalid password")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -33,9 +43,17 @@ async def login(
     expire_minutes = 60 * 24 * 7 if remember_me else ACCESS_TOKEN_EXPIRE_MINUTES
     access_token_expires = timedelta(minutes=expire_minutes)
     
-    access_token = auth_service.create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
+    try:
+        access_token = auth_service.create_access_token(
+            data={"sub": user.username}, expires_delta=access_token_expires
+        )
+        print("DEBUG: Access token created successfully")
+    except Exception as e:
+        print(f"DEBUG: Token creation error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise e
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me", response_model=UserResponse)

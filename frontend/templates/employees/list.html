@@ -1,45 +1,41 @@
-<!DOCTYPE html>
-<html lang="ca">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Empleats - ERP Català</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-
-<body>
-    <nav>
-        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
-        <div>
-            <a href="/">Inici</a>
-            <a href="/employees">RRHH</a>
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1><i class="fas fa-users me-2"></i>Gestió d'Empleats</h1>
+        <p class="text-muted">Direcció de Recursos Humans i Personal</p>
+    </div>
+    <div class="col-md-6 text-end">
+        <div class="btn-group me-2" role="group">
+            <a href="/employees/?filter=all"
+                class="btn btn-outline-secondary {% if filter == 'all' %}active{% endif %}">
+                Tots
+            </a>
+            <a href="/employees/?filter=active"
+                class="btn btn-outline-success {% if filter == 'active' %}active{% endif %}">
+                Actius
+            </a>
         </div>
-    </nav>
+        <a href="/employees/create" class="btn btn-primary">
+            <i class="fas fa-user-plus me-1"></i> Afegir Empleat
+        </a>
+    </div>
+</div>
 
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h1>Empleats</h1>
-            <div style="display: flex; gap: 1rem;">
-                <a href="/employees/?filter=all" class="btn"
-                    style="background: {% if filter == 'all' %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Tots</a>
-                <a href="/employees/?filter=active" class="btn"
-                    style="background: {% if filter == 'active' %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Actius</a>
-                <a href="/employees/create" class="btn">+ Afegir Empleat</a>
-            </div>
-        </div>
-
-        <div class="card">
-            {% if employees %}
-            <table>
-                <thead>
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if employees %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle table-compact">
+                <thead class="table-light">
                     <tr>
                         <th>Nom</th>
                         <th>DNI</th>
                         <th>Càrrec</th>
                         <th>Departament</th>
                         <th>Email</th>
-                        <th>Salari</th>
+                        <th class="text-end">Salari</th>
                         <th>Estat</th>
                         <th>Accions</th>
                     </tr>
@@ -47,47 +43,53 @@
                 <tbody>
                     {% for employee in employees %}
                     <tr>
-                        <td>
-                            <a href="/employees/{{ employee.id }}"
-                                style="color: var(--accent-color); text-decoration: none; font-weight: 600;">
+                        <td class="fw-bold">
+                            <a href="/employees/{{ employee.id }}" class="text-decoration-none text-dark">
                                 {{ employee.full_name }}
                             </a>
                         </td>
-                        <td>{{ employee.dni }}</td>
+                        <td class="font-monospace">{{ employee.dni }}</td>
                         <td>{{ employee.position }}</td>
-                        <td>{{ employee.department }}</td>
-                        <td>{{ employee.email }}</td>
-                        <td class="amount">{{ "%.2f"|format(employee.salary) }} €</td>
+                        <td><span class="badge bg-light text-dark border">{{ employee.department }}</span></td>
+                        <td>
+                            {% if employee.email %}
+                            <a href="mailto:{{ employee.email }}" class="text-decoration-none">{{ employee.email }}</a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">{{ "%.2f"|format(employee.salary) }} €</td>
                         <td>
                             {% if employee.is_active %}
-                            <span class="badge"
-                                style="background: rgba(76, 217, 100, 0.1); color: #4cd964;">Actiu</span>
+                            <span class="badge bg-success">Actiu</span>
                             {% else %}
-                            <span class="badge"
-                                style="background: rgba(255, 59, 48, 0.1); color: #ff3b30;">Inactiu</span>
+                            <span class="badge bg-danger">Inactiu</span>
                             {% endif %}
                         </td>
                         <td>
-                            <a href="/employees/edit/{{ employee.id }}" class="btn"
-                                style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.5rem;">✏️ Editar</a>
-                            <form method="POST" action="/employees/delete/{{ employee.id }}" style="display: inline;"
+                            <a href="/employees/edit/{{ employee.id }}" class="btn btn-sm btn-outline-primary"
+                                title="Editar">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            <form method="POST" action="/employees/delete/{{ employee.id }}" class="d-inline"
                                 onsubmit="return confirm('Segur que vols eliminar aquest empleat?');">
-                                <button type="submit" class="btn"
-                                    style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: rgba(220, 38, 38, 0.1); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.2);">🗑️
-                                    Eliminar</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </form>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            {% else %}
-            <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">
-                No hi ha empleats. Afegeix-ne un!
-            </p>
-            {% endif %}
         </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted"> <i class="fas fa-user-tie fa-3x"></i> </div>
+            <h4 class="text-muted">No hi ha empleats registrats</h4>
+            <a href="/employees/create" class="btn btn-primary mt-2">Crear Primer Empleat</a>
+        </div>
+        {% endif %}
     </div>
-</body>
-
-</html>
+</div>
+{% endblock %}

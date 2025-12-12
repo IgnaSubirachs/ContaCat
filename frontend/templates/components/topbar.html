@@ -1,0 +1,63 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-white topbar mb-4 static-top shadow-sm px-4">
+    <!-- Sidebar Toggle -->
+    <button class="btn btn-link text-secondary" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Search -->
+    <form class="d-none d-sm-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0 mw-100 navbar-search">
+        <div class="input-group">
+            <input type="text" class="form-control bg-light border-0 small" placeholder="Cerca global..."
+                aria-label="Search" aria-describedby="basic-addon2">
+            <button class="btn btn-primary" type="button">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </form>
+
+    <!-- Topbar Navbar -->
+    <ul class="navbar-nav ms-auto ps-3">
+        <!-- Fiscal Year -->
+        <li class="nav-item dropdown no-arrow mx-1">
+            <a class="nav-link dropdown-toggle" href="#" id="fiscalYearDropdown" role="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <span class="d-none d-lg-inline text-gray-600 small me-2">Exercici 2025</span>
+                <i class="fas fa-calendar-alt text-gray-400"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="fiscalYearDropdown">
+                <li><a class="dropdown-item" href="#">2025 (Obert)</a></li>
+                <li><a class="dropdown-item" href="#">2024 (Tancat)</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="/fiscal">Gestionar Exercicis</a></li>
+            </ul>
+        </li>
+
+        <div class="topbar-divider d-none d-sm-block vr mx-3 my-2"></div>
+
+        <!-- User Information -->
+        <li class="nav-item dropdown no-arrow">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <span class="d-none d-lg-inline text-gray-600 small me-2">{{ user.username if user else
+                    "Usuari" }}</span>
+                <img class="img-profile rounded-circle"
+                    src="https://ui-avatars.com/api/?name={{ user.username if user else 'U' }}&background=0a2540&color=fff"
+                    style="width: 32px; height: 32px;">
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="#"><i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Perfil: {{ user.username if user else 'Guest' }}</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Configuració</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a class="dropdown-item" href="/logout" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i> Sortir
+                    </a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>

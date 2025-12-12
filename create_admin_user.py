@@ -17,7 +17,7 @@ def create_admin_user():
         # Check if admin user already exists
         admin = auth_service.get_user_by_username("admin")
         if admin:
-            print("✓ Admin user already exists")
+            print("[OK] Admin user already exists")
             return
         
         # Create admin user
@@ -27,13 +27,13 @@ def create_admin_user():
             role=UserRole.ADMIN
         )
         
-        print(f"✓ Admin user created successfully")
-        print(f"  Username: admin")
-        print(f"  Password: admin123")
-        print(f"  ⚠️  IMPORTANT: Change the password after first login!")
+        print("[OK] Admin user created successfully")
+        print("  Username: admin")
+        print("  Password: admin123")
+        print("  WARNING: Change the password after first login!")
         
     except Exception as e:
-        print(f"✗ Error creating admin user: {e}")
+        print(f"[ERROR] Error creating admin user: {e}")
         db.rollback()
     finally:
         db.close()
