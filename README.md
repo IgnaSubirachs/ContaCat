@@ -125,4 +125,9 @@ app/
 
 ## Llicència
 
-Aquest projecte està publicat sota la [Llicència MIT](LICENSE).
+Aquest projecte està publicat sota la **PolyForm Noncommercial License 1.0.0**.
+
+Pots utilitzar, modificar i distribuir aquest programari lliurement per a **usos no comercials**.
+Per a qualsevol ús comercial, si us plau contacta amb l'autor per obtenir una llicència comercial.
+
+Consulta el fitxer [LICENSE](LICENSE) per a més detalls.

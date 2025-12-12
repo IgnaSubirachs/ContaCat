@@ -1,21 +1,70 @@
-MIT License
+PolyForm Noncommercial License 1.0.0
 
-Copyright (c) 2025 ContaCAT ERP
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Agreements
+----------
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1.  **Grant of Copyright License**. Licensor grants You a worldwide,
+    non-exclusive, non-sublicensable, royalty-free copyright license to
+    reproduce, prepare derivative works of, publicly display, publicly perform,
+    and distribute the software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2.  **Grant of Patent License**. Licensor grants You a worldwide, non-exclusive,
+    non-sublicensable, royalty-free patent license under Licensor's essential
+    patent claims, to make, use, sell, offer for sale, import, and otherwise run
+    the software.
+
+3.  **Conditions**. The licenses in sections 1 and 2 are subject to the
+    following conditions:
+
+    a.  **Noncommercial Use**. You may not use the software for any commercial
+        purpose.
+
+    b.  **Notices**. You must ensure that anyone who gets a copy of any part of
+        the software from You also gets a copy of this license.
+
+    c.  **No Other Rights**. These licenses do not imply any other rights.
+
+4.  **Term and Termination**.
+
+    a.  **Term**. The term of these licenses begins when You receive the
+        software and continues as long as You comply with their conditions.
+
+    b.  **Termination**. If You do not comply with any condition of these
+        licenses, they terminate immediately.
+
+    c.  **Survival**. All sections other than 1 and 2 survive the termination of
+        these licenses.
+
+5.  **Disclaimer**. **Licensor offers the software as-is and as-available, and
+    makes no representations or warranties of any kind concerning the software,
+    whether express, implied, statutory, or other. This includes without
+    limitation warranties of title, merchantability, fitness for a particular
+    purpose, non-infringement, absence of latent or other defects, accuracy, or
+    the presence or absence of errors, whether or not known or discoverable.**
+
+6.  **Limitation of Liability**. **In no event will Licensor be liable to You on
+    any legal theory (including, without limitation, negligence) or otherwise
+    for any direct, special, indirect, incidental, consequential, punitive,
+    exemplary, or other losses, costs, expenses, or damages arising out of these
+    licenses or use of the software, even if Licensor has been advised of the
+    possibility of such losses, costs, expenses, or damages.**
+
+7.  **General**.
+
+    a.  **Interpretation**. The term "software" includes any derivative works of
+        the software that You create.
+
+    b.  **Severability**. If any provision of these licenses is invalid or
+        unenforceable, it will be reformed to the minimum extent necessary to
+        make it valid and enforceable. If reformation is not possible, it will
+        be severed.
+
+    c.  **Waiver**. No term of these licenses can be waived and no failure to
+        comply with them excusable, without Licensor's written consent.
+
+    d.  **Entire Agreement**. These licenses are the complete agreement
+        concerning the software.
+
+Copyright 2025 Ignasi Subirachs
