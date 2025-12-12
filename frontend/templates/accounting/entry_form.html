@@ -1,163 +1,207 @@
-<!DOCTYPE html>
-<html lang="ca">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nou Assentament - ERP Català</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <script>
-        function addLine() {
-            const tbody = document.getElementById('lines-body');
-            const rowCount = tbody.rows.length;
-            const row = tbody.insertRow(rowCount);
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Nou Assentament</h1>
+    <a href="/accounting/journal" class="btn btn-secondary">Cancel·lar</a>
+</div>
 
-            row.innerHTML = `
-                <td>
-                    <select name="account_code_${rowCount}" required style="width: 100%;">
-                        <option value="">Selecciona compte...</option>
-                        {% for account in accounts %}
-                        <option value="{{ account.code }}">{{ account.code }} - {{ account.name }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td><input type="text" name="description_${rowCount}" required style="width: 100%;"></td>
-                <td><input type="number" step="0.01" name="debit_${rowCount}" value="0.00" onchange="updateTotals()" style="width: 100%; text-align: right;"></td>
-                <td><input type="number" step="0.01" name="credit_${rowCount}" value="0.00" onchange="updateTotals()" style="width: 100%; text-align: right;"></td>
-                <td style="text-align: center;"><button type="button" onclick="removeLine(this)" class="btn" style="background: var(--danger-color); padding: 0.2rem 0.5rem;">X</button></td>
-            `;
-        }
-
-        function removeLine(btn) {
-            const row = btn.parentNode.parentNode;
-            row.parentNode.removeChild(row);
-            updateTotals();
-        }
-
-        function updateTotals() {
-            let totalDebit = 0;
-            let totalCredit = 0;
-
-            const debits = document.querySelectorAll('input[name^="debit_"]');
-            const credits = document.querySelectorAll('input[name^="credit_"]');
-
-            debits.forEach(input => totalDebit += parseFloat(input.value || 0));
-            credits.forEach(input => totalCredit += parseFloat(input.value || 0));
-
-            document.getElementById('total-debit').textContent = totalDebit.toFixed(2) + ' €';
-            document.getElementById('total-credit').textContent = totalCredit.toFixed(2) + ' €';
-
-            const diff = Math.abs(totalDebit - totalCredit);
-            const status = document.getElementById('balance-status');
-
-            if (diff < 0.01) {
-                status.textContent = "Equilibrat";
-                status.className = "text-success";
-            } else {
-                status.textContent = "Desequilibrat (" + diff.toFixed(2) + " €)";
-                status.className = "text-danger";
-            }
-        }
-    </script>
-</head>
-
-<body>
-    <nav>
-        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
-        <div>
-            <a href="/">Inici</a>
-            <a href="/accounting">Comptabilitat</a>
+<form action="/accounting/journal/create" method="POST" id="journal-form">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="form-floating mb-3">
+                <input type="date" class="form-control" id="date" name="date" required value="{{ today }}">
+                <label for="date">Data</label>
+            </div>
         </div>
-    </nav>
-
-    <div class="container">
-        <h1>Nou Assentament</h1>
-
-        <form action="/accounting/journal/create" method="POST">
-            <div class="section">
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <label for="date">Data:</label>
-                        <input type="date" id="date" name="date" required value="{{ today }}">
-                    </div>
-                    <div>
-                        <label for="description">Descripció General:</label>
-                        <input type="text" id="description" name="description" required style="width: 100%;">
-                    </div>
+        <div class="col-md-9">
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="description" name="description" required
+                    placeholder="Descripció">
+                <label for="description">Descripció General (AI habilitada)</label>
+                <div id="ai-feedback" class="form-text text-primary" style="display: none;">
+                    <i class="fas fa-magic"></i> Buscant suggeriments intel·ligents...
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="section">
-                <h3>Línies de l'Assentament</h3>
-                <table>
-                    <thead>
+    <div class="card">
+        <div class="card-header bg-light fw-bold">Línies de l'Assentament</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0" id="lines-table">
+                    <thead class="table-light">
                         <tr>
-                            <th style="width: 30%;">Compte</th>
-                            <th style="width: 30%;">Descripció</th>
+                            <th style="width: 35%;">Compte</th>
+                            <th style="width: 30%;">Concepte Línia</th>
                             <th style="width: 15%; text-align: right;">Deure</th>
                             <th style="width: 15%; text-align: right;">Haver</th>
-                            <th style="width: 10%;"></th>
+                            <th style="width: 5%;"></th>
                         </tr>
                     </thead>
                     <tbody id="lines-body">
-                        <!-- Initial lines -->
-                        <tr>
-                            <td>
-                                <select name="account_code_0" required style="width: 100%;">
-                                    <option value="">Selecciona compte...</option>
-                                    {% for account in accounts %}
-                                    <option value="{{ account.code }}">{{ account.code }} - {{ account.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td><input type="text" name="description_0" required style="width: 100%;"></td>
-                            <td><input type="number" step="0.01" name="debit_0" value="0.00" onchange="updateTotals()"
-                                    style="width: 100%; text-align: right;"></td>
-                            <td><input type="number" step="0.01" name="credit_0" value="0.00" onchange="updateTotals()"
-                                    style="width: 100%; text-align: right;"></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <select name="account_code_1" required style="width: 100%;">
-                                    <option value="">Selecciona compte...</option>
-                                    {% for account in accounts %}
-                                    <option value="{{ account.code }}">{{ account.code }} - {{ account.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </td>
-                            <td><input type="text" name="description_1" required style="width: 100%;"></td>
-                            <td><input type="number" step="0.01" name="debit_1" value="0.00" onchange="updateTotals()"
-                                    style="width: 100%; text-align: right;"></td>
-                            <td><input type="number" step="0.01" name="credit_1" value="0.00" onchange="updateTotals()"
-                                    style="width: 100%; text-align: right;"></td>
-                            <td></td>
-                        </tr>
+                        <!-- Initial lines will be added by JS on load or hardcoded here -->
                     </tbody>
-                    <tfoot>
-                        <tr class="total-row">
-                            <td colspan="2" style="text-align: right;">Totals:</td>
-                            <td id="total-debit" style="text-align: right;">0.00 €</td>
-                            <td id="total-credit" style="text-align: right;">0.00 €</td>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="2" class="text-end fw-bold">Totals:</td>
+                            <td id="total-debit" class="text-end fw-bold">0.00 €</td>
+                            <td id="total-credit" class="text-end fw-bold">0.00 €</td>
                             <td></td>
                         </tr>
                     </tfoot>
                 </table>
-
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                    <button type="button" onclick="addLine()" class="btn"
-                        style="background: var(--card-bg); border: 1px solid var(--border-color);">+ Afegir
-                        Línia</button>
-                    <div id="balance-status" class="text-success" style="font-weight: 700;">Equilibrat</div>
-                </div>
             </div>
-
-            <div style="margin-top: 2rem; text-align: right;">
-                <a href="/accounting/journal" class="back-link" style="margin-right: 1rem;">Cancel·lar</a>
-                <button type="submit" class="btn">Guardar Assentament</button>
-            </div>
-        </form>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <button type="button" onclick="addLine()" class="btn btn-outline-primary">
+                <i class="fas fa-plus"></i> Afegir Línia
+            </button>
+            <div id="balance-status" class="fw-bold text-success">Equilibrat</div>
+        </div>
     </div>
-</body>
 
-</html>
+    <div class="mt-4 text-end">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-save"></i> Guardar Assentament
+        </button>
+    </div>
+</form>
+
+<datalist id="accounts-list">
+    {% for account in accounts %}
+    <option value="{{ account.code }}">{{ account.code }} - {{ account.name }}</option>
+    {% endfor %}
+</datalist>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let lineCount = 0;
+
+    // Initial setup
+    document.addEventListener('DOMContentLoaded', function () {
+        addLine(); // Add first line
+        addLine(); // Add second line
+
+        // AI Listener on main description
+        const descInput = document.getElementById('description');
+        let timeout = null;
+
+        descInput.addEventListener('input', function () {
+            clearTimeout(timeout);
+            const feedback = document.getElementById('ai-feedback');
+
+            if (this.value.length < 3) {
+                feedback.style.display = 'none';
+                return;
+            }
+
+            feedback.style.display = 'block';
+
+            timeout = setTimeout(() => {
+                fetchSuggestions(this.value);
+            }, 800);
+        });
+    });
+
+    async function fetchSuggestions(text) {
+        try {
+            const response = await fetch(`/ai/predict-accounts?description=${encodeURIComponent(text)}`);
+            if (response.ok) {
+                const suggestions = await response.json();
+                showSuggestions(suggestions);
+            }
+        } catch (error) {
+            console.error('Error fetching AI suggestions:', error);
+        } finally {
+            document.getElementById('ai-feedback').style.display = 'none';
+        }
+    }
+
+    function showSuggestions(suggestions) {
+        if (!suggestions || suggestions.length === 0) return;
+
+        // Cat Assistant Integration!
+        const top = suggestions[0];
+        const msg = `He trobat una coincidència! <br> <strong>${top.account_code} - ${top.account_name}</strong> <br> <small>(${Math.round(top.confidence * 100)}% de confiança)</small>`;
+
+        if (window.catSay) {
+            window.catSay(msg, 6000);
+        }
+
+        // Auto-fill logic
+        const firstRow = document.querySelector('#lines-body tr:first-child');
+        if (firstRow) {
+            const select = firstRow.querySelector('input[list="accounts-list"]');
+            if (select && !select.value) {
+                select.value = top.account_code;
+                firstRow.querySelector('input[name^="description_"]').value = document.getElementById('description').value;
+                // Add a visual cue
+                select.classList.add('bg-warning');
+                setTimeout(() => select.classList.remove('bg-warning'), 1000);
+            }
+        }
+    }
+
+    function addLine() {
+        const tbody = document.getElementById('lines-body');
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td>
+                <div class="input-group">
+                    <input type="text" class="form-control" name="account_code_${lineCount}" list="accounts-list" placeholder="Codi Compte" required>
+                </div>
+            </td>
+            <td>
+                <input type="text" class="form-control" name="description_${lineCount}" value="${document.getElementById('description').value}">
+            </td>
+            <td>
+                <input type="number" step="0.01" class="form-control text-end" name="debit_${lineCount}" value="0.00" onchange="updateTotals()">
+            </td>
+            <td>
+                <input type="number" step="0.01" class="form-control text-end" name="credit_${lineCount}" value="0.00" onchange="updateTotals()">
+            </td>
+            <td class="text-center">
+                <button type="button" onclick="removeLine(this)" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+
+        tbody.appendChild(row);
+        lineCount++;
+    }
+
+    function removeLine(btn) {
+        const row = btn.parentNode.parentNode;
+        row.parentNode.removeChild(row);
+        updateTotals();
+    }
+
+    function updateTotals() {
+        let totalDebit = 0;
+        let totalCredit = 0;
+
+        document.querySelectorAll('input[name^="debit_"]').forEach(input => totalDebit += parseFloat(input.value || 0));
+        document.querySelectorAll('input[name^="credit_"]').forEach(input => totalCredit += parseFloat(input.value || 0));
+
+        document.getElementById('total-debit').textContent = totalDebit.toFixed(2) + ' €';
+        document.getElementById('total-credit').textContent = totalCredit.toFixed(2) + ' €';
+
+        const diff = Math.abs(totalDebit - totalCredit);
+        const status = document.getElementById('balance-status');
+
+        if (diff < 0.01) {
+            status.textContent = "Equilibrat";
+            status.className = "fw-bold text-success";
+        } else {
+            status.textContent = "Desequilibrat (" + diff.toFixed(2) + " €)";
+            status.className = "fw-bold text-danger";
+        }
+    }
+</script>
+{% endblock %}

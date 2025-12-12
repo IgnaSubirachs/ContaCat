@@ -1,0 +1,114 @@
+<div id="cat-assistant-container">
+    <!-- Chat Bubble -->
+    <div id="cat-bubble" class="cat-bubble">
+        <span id="cat-message">Hola! Sóc el teu assistent. Comencem? 😺</span>
+        <div class="cat-bubble-arrow"></div>
+    </div>
+
+    <!-- Cat Avatar -->
+    <div class="cat-avatar-wrapper" onclick="toggleCatBubble()">
+        <img src="/static/img/cat_assistant.png" alt="Cat Assistant" class="cat-avatar-img">
+    </div>
+</div>
+
+<style>
+    #cat-assistant-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .cat-avatar-wrapper {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid #fff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        background: white;
+        transition: transform 0.2s;
+    }
+
+    .cat-avatar-wrapper:hover {
+        transform: scale(1.05);
+    }
+
+    .cat-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .cat-bubble {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 20px 20px 0 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        margin-bottom: 15px;
+        max-width: 250px;
+        position: relative;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+        /* Initially hidden */
+        font-size: 0.95rem;
+        line-height: 1.4;
+        color: #333;
+    }
+
+    .cat-bubble.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .cat-bubble-arrow {
+        position: absolute;
+        bottom: -10px;
+        right: 20px;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 0px solid transparent;
+        border-top: 10px solid white;
+    }
+</style>
+
+<script>
+    let bubbleTimeout;
+
+    function catSay(message, duration = 5000) {
+        const bubble = document.getElementById('cat-bubble');
+        const msgSpan = document.getElementById('cat-message');
+
+        msgSpan.innerHTML = message;
+        bubble.classList.add('visible');
+
+        // Play a soft sound? (Optional)
+        // const audio = new Audio('/static/sounds/meow.mp3'); audio.play();
+
+        clearTimeout(bubbleTimeout);
+        if (duration > 0) {
+            bubbleTimeout = setTimeout(() => {
+                bubble.classList.remove('visible');
+            }, duration);
+        }
+    }
+
+    function toggleCatBubble() {
+        const bubble = document.getElementById('cat-bubble');
+        bubble.classList.toggle('visible');
+    }
+
+    // Initial greeting
+    setTimeout(() => {
+        catSay("Miau! Estic aquí per ajudar-te amb la comptabilitat. 📊", 4000);
+    }, 1000);
+</script>

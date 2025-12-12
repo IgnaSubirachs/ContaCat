@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import Optional
 import os
 
-from app.interface.api.routers import partners, employees, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, payrolls, treasury, budgets, finance, banking
+from app.interface.api.routers import partners, employees, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, payrolls, treasury, budgets, finance, banking, ai
 from app.domain.auth.dependencies import get_current_user_or_redirect, can_access_module
 from app.domain.auth.entities import User
 from app.interface.api.templates import templates
@@ -39,6 +39,7 @@ app.include_router(treasury.router)
 app.include_router(budgets.router)
 app.include_router(finance.router)
 app.include_router(banking.router)
+app.include_router(ai.router)
 
 
 @app.get("/", response_class=HTMLResponse)
