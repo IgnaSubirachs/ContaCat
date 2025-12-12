@@ -3,58 +3,65 @@
 {% block content %}
 <div class="row mb-4">
     <div class="col-md-8">
-        <h1>Gestió de Nòmines ({{ month }}/{{ year }})</h1>
+        <h1><i class="fas fa-file-alt me-2"></i>Gestió de Nòmines</h1>
+        <p class="text-muted">Generació i control de rebuts de salari ({{ month }}/{{ year }})</p>
     </div>
     <div class="col-md-4 text-end">
-        <form class="d-flex justify-content-end align-items-center" method="GET" action="/payrolls/">
-            <select name="month" class="form-select me-2" style="width: auto;">
+        <form class="d-flex justify-content-end align-items-center gap-2" method="GET" action="/payrolls/">
+            <select name="month" class="form-select form-select-sm" style="width: auto;">
                 {% for m in range(1, 13) %}
                 <option value="{{ m }}" {% if m==month %}selected{% endif %}>{{ m }}</option>
                 {% endfor %}
             </select>
-            <select name="year" class="form-select me-2" style="width: auto;">
+            <select name="year" class="form-select form-select-sm" style="width: auto;">
                 {% for y in range(2024, 2030) %}
                 <option value="{{ y }}" {% if y==year %}selected{% endif %}>{{ y }}</option>
                 {% endfor %}
             </select>
-            <button type="submit" class="btn btn-secondary">Filtrar</button>
+            <button type="submit" class="btn btn-sm btn-secondary">
+                <i class="fas fa-filter"></i>
+            </button>
         </form>
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Generar Nova Nòmina</h5>
-    </div>
-    <div class="card-body">
-        <form method="POST" action="/payrolls/generate" class="row g-3 align-items-end">
-            <input type="hidden" name="month" value="{{ month }}">
-            <input type="hidden" name="year" value="{{ year }}">
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-start border-primary border-4">
+            <div class="card-body">
+                <h5 class="card-title text-primary"><i class="fas fa-magic me-2"></i>Generar Nova Nòmina</h5>
+                <form method="POST" action="/payrolls/generate" class="row g-3 align-items-end mt-1">
+                    <input type="hidden" name="month" value="{{ month }}">
+                    <input type="hidden" name="year" value="{{ year }}">
 
-            <div class="col-md-6">
-                <label class="form-label">Empleat</label>
-                <select name="employee_id" class="form-select" required>
-                    <option value="">Selecciona un empleat...</option>
-                    {% for emp in employees %}
-                    <option value="{{ emp.id }}">{{ emp.full_name }} ({{ emp.dni }})</option>
-                    {% endfor %}
-                </select>
+                    <div class="col-md-5">
+                        <label class="form-label small text-muted">Empleat</label>
+                        <select name="employee_id" class="form-select" required>
+                            <option value="">Selecciona un empleat...</option>
+                            {% for emp in employees %}
+                            <option value="{{ emp.id }}">{{ emp.full_name }} ({{ emp.dni }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-cogs me-1"></i> Generar
+                        </button>
+                    </div>
+                </form>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Generar</button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Llistat de Nòmines</h5>
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-gray-800">Llistat de Nòmines</h5>
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead>
+            <table class="table table-hover align-middle table-compact">
+                <thead class="table-light">
                     <tr>
                         <th>Empleat</th>
                         <th>Període</th>
@@ -68,31 +75,35 @@
                 <tbody>
                     {% for payroll in payrolls %}
                     <tr>
-                        <td>
+                        <td class="fw-bold">
                             {% if payroll.employee %}
                             {{ payroll.employee.full_name }}
                             {% else %}
-                            {{ payroll.employee_id }}
+                            <span class="text-muted">{{ payroll.employee_id }}</span>
                             {% endif %}
                         </td>
                         <td>{{ payroll.period_start.strftime('%d/%m/%Y') }} - {{ payroll.period_end.strftime('%d/%m/%Y')
                             }}</td>
                         <td class="text-end">{{ "%.2f"|format(payroll.gross_salary) }} €</td>
-                        <td class="text-end text-danger">-{{ "%.2f"|format(payroll.social_security_employee +
+                        <td class="text-end text-danger small">-{{ "%.2f"|format(payroll.social_security_employee +
                             payroll.irpf_amount) }} €</td>
                         <td class="text-end fw-bold text-success">{{ "%.2f"|format(payroll.net_salary) }} €</td>
                         <td>
-                            <span class="badge bg-secondary">{{ payroll.status }}</span>
+                            <span class="badge bg-success">{{ payroll.status }}</span>
                         </td>
                         <td class="text-end">
-                            <a href="/payrolls/{{ payroll.id }}/pdf" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-file-pdf"></i> PDF
+                            <a href="/payrolls/{{ payroll.id }}/pdf" class="btn btn-sm btn-outline-danger"
+                                title="Descarregar PDF">
+                                <i class="fas fa-file-pdf"></i>
                             </a>
                         </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="7" class="text-center py-4">No hi ha nòmines per aquest període.</td>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-folder-open fa-2x mb-3 d-block"></i>
+                            No hi ha nòmines per aquest període.
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

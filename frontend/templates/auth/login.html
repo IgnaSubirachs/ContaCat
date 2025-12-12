@@ -5,143 +5,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - ContaCAT</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            /* Gris clar corporatiu */
+            height: 100vh;
             display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            justify-content: center;
             align-items: center;
-        }
-
-        .login-container {
-            max-width: 420px;
-            width: 90%;
+            justify-content: center;
         }
 
         .login-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 3rem;
-            box-shadow: var(--glass-shadow);
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            background-color: white;
+            transition: transform 0.2s;
         }
 
-        .login-header {
-            text-align: center;
-            margin-bottom: 2.5rem;
+        .login-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
-        .logo-text {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--accent-color);
-            margin: 0;
-            letter-spacing: -0.03em;
+        .form-control {
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
         }
 
-        .logo-sub {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            margin-top: 0.5rem;
+        .form-control:focus {
+            background-color: #fff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .btn-primary {
+            background-color: #0a2540;
+            /* Navy Blue corporatiu */
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            transition: background-color 0.2s;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-            font-weight: 500;
+        .btn-primary:hover {
+            background-color: #1e3a8a;
         }
 
-        .form-group input {
-            width: 100%;
-            padding: 0.85rem 1rem;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: border-color 0.2s;
-            box-sizing: border-box;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        .error-message {
-            color: #ff3b30;
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-            display: none;
-            text-align: center;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 3rem;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        .login-footer a {
-            color: var(--accent-color);
-            text-decoration: none;
+        .logo-container img {
+            max-width: 140px;
+            height: auto;
         }
     </style>
 </head>
 
 <body>
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <h1 class="logo-text">ContaCAT</h1>
-                <p class="logo-sub">Gestió Empresarial</p>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5 col-lg-4">
+                <div class="card login-card p-4">
+                    <div class="card-body">
+                        <div class="text-center mb-4 logo-container">
+                            <img src="/static/img/logo.png" alt="ContaCAT Logo" class="mb-3">
+                            <h2 class="fw-bold text-dark mt-2">ContaCAT</h2>
+                            <p class="text-muted small">Gestió Empresarial Professional v2.0</p>
+                        </div>
+
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label for="username" class="form-label text-secondary fw-bold text-uppercase small"
+                                    style="font-size: 0.75rem;">Usuari</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted"><i
+                                            class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control border-start-0 ps-0" id="username"
+                                        name="username" required placeholder="admin" value="admin">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label text-secondary fw-bold text-uppercase small"
+                                    style="font-size: 0.75rem;">Contrasenya</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted"><i
+                                            class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control border-start-0 border-end-0 ps-0"
+                                        id="password" name="password" required placeholder="••••••••" value="">
+                                    <button class="btn btn-outline-light border border-start-0 text-muted bg-white"
+                                        type="button" id="togglePassword">
+                                        <i class="far fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="remember_me">
+                                <label class="form-check-label text-muted small" for="remember_me">Recorda'm (7
+                                    dies)</label>
+                            </div>
+
+                            <div class="alert alert-danger d-none py-2 small fw-bold text-center" id="errorMessage">
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary shadow-sm">
+                                    <i class="fas fa-sign-in-alt me-2"></i> INICIAR SESSIÓ
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-white text-center py-3 border-0">
+                        <small class="text-muted text-opacity-50" style="font-size: 0.7rem;">&copy; 2025 ContaCAT ERP
+                            System</small>
+                    </div>
+                </div>
             </div>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="username">Usuari</label>
-                    <input type="text" id="username" name="username" required autocomplete="username"
-                        placeholder="El teu usuari">
-                </div>
-                <div class="form-group">
-                    <label for="password">Contrasenya</label>
-                    <input type="password" id="password" name="password" required autocomplete="current-password"
-                        placeholder="La teva contrasenya">
-                </div>
-                <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                    <input type="checkbox" id="remember_me" name="remember_me" style="width: auto; margin: 0;">
-                    <label for="remember_me"
-                        style="margin: 0; font-weight: 400; font-size: 0.9rem; color: var(--text-primary);">Recorda'm</label>
-                </div>
-                <div class="error-message" id="errorMessage"></div>
-                <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; padding: 1rem;">Iniciar
-                    Sessió</button>
-            </form>
         </div>
     </div>
 
-    <footer class="login-footer">
-        <p>© 2025 <strong>Ignasi Subirachs Ferrer</strong></p>
-        <p>Llicència MIT · <a href="https://github.com/IgnaSubirachs/ContaCat-DEMO">GitHub</a></p>
-    </footer>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Password Visibility Toggle Logic
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#password');
+
+        togglePassword.addEventListener('click', function (e) {
+            // toggle the type attribute
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            // toggle the eye slash icon
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('fa-eye')) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+
+        // Login Logic
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -149,7 +167,12 @@
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
 
-            errorMessage.classList.remove('show');
+            errorMessage.classList.add('d-none');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalContent = submitBtn.innerHTML;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Validant...';
 
             try {
                 const formData = new FormData();
@@ -164,20 +187,22 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    // Set cookie for web sessions
                     document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
                     window.location.href = '/';
                 } else {
-                    errorMessage.textContent = 'Usuari o contrasenya incorrectes';
-                    errorMessage.classList.add('show');
+                    errorMessage.textContent = '⛔ Usuari o contrasenya incorrectes';
+                    errorMessage.classList.remove('d-none');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalContent;
                 }
             } catch (error) {
-                errorMessage.textContent = 'Error de connexió';
-                errorMessage.classList.add('show');
+                errorMessage.textContent = '❌ Error de connexió amb el servidor';
+                errorMessage.classList.remove('d-none');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalContent;
             }
         });
     </script>
-
 </body>
 
 </html>

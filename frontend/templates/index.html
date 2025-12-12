@@ -1,55 +1,87 @@
-<!DOCTYPE html>
-<html lang="ca">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ContaCAT</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0 text-gray-800">Panell de Control (Dashboard)</h1>
+        <p class="text-muted">Visió general de l'estat de l'empresa</p>
+    </div>
+</div>
 
-<body>
-    <nav>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <img src="/static/img/logo.png" alt="ContaCAT Logo" style="height: 40px;">
-            <a href="/" class="logo">ContaCAT</a>
-        </div>
-        <div class="nav-links">
-            <span style="color: var(--text-secondary);">{{ user.username }}</span>
-            <a href="/auth/logout" style="color: var(--accent-color);">Sortir</a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <h1>Benvingut, {{ user.username }}!</h1>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 3rem;">
-            Rol: <strong>{{ user.role.value }}</strong>
-        </p>
-
-        <div class="modules">
-            <h2>Mòduls Disponibles</h2>
-
-            <div class="module-grid">
-                {% for module in modules %}
-                <a href="{{ module.url }}" class="module-card">
-                    <img src="/static/img/{{ module.icon }}" alt="{{ module.name }}" class="module-icon">
-                    <h3>{{ module.name }}</h3>
-                    <p>{{ module.desc }}</p>
-                </a>
-                {% endfor %}
+<!-- Key Metrics Row -->
+<div class="row mb-4">
+    <!-- Sales Card -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-primary border-4 shadow-sm h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Vendes (Mes)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">12.450 €</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer style="text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 0.85rem;">
-        <p style="margin: 0;">© 2025 <strong>Ignasi Subirachs Ferrer</strong></p>
-        <p style="margin: 0.5rem 0 0 0;">Llicència MIT · <a href="https://github.com/IgnaSubirachs/ContaCat-DEMO"
-                style="color: var(--accent-color);">GitHub</a></p>
-    </footer>
+    <!-- Incoming Money -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-success border-4 shadow-sm h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Entrades Previstes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">5.800 €</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-euro-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-</body>
+    <!-- Pending Tasks -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-warning border-4 shadow-sm h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pendent Conciliar</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">18 mov.</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-</html>
+<!-- Shortcuts Grid -->
+<div class="row">
+    <div class="col-12">
+        <h4 class="mb-3">Accessos Ràpids</h4>
+    </div>
+    {% for module in modules %}
+    <div class="col-lg-3 col-md-6 mb-4">
+        <a href="{{ module.url }}" class="text-decoration-none">
+            <div class="card shadow-sm h-100 hover-card">
+                <div class="card-body text-center">
+                    <div class="mb-3 text-corporate">
+                        <!-- Use regex/logic to pick icon based on module name if dynamic mapping not available, or just generic -->
+                        <i class="fas fa-cube fa-3x"></i>
+                    </div>
+                    <h5 class="card-title text-dark">{{ module.name }}</h5>
+                    <p class="card-text text-muted small">{{ module.desc }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

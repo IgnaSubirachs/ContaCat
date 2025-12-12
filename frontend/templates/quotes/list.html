@@ -1,69 +1,100 @@
-<!DOCTYPE html>
-<html lang="ca">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pressupostos - ERP</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-file-contract me-2"></i>Pressupostos (Quotes)</h1>
+        <p class="text-muted">Gestió d'ofertes comercials</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="/quotes/create" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Nou Pressupost
+        </a>
+    </div>
+</div>
 
-<body>
-    <div class="container">
-        <h1>📋 Pressupostos</h1>
-
-        <div class="actions">
-            <a href="/quotes/create" class="btn btn-primary">+ Nou Pressupost</a>
-            <a href="/" class="btn btn-secondary">← Tornar</a>
-        </div>
-
-        <div class="filters">
-            <a href="/quotes/" class="filter-btn {% if not current_status %}active{% endif %}">Tots</a>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex gap-2">
+            <a href="/quotes/" class="btn btn-outline-secondary {% if not current_status %}active{% endif %}">Tots</a>
             <a href="/quotes/?status=draft"
-                class="filter-btn {% if current_status == 'draft' %}active{% endif %}">Esborranys</a>
+                class="btn btn-outline-secondary {% if current_status == 'draft' %}active{% endif %}">Esborranys</a>
             <a href="/quotes/?status=sent"
-                class="filter-btn {% if current_status == 'sent' %}active{% endif %}">Enviats</a>
+                class="btn btn-outline-secondary {% if current_status == 'sent' %}active{% endif %}">Enviats</a>
             <a href="/quotes/?status=accepted"
-                class="filter-btn {% if current_status == 'accepted' %}active{% endif %}">Acceptats</a>
+                class="btn btn-outline-secondary {% if current_status == 'accepted' %}active{% endif %}">Acceptats</a>
+            <a href="/quotes/?status=rejected"
+                class="btn btn-outline-secondary {% if current_status == 'rejected' %}active{% endif %}">Rebutjats</a>
         </div>
+    </div>
+</div>
 
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Número</th>
-                    <th>Data</th>
-                    <th>Vàlid fins</th>
-                    <th>Client</th>
-                    <th>Total</th>
-                    <th>Estat</th>
-                    <th>Accions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for quote in quotes %}
-                <tr>
-                    <td><a href="/quotes/{{ quote.id }}">{{ quote.quote_number }}</a></td>
-                    <td>{{ quote.quote_date.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ quote.valid_until.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ quote.partner_id[:8] }}</td>
-                    <td>{{ "%.2f"|format(quote.total) }} €</td>
-                    <td>
-                        <span class="badge badge-{{ quote.status.value.lower() }}">
-                            {{ quote.status.value }}
-                        </span>
-                    </td>
-                    <td>
-                        <a href="/quotes/{{ quote.id }}" class="btn-sm">Veure</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        {% if not quotes %}
-        <p class="no-data">No hi ha pressupostos.</p>
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if quotes %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle table-compact">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 15%;">Número</th>
+                        <th style="width: 15%;">Data</th>
+                        <th style="width: 15%;">Vàlid fins</th>
+                        <th style="width: 25%;">Client</th>
+                        <th class="text-end" style="width: 15%;">Total</th>
+                        <th style="width: 10%;">Estat</th>
+                        <th style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for quote in quotes %}
+                    <tr>
+                        <td class="font-monospace fw-bold text-primary">
+                            <a href="/quotes/{{ quote.id }}" class="text-decoration-none">{{ quote.quote_number }}</a>
+                        </td>
+                        <td>{{ quote.quote_date.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            {% if quote.valid_until %}
+                            {{ quote.valid_until.strftime('%d/%m/%Y') }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ quote.partner_id[:8] }}...</td>
+                        <td class="text-end fw-bold">{{ "%.2f"|format(quote.total) }} €</td>
+                        <td>
+                            {% if quote.status.value == 'DRAFT' %}
+                            <span class="badge bg-secondary">Esborrany</span>
+                            {% elif quote.status.value == 'SENT' %}
+                            <span class="badge bg-info text-dark">Enviat</span>
+                            {% elif quote.status.value == 'ACCEPTED' %}
+                            <span class="badge bg-success">Acceptat</span>
+                            {% elif quote.status.value == 'REJECTED' %}
+                            <span class="badge bg-danger">Rebutjat</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">{{ quote.status.value }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="/quotes/{{ quote.id }}" class="btn btn-sm btn-outline-primary"
+                                title="Veure detall">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted">
+                <i class="fas fa-file-contract fa-3x"></i>
+            </div>
+            <h4 class="text-muted">No s'han trobat pressupostos</h4>
+            <p class="text-muted">No hi ha pressupostos amb aquest filtre.</p>
+            <a href="/quotes/create" class="btn btn-primary mt-2">Crear Nou Pressupost</a>
+        </div>
         {% endif %}
     </div>
-</body>
-
-</html>
+</div>
+{% endblock %}
