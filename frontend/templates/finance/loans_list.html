@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Préstecs i Pòlisses</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/finance/loans/create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nou Préstec
+        </a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Principal</th>
+                <th>Tipus Interès</th>
+                <th>Inici</th>
+                <th>Durada</th>
+                <th>Estat</th>
+                <th>Accions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for loan in loans %}
+            <tr>
+                <td>{{ loan.name }}</td>
+                <td>{{ "%.2f"|format(loan.principal_amount) }} €</td>
+                <td>{{ loan.interest_rate }} %</td>
+                <td>{{ loan.start_date }}</td>
+                <td>{{ loan.duration_months }} mesos</td>
+                <td>
+                    <span
+                        class="badge {% if loan.status == 'ACTIVE' %}bg-success{% elif loan.status == 'PAID' %}bg-info{% else %}bg-secondary{% endif %}">
+                        {{ loan.status }}
+                    </span>
+                </td>
+                <td>
+                    <a href="/finance/loans/{{ loan.id }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i> Detalls/Quadre
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

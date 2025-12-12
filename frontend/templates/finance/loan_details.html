@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ loan.name }}</h1>
+    <div>
+        <span
+            class="badge {% if loan.status == 'ACTIVE' %}bg-success{% elif loan.status == 'PAID' %}bg-info{% else %}bg-secondary{% endif %} fs-6">
+            {{ loan.status }}
+        </span>
+        <a href="/finance/loans" class="btn btn-secondary ms-2">Tornar</a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header fw-bold">Detalls del Préstec</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Principal:</span>
+                    <strong>{{ "%.2f"|format(loan.principal_amount) }} €</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Interès:</span>
+                    <strong>{{ loan.interest_rate }} %</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Durada:</span>
+                    <strong>{{ loan.duration_months }} mesos</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Inici:</span>
+                    <strong>{{ loan.start_date }}</strong>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header fw-bold">Comptes vinculats</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Deute L/T: {{ loan.account_principal_long_term }}</li>
+                <li class="list-group-item">Deute C/T: {{ loan.account_principal_short_term }}</li>
+                <li class="list-group-item">Despesa Int.: {{ loan.account_interest_expense }}</li>
+                <li class="list-group-item">Banc: {{ loan.account_bank }}</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<h3>Quadre d'Amortització</h3>
+<div class="table-responsive">
+    <table class="table table-sm table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>#</th>
+                <th>Data</th>
+                <th class="text-end">Quota Total</th>
+                <th class="text-end">Interessos</th>
+                <th class="text-end">Amort. Principal</th>
+                <th class="text-end">Pendent</th>
+                <th class="text-center">Estat</th>
+                <th class="text-center">Accions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in loan.amortization_schedule %}
+            <tr class="{% if entry.status == 'POSTED' %}table-success{% endif %}">
+                <td>{{ entry.installment_number }}</td>
+                <td>{{ entry.due_date }}</td>
+                <td class="text-end">{{ "%.2f"|format(entry.total_payment) }} €</td>
+                <td class="text-end">{{ "%.2f"|format(entry.interest_payment) }} €</td>
+                <td class="text-end">{{ "%.2f"|format(entry.principal_payment) }} €</td>
+                <td class="text-end">{{ "%.2f"|format(entry.remaining_balance) }} €</td>
+                <td class="text-center">
+                    {% if entry.status == 'POSTED' %}
+                    <span class="badge bg-success">Comptabilitzat</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Pendent</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if entry.status == 'PENDING' %}
+                    <form action="/finance/loans/{{ loan.id }}/post-installment/{{ entry.id }}" method="post"
+                        onsubmit="return confirm('Vols comptabilitzar aquesta quota?');">
+                        <button type="submit" class="btn btn-sm btn-primary py-0">Comptabilitzar</button>
+                    </form>
+                    {% else %}
+                    <small class="text-muted">Assentament: {{ entry.journal_entry_id }}</small>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

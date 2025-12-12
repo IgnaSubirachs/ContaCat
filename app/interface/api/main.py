@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import Optional
 import os
 
-from app.interface.api.routers import partners, employees, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, payrolls, treasury
+from app.interface.api.routers import partners, employees, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, payrolls, treasury, budgets, finance, banking
 from app.domain.auth.dependencies import get_current_user_or_redirect, can_access_module
 from app.domain.auth.entities import User
 from app.interface.api.templates import templates
@@ -36,6 +36,9 @@ app.include_router(analytics.router)
 app.include_router(fiscal.router)
 app.include_router(inventory.router)
 app.include_router(treasury.router)
+app.include_router(budgets.router)
+app.include_router(finance.router)
+app.include_router(banking.router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -60,6 +63,7 @@ async def home(
         {"id": "sales_orders", "name": "Comandes", "desc": "Sales Orders", "url": "/sales/orders/", "icon": "sales.png"},
         {"id": "sales_invoices", "name": "Factures", "desc": "Sales Invoices", "url": "/sales/invoices/", "icon": "sales.png"},
         {"id": "inventory", "name": "Inventari", "desc": "Gestió de Stock", "url": "/inventory/", "icon": "accounting.png"},
+        {"id": "budgets", "name": "Pressupostos", "desc": "Planificació Financera", "url": "/budgets/", "icon": "accounting.png"},
         {"id": "analytics", "name": "Analítiques", "desc": "Dashboard i Ràtios", "url": "/analytics/", "icon": "accounting.png"},
         {"id": "users", "name": "Usuaris", "desc": "Gestió d'Usuaris", "url": "/auth/users-page", "icon": "hr.png"},
     ]

@@ -1,4 +1,4 @@
-# ERP Català
+# ![ContaCAT Logo](docs/assets/logo_erp.png) ERP Català
 
 Sistema ERP modular desenvolupat amb Domain-Driven Design (DDD), FastAPI i MySQL.
 
@@ -25,9 +25,9 @@ Sistema ERP modular desenvolupat amb Domain-Driven Design (DDD), FastAPI i MySQL
 - ✅ **Assets (Actius Fixes)**: Gestió d'actius fixes amb amortització automàtica i integració amb Comptabilitat (assentaments automàtics).
 - ✅ **Inventory (Inventari)**: Gestió d'stock amb articles, moviments d'entrada/sortida i control de nivells.
 - ✅ **User Management (Gestió d'Usuaris)**: Sistema d'autenticació i autorització amb JWT. Rols: ADMIN, MANAGER, USER, READ_ONLY. Panell d'administració per a gestió d'usuaris.
-- 📋 **Budgets (Pressupostos)**: Gestió de pressupostos (en desenvolupament)
-- 📋 **Finance (Finances)**: Gestió financera (en desenvolupament)
-- 📋 **Banking (Conciliació)**: Conciliació bancària (en desenvolupament)
+- ✅ **Budgets (Pressupostos)**: Gestió de pressupostos anuals i seguiment pressupostari per partides.
+- ✅ **Finance (Finances)**: Gestió de préstecs i pòlisses de crèdit amb càlcul automàtic de quotes (amortització francesa).
+- ✅ **Banking (Conciliació)**: Importació d'extractes bancaris (CSV) i conciliació amb assentaments comptables.
 
 
 

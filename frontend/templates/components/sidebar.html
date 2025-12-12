@@ -40,6 +40,10 @@
             class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'treasury/cash-flow' in request.url.path %}active{% endif %}">
             <i class="fas fa-money-bill-wave me-2"></i>Previsió
         </a>
+        <a href="/banking/"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'banking' in request.url.path %}active{% endif %}">
+            <i class="fas fa-university me-2"></i>Conciliació
+        </a>
 
         <!-- RRHH -->
         <div class="sidebar-category">Recurs. Humans</div>
@@ -62,9 +66,17 @@
             class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'profit-loss' in request.url.path %}active{% endif %}">
             <i class="fas fa-calculator me-2"></i>Pèrdues i G.
         </a>
+        <a href="/finance/loans"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'finance/loans' in request.url.path %}active{% endif %}">
+            <i class="fas fa-landmark me-2"></i>Préstecs
+        </a>
         <a href="/analytics"
             class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'analytics' in request.url.path %}active{% endif %}">
             <i class="fas fa-chart-pie me-2"></i>Analítica
+        </a>
+        <a href="/budgets"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'budgets' in request.url.path %}active{% endif %}">
+            <i class="fas fa-money-check-alt me-2"></i>Pressupostos
         </a>
 
         <!-- Configuració -->

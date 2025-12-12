@@ -7,7 +7,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 # Add project root to path
-sys.path.insert(0, 'c:\\ERP')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.domain.accounting.services import AccountingService
 from app.domain.accounts.entities import AccountType

@@ -8,7 +8,7 @@ import os
 from datetime import date, timedelta
 from decimal import Decimal
 
-sys.path.append(os.getcwd())
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.infrastructure.db.base import SessionLocal
 from app.domain.sales.services import QuoteService, SalesOrderService, SalesInvoiceService
