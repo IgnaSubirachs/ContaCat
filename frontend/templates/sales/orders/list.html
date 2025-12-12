@@ -1,82 +1,89 @@
-<!DOCTYPE html>
-<html lang="ca">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comandes - ERP Català</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-shopping-cart me-2"></i>Comandes de Venda</h1>
+        <p class="text-muted">Gestió de comandes de clients</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="/sales/orders/create" class="btn btn-primary d-none">
+            <i class="fas fa-plus me-1"></i> Nova Comanda
+        </a>
+    </div>
+</div>
 
-<body>
-    <nav>
-        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
-        <div>
-            <a href="/">Inici</a>
-            <a href="/sales/orders">Comandes</a>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex gap-2">
+            <a href="/sales/orders/"
+                class="btn btn-outline-secondary {% if not current_status %}active{% endif %}">Totes</a>
+            <a href="/sales/orders/?status=confirmed"
+                class="btn btn-outline-secondary {% if current_status == 'confirmed' %}active{% endif %}">Confirmades</a>
+            <a href="/sales/orders/?status=delivered"
+                class="btn btn-outline-secondary {% if current_status == 'delivered' %}active{% endif %}">Lliurades</a>
         </div>
-    </nav>
+    </div>
+</div>
 
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h1>Comandes de Venda</h1>
-            <div style="display: flex; gap: 1rem;">
-                <a href="/sales/orders/" class="btn"
-                    style="background: {% if not current_status %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Totes</a>
-                <a href="/sales/orders/?status=confirmed" class="btn"
-                    style="background: {% if current_status == 'confirmed' %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Confirmades</a>
-                <a href="/sales/orders/?status=delivered" class="btn"
-                    style="background: {% if current_status == 'delivered' %}var(--accent-color){% else %}transparent{% endif %}; border: 1px solid var(--accent-color);">Lliurades</a>
-            </div>
-        </div>
-
-        <div class="card">
-            {% if orders %}
-            <table>
-                <thead>
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle table-compact">
+                <thead class="table-light">
                     <tr>
-                        <th>Número</th>
-                        <th>Data</th>
-                        <th>Client</th>
-                        <th>Total</th>
-                        <th>Estat</th>
-                        <th>Accions</th>
+                        <th style="width: 15%;">Número</th>
+                        <th style="width: 15%;">Data</th>
+                        <th style="width: 30%;">Client</th>
+                        <th class="text-end" style="width: 15%;">Total</th>
+                        <th style="width: 15%;">Estat</th>
+                        <th style="width: 10%;"></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for order in orders %}
                     <tr>
-                        <td><a href="/sales/orders/{{ order.id }}"
-                                style="color: var(--accent-color); text-decoration: none; font-weight: 600;">{{
-                                order.order_number }}</a></td>
-                        <td>{{ order.order_date.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ order.partner_id[:8] }}</td>
-                        <td class="amount">{{ "%.2f"|format(order.total) }} €</td>
-                        <td>
-                            <span class="badge" style="
-                                {% if order.status.value == 'DRAFT' %}background: rgba(255, 255, 255, 0.1); color: var(--text-secondary);
-                                {% elif order.status.value == 'CONFIRMED' %}background: rgba(76, 217, 100, 0.1); color: #4cd964;
-                                {% elif order.status.value == 'DELIVERED' %}background: rgba(10, 132, 255, 0.1); color: #0a84ff;
-                                {% elif order.status.value == 'CANCELLED' %}background: rgba(255, 59, 48, 0.1); color: #ff3b30;
-                                {% endif %}">
-                                {{ order.status.value }}
-                            </span>
+                        <td class="font-monospace fw-bold text-primary">
+                            <a href="/sales/orders/{{ order.id }}" class="text-decoration-none">{{ order.order_number
+                                }}</a>
                         </td>
+                        <td>{{ order.order_date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ order.partner_id[:8] }}...</td>
+                        <td class="text-end fw-bold">{{ "%.2f"|format(order.total) }} €</td>
                         <td>
-                            <a href="/sales/orders/{{ order.id }}" class="btn"
-                                style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Veure</a>
+                            {% if order.status.value == 'DRAFT' %}
+                            <span class="badge bg-secondary">Esborrany</span>
+                            {% elif order.status.value == 'CONFIRMED' %}
+                            <span class="badge bg-success">Confirmada</span>
+                            {% elif order.status.value == 'DELIVERED' %}
+                            <span class="badge bg-info text-dark">Lliurada</span>
+                            {% elif order.status.value == 'CANCELLED' %}
+                            <span class="badge bg-danger">Cancel·lada</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">{{ order.status.value }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="/sales/orders/{{ order.id }}" class="btn btn-sm btn-outline-primary"
+                                title="Veure detall">
+                                <i class="fas fa-eye"></i>
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            {% else %}
-            <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">
-                No hi ha comandes.
-            </p>
-            {% endif %}
         </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted">
+                <i class="fas fa-shopping-cart fa-3x"></i>
+            </div>
+            <h4 class="text-muted">No s'han trobat comandes</h4>
+            <p class="text-muted">No hi ha comandes amb aquest filtre.</p>
+        </div>
+        {% endif %}
     </div>
-</body>
-
-</html>
+</div>
+{% endblock %}

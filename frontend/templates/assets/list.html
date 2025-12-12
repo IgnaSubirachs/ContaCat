@@ -1,60 +1,90 @@
-<!DOCTYPE html>
-<html lang="ca">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Actius - ERP Català</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-
-<body>
-    <nav>
-        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
-        <div>
-            <a href="/">Inici</a>
-            <a href="/assets">Actius</a>
-            <a href="/accounting">Comptabilitat</a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h1>Gestió d'Actius</h1>
-            <a href="/assets/create" class="btn">+ Nou Actiu</a>
-        </div>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>Codi</th>
-                    <th>Nom</th>
-                    <th>Data Compra</th>
-                    <th style="text-align: right;">Preu Compra</th>
-                    <th style="text-align: right;">Valor Actual</th>
-                    <th>Estat</th>
-                    <th>Accions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for asset in assets %}
-                <tr>
-                    <td><strong>{{ asset.code }}</strong></td>
-                    <td>{{ asset.name }}</td>
-                    <td>{{ asset.purchase_date }}</td>
-                    <td class="amount">{{ "%.2f"|format(asset.purchase_price) }} €</td>
-                    <td class="amount">{{ "%.2f"|format(asset.current_value) }} €</td>
-                    <td><span class="badge" style="background: rgba(255, 255, 255, 0.1);">{{ asset.status.value
-                            }}</span></td>
-                    <td>
-                        <a href="/assets/{{ asset.id }}"
-                            style="color: var(--accent-color); text-decoration: none;">Veure Detalls</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-cubes me-2"></i>Gestió d'Actius Fixos</h1>
+        <p class="text-muted">Control d'immobilitzat i amortitzacions</p>
     </div>
-</body>
+    <div class="col-md-4 text-end">
+        <a href="/assets/create" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Nou Actiu
+        </a>
+    </div>
+</div>
 
-</html>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="d-flex gap-2">
+            <a href="/assets/" class="btn btn-outline-secondary {% if not current_status %}active{% endif %}">Tots</a>
+            <a href="/assets/?status=active"
+                class="btn btn-outline-secondary {% if current_status == 'active' %}active{% endif %}">Actius</a>
+            <a href="/assets/?status=fully_depreciated"
+                class="btn btn-outline-secondary {% if current_status == 'fully_depreciated' %}active{% endif %}">Amortitzats</a>
+            <a href="/assets/?status=retired"
+                class="btn btn-outline-secondary {% if current_status == 'retired' %}active{% endif %}">Retirats</a>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        {% if assets %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle table-compact">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 15%;">Codi</th>
+                        <th style="width: 25%;">Nom</th>
+                        <th style="width: 15%;">Data Compra</th>
+                        <th class="text-end" style="width: 15%;">Preu Compra</th>
+                        <th class="text-end" style="width: 15%;">Valor Actual</th>
+                        <th style="width: 10%;">Estat</th>
+                        <th style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for asset in assets %}
+                    <tr>
+                        <td class="font-monospace fw-bold text-primary">
+                            <a href="/assets/{{ asset.id }}" class="text-decoration-none">{{ asset.code }}</a>
+                        </td>
+                        <td>{{ asset.name }}</td>
+                        <td>{{ asset.purchase_date.strftime('%d/%m/%Y') }}</td>
+                        <td class="text-end">{{ "%.2f"|format(asset.purchase_price) }} €</td>
+                        <td class="text-end fw-bold">{{ "%.2f"|format(asset.current_value) }} €</td>
+                        <td>
+                            {% if asset.status.value == 'ACTIVE' %}
+                            <span class="badge bg-success">Actiu</span>
+                            {% elif asset.status.value == 'FULLY_DEPRECIATED' %}
+                            <span class="badge bg-info text-dark">Amortitzat</span>
+                            {% elif asset.status.value == 'RETIRED' %}
+                            <span class="badge bg-secondary">Retirat</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">{{ asset.status.value }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="/assets/{{ asset.id }}" class="btn btn-sm btn-outline-primary"
+                                title="Veure detall">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted">
+                <i class="fas fa-cubes fa-3x"></i>
+            </div>
+            <h4 class="text-muted">No hi ha actius registrats</h4>
+            <p class="text-muted">Afegeix els teus elements d'immobilitzat (maquinària, ordinadors, mobles, etc.)</p>
+            <a href="/assets/create" class="btn btn-primary mt-2">Crear Primer Actiu</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
