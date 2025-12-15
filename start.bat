@@ -36,7 +36,7 @@ echo ✅ MySQL should be ready
 
 echo.
 echo [4/4] Initializing database tables...
-python init_db.py
+python scripts/init_db.py
 if %errorlevel% neq 0 (
     echo ⚠️  Database initialization had issues (might be OK if tables exist)
 )

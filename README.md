@@ -47,7 +47,23 @@ Hem completat un sprint intensiu per dotar l'ERP de capacitats executives reals:
 
 ---
 
-## 🛠️ Stack Tecnològic
+## � Estructura del Projecte
+
+```
+app/
+├── domain/              # Capa de Domini (entitats, repositoris, serveis)
+├── infrastructure/      # Capa d'Infraestructura (persistència)
+└── interface/           # Capa d'Interfície (API, Web)
+
+scripts/                 # Scripts d'utilitat
+├── setup/               # Inicialització i migracions
+├── maintenance/         # Eines de manteniment (reset pwd)
+└── data/                # Generació de dades de prova
+
+docs/                    # Documentació addicional
+```
+
+## �🛠️ Stack Tecnològic
 
 -   **Backend**: Python 3.12, FastAPI (Async).
 -   **Arquitectura**: DDD (Domain, Infrastructure, Interface).
