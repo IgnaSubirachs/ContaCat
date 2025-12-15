@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Importar Extracte (CSV)</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form action="/banking/upload" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="account_id" class="form-label">Compte Bancari</label>
+                        <select class="form-select" id="account_id" name="account_id" required>
+                            <option value="572000">572000 - Banc Principal</option>
+                            <!-- In real app, load from accounts -->
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Fitxer CSV</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+                        <div class="form-text">Format: Data (YYYY-MM-DD), Concepte, Import, Saldo</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Pujar i Analitzar</button>
+                    <a href="/banking/" class="btn btn-secondary">Cancel·lar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

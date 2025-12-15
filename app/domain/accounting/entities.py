@@ -61,6 +61,7 @@ class JournalEntry:
     description: str  # Descripció
     lines: List[JournalLine]  # Línies de l'assentament
     status: JournalEntryStatus = JournalEntryStatus.DRAFT
+    attachment_path: Optional[str] = None
     id: Optional[str] = None
     
     def __post_init__(self):

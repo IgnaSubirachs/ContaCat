@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ budget.name }} <small class="text-muted">({{ budget.year }})</small></h1>
+    <div>
+        <form action="/budgets/delete/{{ budget.id }}" method="post" style="display:inline;"
+            onsubmit="return confirm('Segur que vols eliminar aquest pressupost?');">
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Eliminar
+            </button>
+        </form>
+        <a href="/budgets/" class="btn btn-secondary">Tornar</a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                Afegir Línia de Pressupost
+            </div>
+            <div class="card-body">
+                <form action="/budgets/{{ budget.id }}/lines" method="post" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="account_group" class="form-label">Grup de Comptes</label>
+                        <input type="text" class="form-control" id="account_group" name="account_group"
+                            placeholder="Ex: 6 (Despeses), 70 (Vendes)" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="amount" class="form-label">Import Pressupostat (€)</label>
+                        <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary">Afegir Línia</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Grup Compte</th>
+                <th>Import</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in budget.lines %}
+            <tr>
+                <td>{{ line.account_group }}</td>
+                <td>{{ "%.2f"|format(line.amount) }} €</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="2" class="text-center">No hi ha línies definides.</td>
+            </tr>
+            {% endfor %}
+            {% if budget.lines %}
+            <tr class="table-info">
+                <td><strong>Total</strong></td>
+                <td><strong>{{ "%.2f"|format(budget.lines|sum(attribute='amount')) }} €</strong></td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

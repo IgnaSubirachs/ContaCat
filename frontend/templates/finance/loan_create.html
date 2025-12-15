@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Nou Préstec</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form action="/finance/loans/create" method="post">
+                    <h5 class="mb-3">Dades Generals</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label">Nom / Referència</label>
+                            <input type="text" class="form-control" id="name" name="name" required
+                                placeholder="Préstec ICO 2025">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lender_partner_id" class="form-label">Entitat Financera (Partner)</label>
+                            <select class="form-select" id="lender_partner_id" name="lender_partner_id" required>
+                                <option value="">Selecciona entitat...</option>
+                                {% for partner in partners %}
+                                <option value="{{ partner.id }}">{{ partner.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="principal_amount" class="form-label">Import Principal (€)</label>
+                            <input type="number" step="0.01" class="form-control" id="principal_amount"
+                                name="principal_amount" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="interest_rate" class="form-label">Tipus Interès Anual (%)</label>
+                            <input type="number" step="0.01" class="form-control" id="interest_rate"
+                                name="interest_rate" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="duration_months" class="form-label">Durada (mesos)</label>
+                            <input type="number" class="form-control" id="duration_months" name="duration_months"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="start_date" class="form-label">Data Inici</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3 mt-4">Configuració Comptable</h5>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="account_principal_long_term" class="form-label">Compte Llarg Termini (e.g.,
+                                170)</label>
+                            <input type="text" class="form-control" id="account_principal_long_term"
+                                name="account_principal_long_term" value="170000" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="account_principal_short_term" class="form-label">Compte Curt Termini (e.g.,
+                                520)</label>
+                            <input type="text" class="form-control" id="account_principal_short_term"
+                                name="account_principal_short_term" value="520000" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="account_interest_expense" class="form-label">Compte Despesa Interessos (e.g.,
+                                662)</label>
+                            <input type="text" class="form-control" id="account_interest_expense"
+                                name="account_interest_expense" value="662000" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="account_bank" class="form-label">Compte Banc (Pagament) (e.g., 572)</label>
+                            <input type="text" class="form-control" id="account_bank" name="account_bank" value="572000"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descripció addicional</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Generar Préstec i Quadre</button>
+                    <a href="/finance/loans" class="btn btn-secondary">Cancel·lar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

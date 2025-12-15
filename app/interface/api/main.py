@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import Optional
 import os
 
-from app.interface.api.routers import partners, employees, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, payrolls, treasury
+from app.interface.api.routers import partners, employees, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, payrolls, treasury, budgets, finance, banking, ai
 from app.domain.auth.dependencies import get_current_user_or_redirect, can_access_module
 from app.domain.auth.entities import User
 from app.interface.api.templates import templates
@@ -36,6 +36,10 @@ app.include_router(analytics.router)
 app.include_router(fiscal.router)
 app.include_router(inventory.router)
 app.include_router(treasury.router)
+app.include_router(budgets.router)
+app.include_router(finance.router)
+app.include_router(banking.router)
+app.include_router(ai.router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -47,32 +51,49 @@ async def home(
     if current_user is None:
         return RedirectResponse(url="/auth/login-page", status_code=302)
     
-    # Build list of accessible modules
-    modules = []
-    module_list = [
-        {"id": "partners", "name": "Partners", "desc": "Clients i Proveïdors", "url": "/partners/", "icon": "partners.png"},
-        {"id": "employees", "name": "RRHH", "desc": "Empleats i Nòmines", "url": "/employees/", "icon": "hr.png"},
-        {"id": "accounts", "name": "Comptes", "desc": "Pla Comptable", "url": "/accounts/", "icon": "accounting.png"},
-        {"id": "accounting", "name": "Comptabilitat", "desc": "Gestió Financera", "url": "/accounting/", "icon": "accounting.png"},
-        {"id": "fiscal", "name": "Exercicis", "desc": "Anys Fiscals", "url": "/fiscal/", "icon": "accounting.png"},
-        {"id": "assets", "name": "Actius Fixos", "desc": "Gestió d'Immobilitzat", "url": "/assets/", "icon": "accounting.png"},
-        {"id": "quotes", "name": "Pressupostos", "desc": "Gestió de Quotes", "url": "/quotes/", "icon": "sales.png"},
-        {"id": "sales_orders", "name": "Comandes", "desc": "Sales Orders", "url": "/sales/orders/", "icon": "sales.png"},
-        {"id": "sales_invoices", "name": "Factures", "desc": "Sales Invoices", "url": "/sales/invoices/", "icon": "sales.png"},
-        {"id": "inventory", "name": "Inventari", "desc": "Gestió de Stock", "url": "/inventory/", "icon": "accounting.png"},
-        {"id": "analytics", "name": "Analítiques", "desc": "Dashboard i Ràtios", "url": "/analytics/", "icon": "accounting.png"},
-        {"id": "users", "name": "Usuaris", "desc": "Gestió d'Usuaris", "url": "/auth/users-page", "icon": "hr.png"},
-    ]
-
+    # Build list of accessible modules grouped by category
+    grouped_modules = {}
     
-    for module in module_list:
+    # Define all modules with categories and icons
+    all_modules = [
+        # Sales & Partners
+        {"id": "partners", "name": "Clients i Prov.", "desc": "Gestió de contactes", "url": "/partners/", "icon": "fa-users", "category": "Vendes i Relacions"},
+        {"id": "quotes", "name": "Pressupostos", "desc": "Ofertes comercials", "url": "/quotes/", "icon": "fa-file-contract", "category": "Vendes i Relacions"},
+        {"id": "sales_orders", "name": "Comandes", "desc": "Comandes de clients", "url": "/sales/orders/", "icon": "fa-shopping-cart", "category": "Vendes i Relacions"},
+        {"id": "sales_invoices", "name": "Factures", "desc": "Facturació a clients", "url": "/sales/invoices/", "icon": "fa-file-invoice-dollar", "category": "Vendes i Relacions"},
+        
+        # Finance & Accounting
+        {"id": "accounting", "name": "Comptabilitat", "desc": "Diari i Assentaments", "url": "/accounting/", "icon": "fa-book", "category": "Finances i Comptabilitat"},
+        {"id": "accounts", "name": "Pla Comptable", "desc": "Gestió de comptes", "url": "/accounts/", "icon": "fa-list-ol", "category": "Finances i Comptabilitat"},
+        {"id": "treasury", "name": "Tresoreria", "desc": "Bancs i Caixa", "url": "/treasury/", "icon": "fa-university", "category": "Finances i Comptabilitat"},
+        {"id": "fiscal", "name": "Fiscalitat", "desc": "Impostos i models", "url": "/fiscal/", "icon": "fa-landmark", "category": "Finances i Comptabilitat"},
+        {"id": "budgets", "name": "Pressupostos", "desc": "Control pressupostari", "url": "/budgets/", "icon": "fa-chart-pie", "category": "Finances i Comptabilitat"},
+        {"id": "assets", "name": "Actius Fixos", "desc": "Amortitzacions", "url": "/assets/", "icon": "fa-building", "category": "Finances i Comptabilitat"},
+        
+        # HR
+        {"id": "employees", "name": "Empleats", "desc": "Fitxa de treballadors", "url": "/employees/", "icon": "fa-user-tie", "category": "Recursos Humans"},
+        {"id": "payrolls", "name": "Nòmines", "desc": "Gestió salarial", "url": "/payrolls/", "icon": "fa-file-alt", "category": "Recursos Humans"},
+        
+        # Operations & Analytics
+        {"id": "inventory", "name": "Inventari", "desc": "Stock i Productes", "url": "/inventory/", "icon": "fa-boxes", "category": "Operacions"},
+        {"id": "analytics", "name": "Analítica", "desc": "Informes i KPIs", "url": "/analytics/", "icon": "fa-chart-line", "category": "Operacions"},
+        
+        # Admin
+        {"id": "users", "name": "Usuaris", "desc": "Accés al sistema", "url": "/auth/users-page", "icon": "fa-user-shield", "category": "Administració"},
+    ]
+    
+    # Filter by permission and group
+    for module in all_modules:
         if can_access_module(current_user, module["id"]):
-            modules.append(module)
+            cat = module["category"]
+            if cat not in grouped_modules:
+                grouped_modules[cat] = []
+            grouped_modules[cat].append(module)
     
     return templates.TemplateResponse("index.html", {
         "request": request,
         "user": current_user,
-        "modules": modules
+        "grouped_modules": grouped_modules
     })
 
 

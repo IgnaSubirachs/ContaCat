@@ -63,9 +63,10 @@
 </div>
 
 <!-- Shortcuts Grid -->
+{% for category, modules in grouped_modules.items() %}
 <div class="row">
     <div class="col-12">
-        <h4 class="mb-3">Accessos Ràpids</h4>
+        <h4 class="mb-3 text-secondary border-bottom pb-2">{{ category }}</h4>
     </div>
     {% for module in modules %}
     <div class="col-lg-3 col-md-6 mb-4">
@@ -73,8 +74,8 @@
             <div class="card shadow-sm h-100 hover-card">
                 <div class="card-body text-center">
                     <div class="mb-3 text-corporate">
-                        <!-- Use regex/logic to pick icon based on module name if dynamic mapping not available, or just generic -->
-                        <i class="fas fa-cube fa-3x"></i>
+                        <!-- Dynamic Icon -->
+                        <i class="fas {{ module.icon }} fa-3x"></i>
                     </div>
                     <h5 class="card-title text-dark">{{ module.name }}</h5>
                     <p class="card-text text-muted small">{{ module.desc }}</p>
@@ -84,4 +85,5 @@
     </div>
     {% endfor %}
 </div>
+{% endfor %}
 {% endblock %}

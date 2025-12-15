@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Conciliació: {{ statement.filename }}</h1>
+    <a href="/banking/" class="btn btn-secondary">Tornar</a>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <i class="fas fa-list"></i> Línies de l'extracte
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Concepte</th>
+                            <th class="text-end">Import</th>
+                            <th>Estat</th>
+                            <th>Acció</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for line in statement.lines %}
+                        <tr class="{% if line.status == 'MATCHED' %}table-success{% endif %}">
+                            <td>{{ line.date }}</td>
+                            <td>{{ line.concept }}</td>
+                            <td class="text-end {{ 'text-danger' if line.amount < 0 else 'text-success' }}">
+                                {{ "%.2f"|format(line.amount) }} €
+                            </td>
+                            <td>
+                                {% if line.status == 'MATCHED' %}
+                                <span class="badge bg-success">Conciliat</span>
+                                <!-- <small>{{ line.reconciled_entry_id }}</small> -->
+                                {% else %}
+                                <span class="badge bg-warning text-dark">Pendent</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if line.status != 'MATCHED' %}
+                                <form action="/banking/{{ statement.id }}/match/{{ line.id }}" method="post"
+                                    class="d-flex gap-2">
+                                    <input type="text" name="journal_entry_id" class="form-control form-control-sm"
+                                        placeholder="ID Assentament" required style="width: 150px;">
+                                    <button type="submit" class="btn btn-sm btn-primary">Assignar</button>
+                                </form>
+                                {% else %}
+                                <i class="fas fa-check text-success"></i>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

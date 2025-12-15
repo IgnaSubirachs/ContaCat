@@ -1,4 +1,4 @@
-# ERP Català
+# ![ContaCAT Logo](docs/assets/logo_erp.png) ERP Català
 
 Sistema ERP modular desenvolupat amb Domain-Driven Design (DDD), FastAPI i MySQL.
 
@@ -25,9 +25,9 @@ Sistema ERP modular desenvolupat amb Domain-Driven Design (DDD), FastAPI i MySQL
 - ✅ **Assets (Actius Fixes)**: Gestió d'actius fixes amb amortització automàtica i integració amb Comptabilitat (assentaments automàtics).
 - ✅ **Inventory (Inventari)**: Gestió d'stock amb articles, moviments d'entrada/sortida i control de nivells.
 - ✅ **User Management (Gestió d'Usuaris)**: Sistema d'autenticació i autorització amb JWT. Rols: ADMIN, MANAGER, USER, READ_ONLY. Panell d'administració per a gestió d'usuaris.
-- 📋 **Budgets (Pressupostos)**: Gestió de pressupostos (en desenvolupament)
-- 📋 **Finance (Finances)**: Gestió financera (en desenvolupament)
-- 📋 **Banking (Conciliació)**: Conciliació bancària (en desenvolupament)
+- ✅ **Budgets (Pressupostos)**: Gestió de pressupostos anuals i seguiment pressupostari per partides.
+- ✅ **Finance (Finances)**: Gestió de préstecs i pòlisses de crèdit amb càlcul automàtic de quotes (amortització francesa).
+- ✅ **Banking (Conciliació)**: Importació d'extractes bancaris (CSV) i conciliació amb assentaments comptables.
 
 
 
@@ -75,8 +75,18 @@ python create_admin_user.py
 Credencials per defecte: `admin` / `admin123` (canvia-les després del primer login!)
 
 ## Interfície d'Usuari
+L'aplicació disposa d'una **interfície fosca professional** amb un disseny consistent i modern.
+- **Panell de Control (Dashboard)**: Organitzat per departaments (Finances, Vendes, RRHH, Operacions) amb icones intuïtives i accés ràpid.
+- **Navegació Millorada**: Barra lateral amb scroll per facilitar l'accés a tots els mòduls.
 
-L'aplicació disposa d'una **interfície fosca professional** amb icones realistes 3D generades per IA. Tots els mòduls principals (Comptabilitat, RRHH, Partners, Vendes) tenen un disseny consistent i modern.
+## Assistent IA (El Gat)
+L'ERP inclou un assistent intel·ligent ("El Gat") integrat a la comptabilitat:
+- **Reconeixement de Conceptes**: Entén termes comptables en català/castellà (ex: "factura llum", "nòmina abril").
+- **Suggeriment de Comptes**: Proposa automàticament el compte del Pla General Comptable (PGC) més adequat basant-se en regles fiscals i aprenentatge automàtic.
+- **Interacció Proactiva**: Apareix quan l'usuari ho necessita per oferir ajuda contextual.
+
+## Funcionalitats Destacades (Novetats)
+- **Adjuntar Factures**: Ara es poden pujar fitxers (PDF/Imatge) directament als assentaments comptables per tenir la documentació sempre a mà.
 
 ## Gestió d'Usuaris i Seguretat
 

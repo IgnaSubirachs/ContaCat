@@ -4,7 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 # Add project root to path
-sys.path.append(os.getcwd())
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.domain.accounts.entities import Account, AccountType
 from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository

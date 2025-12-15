@@ -4,7 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 # Add app to path
-sys.path.append(os.getcwd())
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.infrastructure.db.base import init_db, SessionLocal
 from app.domain.assets.entities import Asset, AssetStatus, DepreciationMethod
