@@ -14,6 +14,32 @@ class AccountingAssistantService:
     _model_pipeline: Optional[Pipeline] = None
     _is_training: bool = False
     _lock = threading.Lock()
+    
+    # Knowledge Base: Common Spanish PGC mappings
+    SPANISH_PGC_DEFAULTS = {
+        "llum": ("628000", "Subministraments"),
+        "aigua": ("628000", "Subministraments"),
+        "gas": ("628000", "Subministraments"),
+        "internet": ("629000", "Altres serveis"),
+        "telefon": ("629000", "Altres serveis"),
+        "lloguer": ("621000", "Arrendaments i cànons"),
+        "material oficina": ("629000", "Altres serveis"),
+        "nòmina": ("640000", "Sous i salaris"),
+        "seguretat social": ("642000", "Seguretat Social a càrrec empresa"),
+        "autònom": ("642000", "Seguretat Social a càrrec empresa"),
+        "gestoria": ("623000", "Serveis professionals independents"),
+        "notaria": ("623000", "Serveis professionals independents"),
+        "banc": ("626000", "Serveis bancaris i similars"),
+        "comissió": ("626000", "Serveis bancaris i similars"),
+        "assegurança": ("625000", "Primes d'assegurances"),
+        "reparació": ("622000", "Reparacions i conservació"),
+        "dinar": ("629000", "Altres serveis (Dietes)"),
+        "transport": ("629000", "Altres serveis (Transport)"),
+        "publicitat": ("627000", "Publicitat, propaganda i relacions públiques"),
+        "ordinador": ("217000", "Equips per a processos d'informació"),
+        "programari": ("206000", "Aplicacions informàtiques"),
+        "web": ("206000", "Aplicacions informàtiques"),
+    }
 
     def __init__(self, db: Session):
         self.db = db
@@ -80,6 +106,33 @@ class AccountingAssistantService:
         if not description or len(description) < 3:
             return []
             
+        # 1. Start with Rule-Based Knowledge (Expert System)
+        suggestions = []
+        desc_lower = description.lower()
+        
+        for keyword, (code, name) in self.SPANISH_PGC_DEFAULTS.items():
+            if keyword in desc_lower:
+                # Basic scoring: exact match is better, but here we just check presence
+                suggestions.append(AccountSuggestion(
+                    account_code=code,
+                    account_name=name,
+                    confidence=0.85,
+                    reason=f"Basat en normativa fiscal ({keyword})"
+                ))
+        
+        # If we have strong matches, return them (simplification)
+        if suggestions:
+            # Sort by length of keyword match (heuristic: "material oficina" > "material")? 
+            # For now just return top 3 distinct
+            seen = set()
+            unique_suggestions = []
+            for s in suggestions:
+                if s.account_code not in seen:
+                    unique_suggestions.append(s)
+                    seen.add(s.account_code)
+            return unique_suggestions[:3]
+
+        # 2. Fallback to ML Model
         if AccountingAssistantService._model_pipeline is None:
             if not AccountingAssistantService._is_training:
                 self._train_model() # Try to train now
@@ -91,7 +144,6 @@ class AccountingAssistantService:
             pipeline = AccountingAssistantService._model_pipeline
             
             # Predict probabilities
-            # classes_ contains the account codes
             probs = pipeline.predict_proba([description])[0]
             classes = pipeline.classes_
             
@@ -101,24 +153,23 @@ class AccountingAssistantService:
             # Sort by probability DESC
             predictions.sort(key=lambda x: x[1], reverse=True)
             
-            suggestions = []
+            ml_suggestions = []
             # Take top 3
             for account_code, prob in predictions[:3]:
                 if prob < 0.1: continue # Filter low confidence
                 
-                # Lookup name (fallback if not in _account_names map, fetch from DB or generic)
-                # For this demo we just try to get it from memory or DB check could be added
+                # Lookup name
                 account_name = getattr(self, '_account_names', {}).get(account_code, "Compte " + account_code)
                 
-                suggestions.append(AccountSuggestion(
+                ml_suggestions.append(AccountSuggestion(
                     account_code=account_code,
                     account_name=account_name,
                     confidence=round(prob, 2),
-                    reason=f"Predicció IA ({int(prob*100)}% de confiança)"
+                    reason=f"Aprenentatge automàtic ({int(prob*100)}% de confiança)"
                 ))
                 
-            return suggestions
-
+            return ml_suggestions
+            
         except NotFittedError:
              return []
         except Exception as e:

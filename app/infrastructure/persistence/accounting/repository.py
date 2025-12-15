@@ -28,7 +28,8 @@ class SqlAlchemyJournalRepository(JournalRepository):
                 entry_number=entry.entry_number,
                 entry_date=entry.entry_date,
                 description=entry.description,
-                status=entry.status
+                status=entry.status,
+                attachment_path=entry.attachment_path
             )
             
             # Create line models
@@ -167,5 +168,6 @@ class SqlAlchemyJournalRepository(JournalRepository):
             entry_date=model.entry_date,
             description=model.description,
             lines=lines,
-            status=JournalEntryStatus(model.status)
+            status=JournalEntryStatus(model.status),
+            attachment_path=model.attachment_path
         )

@@ -75,8 +75,18 @@ python create_admin_user.py
 Credencials per defecte: `admin` / `admin123` (canvia-les després del primer login!)
 
 ## Interfície d'Usuari
+L'aplicació disposa d'una **interfície fosca professional** amb un disseny consistent i modern.
+- **Panell de Control (Dashboard)**: Organitzat per departaments (Finances, Vendes, RRHH, Operacions) amb icones intuïtives i accés ràpid.
+- **Navegació Millorada**: Barra lateral amb scroll per facilitar l'accés a tots els mòduls.
 
-L'aplicació disposa d'una **interfície fosca professional** amb icones realistes 3D generades per IA. Tots els mòduls principals (Comptabilitat, RRHH, Partners, Vendes) tenen un disseny consistent i modern.
+## Assistent IA (El Gat)
+L'ERP inclou un assistent intel·ligent ("El Gat") integrat a la comptabilitat:
+- **Reconeixement de Conceptes**: Entén termes comptables en català/castellà (ex: "factura llum", "nòmina abril").
+- **Suggeriment de Comptes**: Proposa automàticament el compte del Pla General Comptable (PGC) més adequat basant-se en regles fiscals i aprenentatge automàtic.
+- **Interacció Proactiva**: Apareix quan l'usuari ho necessita per oferir ajuda contextual.
+
+## Funcionalitats Destacades (Novetats)
+- **Adjuntar Factures**: Ara es poden pujar fitxers (PDF/Imatge) directament als assentaments comptables per tenir la documentació sempre a mà.
 
 ## Gestió d'Usuaris i Seguretat
 

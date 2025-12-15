@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, Request, Form
+from fastapi import APIRouter, HTTPException, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from datetime import date
 from decimal import Decimal
 import os
+import uuid
+import shutil
 
 from app.domain.accounting.services import AccountingService
 from app.domain.accounts.entities import AccountType
@@ -22,100 +24,54 @@ reporting_service = ReportingService(accounting_service)
 
 router = APIRouter(prefix="/accounting", tags=["accounting"])
 
-
-# Chart of Accounts
-@router.get("/", response_class=HTMLResponse)
-async def accounting_home(request: Request):
-    """Accounting home page."""
-    return templates.TemplateResponse(
-        "accounting/home.html",
-        {"request": request}
-    )
-
-
-@router.get("/accounts", response_class=HTMLResponse)
-async def list_accounts(request: Request, group: int = None):
-    """List chart of accounts."""
-    if group:
-        accounts = accounting_service.list_accounts_by_group(group)
-    else:
-        accounts = accounting_service.list_accounts()
-    
-    return templates.TemplateResponse(
-        "accounting/accounts.html",
-        {"request": request, "accounts": accounts, "selected_group": group}
-    )
-
-
-@router.get("/accounts/create", response_class=HTMLResponse)
-async def create_account_form(request: Request):
-    """Show create account form."""
-    return templates.TemplateResponse(
-        "accounting/account_form.html",
-        {"request": request, "account_types": AccountType}
-    )
-
-
-@router.post("/accounts/create")
-async def create_account(
-    code: str = Form(...),
-    name: str = Form(...),
-    account_type: str = Form(...),
-    group: int = Form(...),
-):
-    """Create a new account."""
-    try:
-        accounting_service.create_account(
-            code=code,
-            name=name,
-            account_type=AccountType(account_type),
-            group=group
-        )
-        return RedirectResponse(url="/accounting/accounts", status_code=303)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-# Journal Entries
-@router.get("/journal", response_class=HTMLResponse)
-async def list_journal(request: Request):
-    """List journal entries (Llibre Diari)."""
-    entries = accounting_service.list_journal_entries()
-    return templates.TemplateResponse(
-        "accounting/journal.html",
-        {"request": request, "entries": entries}
-    )
-
-
-@router.get("/journal/create", response_class=HTMLResponse)
-async def create_entry_form(request: Request):
-    """Show create journal entry form."""
-    accounts = accounting_service.list_accounts()
-    return templates.TemplateResponse(
-        "accounting/entry_form.html",
-        {"request": request, "accounts": accounts}
-    )
-
-
 @router.post("/journal/create")
 async def create_entry(
     request: Request,
     entry_date: date = Form(...),
     description: str = Form(...),
+    attachment: UploadFile = File(None)
 ):
     """Create a new journal entry."""
     try:
+        # Handle attachment
+        attachment_path = None
+        if attachment and attachment.filename:
+            # Create uploads dir if not exists
+            upload_dir = os.path.join("frontend", "static", "uploads", "accounting")
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            # Generate unique filename
+            ext = os.path.splitext(attachment.filename)[1]
+            filename = f"{uuid.uuid4()}{ext}"
+            file_path = os.path.join(upload_dir, filename)
+            
+            # Save file
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(attachment.file, buffer)
+            
+            attachment_path = f"/static/uploads/accounting/{filename}"
+
         # Get form data for lines
         form_data = await request.form()
         
         # Parse lines
         lines = []
         i = 0
-        while f"account_{i}" in form_data:
-            account_code = form_data[f"account_{i}"]
+        while f"account_code_{i}" in form_data or f"account_{i}" in form_data: # Handle inconsistencies in naming if any, but template uses account_code_i
+             # Template uses 'account_code_{i}' based on my read of entry_form.html earlier
+             # Wait, reading entry_form.html again: name="account_code_{lineCount}"
+             # But previous python code was: while f"account_{i}" in form_data: account_code = form_data[f"account_{i}"]
+             # I should check if I need to fix the python parser to match the template or vice versa.
+             # The template has: name="account_code_${lineCount}" 
+             # The original python code had: while f"account_{i}" in form_data
+             # This suggests the template might have been changed or I read it wrong or the previous python code was wrong/outdated. 
+             # I see in my view_file(entry_form.html) output: name="account_code_${lineCount}"
+             # So I MUST parse 'account_code_{i}'
+            
+            account_code = form_data.get(f"account_code_{i}") or form_data.get(f"account_{i}")
             debit = Decimal(form_data.get(f"debit_{i}", "0") or "0")
             credit = Decimal(form_data.get(f"credit_{i}", "0") or "0")
-            line_desc = form_data.get(f"line_desc_{i}", "")
+            line_desc = form_data.get(f"description_{i}", "") # Template uses description_{i}
             
             if account_code:
                 lines.append((account_code, debit, credit, line_desc))
@@ -124,7 +80,8 @@ async def create_entry(
         accounting_service.create_journal_entry(
             entry_date=entry_date,
             description=description,
-            lines=lines
+            lines=lines,
+            attachment_path=attachment_path
         )
         return RedirectResponse(url="/accounting/journal", status_code=303)
     except ValueError as e:

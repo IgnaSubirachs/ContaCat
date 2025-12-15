@@ -15,9 +15,11 @@
 }
 
 body {
-    background-color: #f0f2f5; /* Enterprise Grey */
+    background-color: #f0f2f5;
+    /* Enterprise Grey */
     font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-    font-size: 0.85rem; /* Denser text */
+    font-size: 0.85rem;
+    /* Denser text */
     overflow-x: hidden;
 }
 
@@ -37,7 +39,9 @@ body {
     transition: all 0.3s;
     position: fixed;
     z-index: 1000;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    /* Allow creating scrollbar if content is too long */
 }
 
 #page-content-wrapper {
@@ -51,7 +55,8 @@ body {
 .topbar {
     height: var(--topbar-height);
     background-color: #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    /* Subtle shadow */
     position: fixed;
     top: 0;
     right: 0;
@@ -69,14 +74,16 @@ body {
     font-size: 1.1rem;
     font-weight: 700;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background-color: rgba(0, 0, 0, 0.15); /* Slightly darker header */
+    background-color: rgba(0, 0, 0, 0.15);
+    /* Slightly darker header */
 }
 
 .list-group-item {
     background-color: transparent;
     border: none;
     color: rgba(255, 255, 255, 0.75);
-    padding: 0.6rem 1.5rem; /* Compact padding */
+    padding: 0.6rem 1.5rem;
+    /* Compact padding */
     font-weight: 500;
     font-size: 0.9rem;
 }
@@ -87,9 +94,11 @@ body {
 }
 
 .list-group-item.active {
-    background-color: rgba(255, 255, 255, 0.15); /* Subtler active state */
+    background-color: rgba(255, 255, 255, 0.15);
+    /* Subtler active state */
     color: #fff;
-    border-left: 4px solid var(--bs-info); /* Blue accent */
+    border-left: 4px solid var(--bs-info);
+    /* Blue accent */
 }
 
 .sidebar-category {
@@ -123,8 +132,10 @@ body {
 /* Card Styling */
 .card {
     border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05); /* Very flat */
-    border-radius: 0.25rem; /* Squared corners */
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    /* Very flat */
+    border-radius: 0.25rem;
+    /* Squared corners */
     margin-bottom: 1rem;
 }
 

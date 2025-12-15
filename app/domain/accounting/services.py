@@ -63,7 +63,8 @@ class AccountingService:
         self,
         entry_date: date,
         description: str,
-        lines: List[tuple[str, Decimal, Decimal, str]]  # (account_code, debit, credit, desc)
+        lines: List[tuple[str, Decimal, Decimal, str]],  # (account_code, debit, credit, desc)
+        attachment_path: Optional[str] = None
     ) -> JournalEntry:
         """Create a new journal entry."""
         # Get next entry number
@@ -90,7 +91,8 @@ class AccountingService:
             entry_number=entry_number,
             entry_date=entry_date,
             description=description,
-            lines=journal_lines
+            lines=journal_lines,
+            attachment_path=attachment_path
         )
         
         # Validate (including double-entry check)

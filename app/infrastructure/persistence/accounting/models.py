@@ -2,7 +2,7 @@ from sqlalchemy import String, Integer, Boolean, Numeric, Date, Enum as SQLEnum,
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date
 from decimal import Decimal
-from typing import List
+from typing import List, Optional
 
 from app.infrastructure.db.base import Base
 from app.domain.accounting.entities import JournalEntryStatus
@@ -18,6 +18,7 @@ class JournalEntryModel(Base):
     entry_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     description: Mapped[str] = mapped_column(String(500), nullable=False)
     status: Mapped[str] = mapped_column(SQLEnum(JournalEntryStatus), nullable=False, default=JournalEntryStatus.DRAFT)
+    attachment_path: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     # Relationship to lines
     lines: Mapped[List["JournalLineModel"]] = relationship(
