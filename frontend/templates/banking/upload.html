@@ -19,9 +19,16 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="file" class="form-label">Fitxer CSV</label>
-                        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
-                        <div class="form-text">Format: Data (YYYY-MM-DD), Concepte, Import, Saldo</div>
+                        <label for="file" class="form-label">Fitxer (CSV o Norma 43)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv,.n43,.csb,.txt"
+                            required>
+                        <div class="form-text">
+                            Formats suportats:
+                            <ul>
+                                <li><strong>Norma 43 (CSB43)</strong>: .n43, .csb, .txt</li>
+                                <li><strong>Excel/CSV</strong>: Data, Concepte, Import</li>
+                            </ul>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Pujar i Analitzar</button>

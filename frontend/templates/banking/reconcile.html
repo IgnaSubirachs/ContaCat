@@ -41,14 +41,31 @@
                             </td>
                             <td>
                                 {% if line.status != 'MATCHED' %}
-                                <form action="/banking/{{ statement.id }}/match/{{ line.id }}" method="post"
-                                    class="d-flex gap-2">
-                                    <input type="text" name="journal_entry_id" class="form-control form-control-sm"
-                                        placeholder="ID Assentament" required style="width: 150px;">
-                                    <button type="submit" class="btn btn-sm btn-primary">Assignar</button>
-                                </form>
+                                <div class="d-flex flex-column gap-2">
+                                    <!-- Suggestions -->
+                                    {% if suggestions and suggestions[line.id] %}
+                                    {% for match in suggestions[line.id] %}
+                                    <form action="/banking/{{ statement.id }}/match/{{ line.id }}" method="post">
+                                        <input type="hidden" name="journal_entry_id" value="{{ match.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-success w-100 text-start"
+                                            title="Coincidència d'import">
+                                            <i class="fas fa-magic me-1"></i> Conciliar {{ match.number }} ({{
+                                            match.amount }}€)
+                                        </button>
+                                    </form>
+                                    {% endfor %}
+                                    {% endif %}
+
+                                    <!-- Manual Entry -->
+                                    <form action="/banking/{{ statement.id }}/match/{{ line.id }}" method="post"
+                                        class="d-flex gap-2">
+                                        <input type="text" name="journal_entry_id" class="form-control form-control-sm"
+                                            placeholder="ID Assentament" required style="width: 120px;">
+                                        <button type="submit" class="btn btn-sm btn-primary">OK</button>
+                                    </form>
+                                </div>
                                 {% else %}
-                                <i class="fas fa-check text-success"></i>
+                                <i class="fas fa-check text-success fa-lg"></i>
                                 {% endif %}
                             </td>
                         </tr>

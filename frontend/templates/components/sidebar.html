@@ -82,8 +82,16 @@
         <!-- Configuració -->
         <div class="sidebar-category">Sistema</div>
         <a href="/fiscal"
-            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'fiscal' in request.url.path %}active{% endif %}">
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if request.url.path == '/fiscal' %}active{% endif %}">
             <i class="fas fa-calendar-alt me-2"></i>Exercicis
+        </a>
+        <a href="/fiscal/models/303"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'models/303' in request.url.path %}active{% endif %}">
+            <i class="fas fa-file-invoice me-2"></i>Model 303
+        </a>
+        <a href="/settings"
+            class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'settings' in request.url.path %}active{% endif %}">
+            <i class="fas fa-cog me-2"></i>Configuració
         </a>
         <a href="/logout" class="list-group-item list-group-item-action bg-transparent second-text fw-bold text-danger">
             <i class="fas fa-power-off me-2"></i>Sortir

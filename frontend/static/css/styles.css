@@ -155,3 +155,91 @@ body {
 .bg-corporate {
     background-color: var(--bs-primary) !important;
 }
+
+/* --- Enterprise Components Overrides --- */
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+.btn-primary:hover {
+    background-color: #0d3050;
+    /* Slightly lighter/darker */
+    border-color: #0d3050;
+}
+
+.btn-secondary {
+    background-color: #fff;
+    color: var(--bs-secondary);
+    border-color: #cbd5e0;
+}
+
+.btn-secondary:hover {
+    background-color: #f8fafc;
+    color: var(--bs-dark);
+    border-color: #a0aec0;
+}
+
+/* Breadcrumbs */
+.breadcrumb-container {
+    background-color: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.75rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.breadcrumb {
+    margin-bottom: 0;
+}
+
+.breadcrumb-item a {
+    color: var(--bs-secondary);
+    text-decoration: none;
+}
+
+.breadcrumb-item.active {
+    color: var(--bs-dark);
+    font-weight: 600;
+}
+
+/* Tables Professional */
+.table-hover tbody tr:hover {
+    background-color: rgba(10, 37, 64, 0.03);
+    /* Very subtle primary tint */
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.015);
+}
+
+.table td {
+    border-color: #f1f5f9;
+}
+
+/* Forms */
+.form-control,
+.form-select {
+    border: 1px solid #cbd5e0;
+    padding: 0.4rem 0.75rem;
+    /* Denser */
+    font-size: 0.9rem;
+    border-radius: 0.25rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--bs-info);
+    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--bs-secondary);
+    margin-bottom: 0.25rem;
+}

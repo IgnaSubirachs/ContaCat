@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2cm;
+                margin-right: 2cm;
+                height: 1cm;
+            }
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 16pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #eee;
+            padding: 5px;
+        }
+
+        .box {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .row {
+            display: block;
+            clear: both;
+        }
+
+        .col-half {
+            width: 48%;
+            float: left;
+        }
+
+        .clearfix {
+            clear: both;
+        }
+
+        table.data {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        table.data td {
+            padding: 2px;
+        }
+
+        table.lines {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table.lines th {
+            border-bottom: 2px solid #000;
+            padding: 5px;
+            text-align: left;
+            font-size: 9pt;
+            background-color: #f1f1f1;
+        }
+
+        table.lines td {
+            border-bottom: 1px solid #ccc;
+            padding: 5px;
+            text-align: right;
+        }
+
+        table.lines td.left {
+            text-align: left;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-top: 15px;
+            border-bottom: 1px solid #000;
+        }
+
+        .total-box {
+            margin-top: 20px;
+            border: 2px solid #000;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        .net-amount {
+            font-size: 14pt;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .footer-note {
+            font-size: 8pt;
+            color: #666;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="title">REBUT DE SALARIS (NÒMINA)</div>
+
+    <!-- Company and Employee Data as simple tables for layout stability in xhtml2pdf -->
+    <table width="100%">
+        <tr>
+            <td width="50%" valign="top">
+                <div class="box" style="height: 120px;">
+                    <strong>EMPRESA</strong><br><br>
+                    {{ company.name }}<br>
+                    {{ company.full_address }}<br>
+                    CIF: {{ company.tax_id }}<br>
+                    Codi Compte Cotització: 08/123456789
+                </div>
+            </td>
+            <td width="50%" valign="top">
+                <div class="box" style="height: 120px;">
+                    <strong>TREBALLADOR</strong><br><br>
+                    {{ payroll.employee.full_name }}<br>
+                    NIF: {{ payroll.employee.dni }}<br>
+                    NSS: {{ payroll.employee.nss }}<br>
+                    Categoria: {{ payroll.employee.position }}<br>
+                    Antiguitat: {{ payroll.employee.hire_date.strftime('%d/%m/%Y') }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="box">
+        <strong>Període de Liquidació:</strong> {{ payroll.period_start.strftime('%d/%m/%Y') }} - {{
+        payroll.period_end.strftime('%d/%m/%Y') }}
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <strong>Total Dies:</strong> {{ payroll.working_days }}
+    </div>
+
+    <!-- I. MERITACIONS (DEVENGOS) -->
+    <div class="section-title">I. MERITACIONS</div>
+    <table class="lines">
+        <thead>
+            <tr>
+                <th width="70%">Concepte</th>
+                <th width="10%">Unitats</th>
+                <th width="20%">Import</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="left">Salari Base</td>
+                <td>30 dies</td>
+                <td>{{ "%.2f"|format(payroll.base_salary) }} €</td>
+            </tr>
+            {% if payroll.supplements > 0 %}
+            <tr>
+                <td class="left">Complements Salarials / Plus Conveni</td>
+                <td></td>
+                <td>{{ "%.2f"|format(payroll.supplements) }} €</td>
+            </tr>
+            {% endif %}
+            <!-- Extra checks can be added here for overtime etc -->
+            <tr>
+                <td class="left" style="font-weight: bold;">TOTAL INTEGRAT</td>
+                <td></td>
+                <td style="font-weight: bold;">{{ "%.2f"|format(payroll.gross_salary) }} €</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- II. DEDUCCIONS -->
+    <div class="section-title">II. DEDUCCIONS</div>
+    <table class="lines">
+        <thead>
+            <tr>
+                <th width="60%">Concepte</th>
+                <th width="20%">Percentatge</th>
+                <th width="20%">Import</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="left">Cotització Contingències Comunes</td>
+                <td>4.70%</td>
+                <td>{{ "%.2f"|format(payroll.social_security_employee * 0.74) }} €</td> <!-- Aprox visual breakdown -->
+            </tr>
+            <tr>
+                <td class="left">Atur / Formació Professional</td>
+                <td>1.65%</td>
+                <td>{{ "%.2f"|format(payroll.social_security_employee * 0.26) }} €</td> <!-- Aprox visual breakdown -->
+            </tr>
+            <tr>
+                <td class="left">Impost Renda Persones Físiques (IRPF)</td>
+                <td>{{ payroll.irpf_rate }}%</td>
+                <td>{{ "%.2f"|format(payroll.irpf_amount) }} €</td>
+            </tr>
+            <tr>
+                <td class="left" style="font-weight: bold;">TOTAL A DEDUIR</td>
+                <td></td>
+                <td style="font-weight: bold;">{{ "%.2f"|format(payroll.social_security_employee + payroll.irpf_amount)
+                    }} €</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- TOTALS -->
+    <br>
+    <table width="100%">
+        <tr>
+            <td width="60%" valign="top">
+                <div style="font-size: 8pt; border: 1px dashed #999; padding: 5px;">
+                    <strong>Determinació de les Bases de Cotització:</strong><br>
+                    Contingències Comunes: {{ "%.2f"|format(payroll.gross_salary) }} €<br>
+                    Contingències Professionals: {{ "%.2f"|format(payroll.gross_salary) }} €<br>
+                    Base IRPF: {{ "%.2f"|format(payroll.irpf_base) }} €
+                </div>
+                <div style="font-size: 8pt; margin-top: 5px;">
+                    <strong>Aportació Empresa (Informatiu):</strong><br>
+                    Total Seguretat Social: {{ "%.2f"|format(payroll.social_security_company) }} €
+                </div>
+            </td>
+            <td width="40%" valign="top">
+                <div class="total-box">
+                    <div style="text-align: right; margin-bottom: 5px;">LÍQUID A PERCEBRE</div>
+                    <div class="net-amount">{{ "%.2f"|format(payroll.net_salary) }} €</div>
+                    <div style="text-align: right; font-size: 9pt; margin-top: 5px;">Data: {{
+                        payroll.period_end.strftime('%d/%m/%Y') }}</div>
+                </div>
+                <div style="margin-top: 30px; border-bottom: 1px solid #000; width: 80%; margin-left: auto;">
+                    Firma i Segell
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div id="footerContent" style="text-align: center; font-size: 8pt; color: #999;">
+        Document generat per ContaCat ERP - Pàgina <pdf:pagenumber>
+    </div>
+</body>
+
+</html>

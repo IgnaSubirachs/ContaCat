@@ -1,43 +1,58 @@
 {% extends "base.html" %}
 
+{% block breadcrumbs %}
+<div class="breadcrumb-container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Inici</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Panell de Control</li>
+        </ol>
+    </nav>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <h1 class="h3 mb-0 text-gray-800">Panell de Control (Dashboard)</h1>
-        <p class="text-muted">Visió general de l'estat de l'empresa</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">Panell de Control</h1>
+        <p class="text-muted mb-0">Visió general de l'estat de l'empresa</p>
     </div>
 </div>
 
 <!-- Key Metrics Row -->
-<div class="row mb-4">
+<div class="row mb-5">
     <!-- Sales Card -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-primary border-4 shadow-sm h-100 py-2">
+        <div class="card border-0 shadow-sm h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Vendes (Mes)</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">12.450 €</div>
+                        <div class="text-xs font-weight-bold text-corporate text-uppercase mb-1">Vendes (Mes)</div>
+                        <div class="h4 mb-0 font-weight-bold text-dark">{{ "%.2f"|format(kpis.sales_mtd) }} €</div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3">
+                            <i class="fas fa-chart-line fa-lg"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Incoming Money -->
+    <!-- Cash Balance -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-success border-4 shadow-sm h-100 py-2">
+        <div class="card border-0 shadow-sm h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Entrades Previstes</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">5.800 €</div>
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tresoreria Actual</div>
+                        <div class="h4 mb-0 font-weight-bold text-dark">{{ "%.2f"|format(kpis.cash_balance) }} €</div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-euro-sign fa-2x text-gray-300"></i>
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle p-3">
+                            <i class="fas fa-euro-sign fa-lg"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -46,16 +61,51 @@
 
     <!-- Pending Tasks -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-start border-warning border-4 shadow-sm h-100 py-2">
+        <div class="card border-0 shadow-sm h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pendent Conciliar</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">18 mov.</div>
+                        <div class="h4 mb-0 font-weight-bold text-dark">{{ kpis.pending_conciliation }} mov.</div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3">
+                            <i class="fas fa-clipboard-check fa-lg"></i>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Insights -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-0 shadow-sm h-100 py-2 bg-corporate text-white">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Estat Sistema</div>
+                        <div class="h6 mb-0 font-weight-bold">Tot Actualitzat</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Row -->
+<div class="row mb-5">
+    <div class="col-xl-12 col-lg-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Evolució Vendes (Últims 6 mesos)</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-area" style="height: 300px;">
+                    <canvas id="salesChart"></canvas>
                 </div>
             </div>
         </div>
@@ -64,26 +114,112 @@
 
 <!-- Shortcuts Grid -->
 {% for category, modules in grouped_modules.items() %}
-<div class="row">
-    <div class="col-12">
-        <h4 class="mb-3 text-secondary border-bottom pb-2">{{ category }}</h4>
+<div class="mb-5">
+    <div class="d-flex align-items-center mb-3">
+        <h5 class="text-gray-800 font-weight-bold mb-0">{{ category }}</h5>
+        <div class="flex-grow-1 ms-3 border-bottom"></div>
     </div>
-    {% for module in modules %}
-    <div class="col-lg-3 col-md-6 mb-4">
-        <a href="{{ module.url }}" class="text-decoration-none">
-            <div class="card shadow-sm h-100 hover-card">
-                <div class="card-body text-center">
-                    <div class="mb-3 text-corporate">
-                        <!-- Dynamic Icon -->
-                        <i class="fas {{ module.icon }} fa-3x"></i>
+
+    <div class="row">
+        {% for module in modules %}
+        <div class="col-lg-3 col-md-6 mb-4">
+            <a href="{{ module.url }}" class="text-decoration-none card-link">
+                <div class="card border-0 shadow-sm h-100 hover-lift transition-all">
+                    <div class="card-body text-center p-4">
+                        <div class="mb-3 text-corporate">
+                            <i class="fas {{ module.icon }} fa-2x"></i>
+                        </div>
+                        <h6 class="card-title text-dark font-weight-bold mb-2">{{ module.name }}</h6>
+                        <p class="card-text text-muted small mb-0">{{ module.desc }}</p>
                     </div>
-                    <h5 class="card-title text-dark">{{ module.name }}</h5>
-                    <p class="card-text text-muted small">{{ module.desc }}</p>
                 </div>
-            </div>
-        </a>
+            </a>
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 {% endfor %}
+
+<style>
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Chart.js implementation
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ trend_labels | safe }},
+    datasets: [{
+        label: 'Vendes (€)',
+        data: {{ trend_data | safe }},
+        borderColor: '#4e73df',
+        backgroundColor: 'rgba(78, 115, 223, 0.05)',
+        pointRadius: 3,
+        pointBackgroundColor: '#4e73df',
+        pointBorderColor: '#4e73df',
+        pointHoverRadius: 3,
+        pointHoverBackgroundColor: '#4e73df',
+        pointHoverBorderColor: '#4e73df',
+        pointHitRadius: 10,
+        pointBorderWidth: 2,
+        tension: 0.3,
+        fill: true
+            }]
+        },
+    options: {
+        maintainAspectRatio: false,
+            layout: {
+            padding: {
+                left: 10,
+                    right: 25,
+                        top: 25,
+                            bottom: 0
+            }
+        },
+        scales: {
+            x: {
+                grid: {
+                    display: false,
+                        drawBorder: false
+                },
+                ticks: {
+                    maxTicksLimit: 7
+                }
+            },
+            y: {
+                ticks: {
+                    maxTicksLimit: 5,
+                        padding: 10,
+                            callback: function(value, index, values) {
+                                return value + ' €';
+                            }
+                },
+                grid: {
+                    color: "rgb(234, 236, 244)",
+                        zeroLineColor: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                                borderDash: [2],
+                                    zeroLineBorderDash: [2]
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+    });
+</script>
 {% endblock %}

@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import Optional
 import os
 
-from app.interface.api.routers import partners, employees, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, payrolls, treasury, budgets, finance, banking, ai
+from app.interface.api.routers import partners, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, treasury, budgets, finance, banking, ai, hr
 from app.domain.auth.dependencies import get_current_user_or_redirect, can_access_module
 from app.domain.auth.entities import User
 from app.interface.api.templates import templates
@@ -29,8 +29,7 @@ app.include_router(sales_invoices.router)
 app.include_router(sales_orders.router)
 app.include_router(quotes.router)
 app.include_router(partners.router)
-app.include_router(employees.router)
-app.include_router(payrolls.router)
+app.include_router(hr.router) # Unified HR Router
 app.include_router(assets.router)
 app.include_router(analytics.router)
 app.include_router(fiscal.router)
@@ -40,6 +39,8 @@ app.include_router(budgets.router)
 app.include_router(finance.router)
 app.include_router(banking.router)
 app.include_router(ai.router)
+from app.interface.api.routers import settings
+app.include_router(settings.router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -71,8 +72,8 @@ async def home(
         {"id": "assets", "name": "Actius Fixos", "desc": "Amortitzacions", "url": "/assets/", "icon": "fa-building", "category": "Finances i Comptabilitat"},
         
         # HR
-        {"id": "employees", "name": "Empleats", "desc": "Fitxa de treballadors", "url": "/employees/", "icon": "fa-user-tie", "category": "Recursos Humans"},
-        {"id": "payrolls", "name": "Nòmines", "desc": "Gestió salarial", "url": "/payrolls/", "icon": "fa-file-alt", "category": "Recursos Humans"},
+        {"id": "employees", "name": "Empleats", "desc": "Fitxa de treballadors", "url": "/hr/employees", "icon": "fa-user-tie", "category": "Recursos Humans"},
+        {"id": "payrolls", "name": "Nòmines", "desc": "Gestió salarial", "url": "/hr/payroll", "icon": "fa-file-alt", "category": "Recursos Humans"},
         
         # Operations & Analytics
         {"id": "inventory", "name": "Inventari", "desc": "Stock i Productes", "url": "/inventory/", "icon": "fa-boxes", "category": "Operacions"},
@@ -89,11 +90,22 @@ async def home(
             if cat not in grouped_modules:
                 grouped_modules[cat] = []
             grouped_modules[cat].append(module)
+            
+    # Dashboard Data
+    from app.domain.analytics.dashboard_service import DashboardService
+    from app.infrastructure.db.base import SessionLocal
+    
+    dashboard_service = DashboardService(SessionLocal)
+    kpis = dashboard_service.get_kpis()
+    trend = dashboard_service.get_sales_trend()
     
     return templates.TemplateResponse("index.html", {
         "request": request,
         "user": current_user,
-        "grouped_modules": grouped_modules
+        "grouped_modules": grouped_modules,
+        "kpis": kpis,
+        "trend_labels": trend["labels"],
+        "trend_data": trend["data"]
     })
 
 

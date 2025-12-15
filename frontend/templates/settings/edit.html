@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Configuració Empresa{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/">Inici</a></li>
+<li class="breadcrumb-item active">Configuració</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dades de l'Empresa</h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Informació General</h6>
+            </div>
+            <div class="card-body">
+                <form action="/settings/update" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">Raó Social / Nom Empresa *</label>
+                        <input type="text" name="name" class="form-control" value="{{ settings.name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">NIF / CIF *</label>
+                        <input type="text" name="tax_id" class="form-control" value="{{ settings.tax_id }}" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email de Contacte</label>
+                            <input type="email" name="email" class="form-control" value="{{ settings.email }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Telèfon</label>
+                            <input type="text" name="phone" class="form-control" value="{{ settings.phone }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Web</label>
+                        <input type="url" name="website" class="form-control" value="{{ settings.website }}">
+                    </div>
+
+                    <hr>
+                    <h6 class="text-secondary mb-3">Adreça Fiscal</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Carrer i Número</label>
+                        <input type="text" name="address_street" class="form-control"
+                            value="{{ settings.address_street }}">
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Codi Postal</label>
+                            <input type="text" name="address_zip" class="form-control"
+                                value="{{ settings.address_zip }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Ciutat</label>
+                            <input type="text" name="address_city" class="form-control"
+                                value="{{ settings.address_city }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Província</label>
+                            <input type="text" name="address_province" class="form-control"
+                                value="{{ settings.address_province }}">
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h6 class="text-secondary mb-3">Marca</h6>
+
+                    <div class="mb-3">
+                        <label class="form-label">Logotip (Imatge)</label>
+                        <input type="file" name="logo" class="form-control">
+                        {% if settings.logo_url %}
+                        <div class="mt-2">
+                            <p class="small text-muted">Logo actual:</p>
+                            <img src="{{ settings.logo_url }}" alt="Logo" style="max-height: 50px;">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Guardar
+                            Configuració</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow mb-4 bg-primary text-white">
+            <div class="card-body">
+                <h5 class="font-weight-bold">Per què és important?</h5>
+                <p>Aquestes dades s'utilitzaran automàticament per generar:</p>
+                <ul>
+                    <li>Factures de venda (PDF)</li>
+                    <li>Nòmines (PDF)</li>
+                    <li>Models Fiscals (303, 111)</li>
+                </ul>
+                <p class="mb-0 small">Assegura't que el NIF i l'adreça coincideixen amb els teus documents legals.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

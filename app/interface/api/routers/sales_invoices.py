@@ -31,7 +31,23 @@ def get_invoice_service():
     account_repo = SqlAlchemyAccountRepository(SessionLocal)
     journal_repo = SqlAlchemyJournalRepository(SessionLocal)
     accounting_service = AccountingService(account_repo, journal_repo)
-    return SalesInvoiceService(invoice_repo, order_repo, partner_repo, accounting_service)
+    
+    from app.domain.accounting.mapping_service import AccountMappingService
+    mapping_service = AccountMappingService()
+    
+    from app.infrastructure.persistence.audit.repository import SqlAlchemyAuditRepository
+    from app.domain.audit.services import AuditService
+    audit_repo = SqlAlchemyAuditRepository(SessionLocal)
+    audit_service = AuditService(audit_repo)
+
+    # Inventory Service Injection
+    from app.domain.inventory.services import InventoryService
+    from app.infrastructure.persistence.inventory.repositories import SqlAlchemyStockItemRepository, SqlAlchemyStockMovementRepository
+    stock_item_repo = SqlAlchemyStockItemRepository(SessionLocal)
+    stock_movement_repo = SqlAlchemyStockMovementRepository(SessionLocal)
+    inventory_service = InventoryService(stock_item_repo, stock_movement_repo)
+    
+    return SalesInvoiceService(invoice_repo, order_repo, partner_repo, accounting_service, mapping_service, audit_service, inventory_service)
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -125,8 +141,15 @@ async def get_invoice_pdf(invoice_id: str):
     partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
     partner = partner_repo.find_by_id(invoice.partner_id)
     
+    # Get Company Settings
+    from app.infrastructure.persistence.settings.repository import SqlAlchemyCompanySettingsRepository
+    from app.domain.settings.services import SettingsService
+    settings_repo = SqlAlchemyCompanySettingsRepository(SessionLocal)
+    settings_service = SettingsService(settings_repo)
+    settings = settings_service.get_settings_or_default()
+    
     pdf_service = PdfService(templates)
-    pdf_bytes = pdf_service.generate_invoice_pdf(invoice, partner)
+    pdf_bytes = pdf_service.generate_invoice_pdf(invoice, partner, company_settings=settings)
     
     filename = f"Factura_{invoice.invoice_number}.pdf"
     

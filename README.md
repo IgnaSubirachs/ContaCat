@@ -1,143 +1,91 @@
-# ![ContaCAT Logo](docs/assets/logo_erp.png) ERP Català
+# ![ContaCAT Logo](docs/assets/logo_erp.png) ContaCat v2.0
 
-Sistema ERP modular desenvolupat amb Domain-Driven Design (DDD), FastAPI i MySQL.
+**El Sistema de Gestió Integral per a la Pime Catalana.**
 
-## Característiques
+Desenvolupat amb  **Domain-Driven Design (DDD)**, **FastAPI** i **MySQL**, aquest ERP transformal la gestió empresarial oferint una solució modular, robusta i adaptada a la normativa fiscal espanyola.
 
-- **Arquitectura DDD**: Separació clara entre Domini, Infraestructura i Interfície
-- **Modular**: Mòduls independents per RRHH, Comptabilitat, Pressupostos, Finances, Conciliació Bancària i Partners
-- **Interfície Web**: Interfície web moderna amb FastAPI
-- **Docker**: Desplegament fàcil amb Docker Compose
+---
 
-## Mòduls Implementats
+## 🚀 Novetats "CEO Plan" (Desembre 2025)
 
-- ✅ **Partners (Clients i Proveïdors)**: Gestió completa de clients i proveïdors. Funcionalitats: llistat, creació, edició, supressió, gestió de documents adjunts i validació de NIF/CIF.
-  - **API REST**:
-    - `GET /partners/` – llista de partners
-    - `POST /partners/create` – crear nou partner
-    - `GET /partners/edit/{id}` – formulari d'edició
-    - `POST /partners/edit/{id}` – actualitzar partner
-    - `POST /partners/delete/{id}` – eliminar partner
-    - `GET /partners/api/list` – llista en JSON
-- ✅ **HR (RRHH)**: Gestió d'empleats, càrrecs, departaments i salaris
-- ✅ **Accounts (Comptes)**: Pla comptable amb grups i tipus de comptes
-- ✅ **Accounting (Comptabilitat)**: Gestió comptable completa amb Pla General Comptable, Assentaments, Llibres i Informes Financers (Balanç i PyG).
-- ✅ **Assets (Actius Fixes)**: Gestió d'actius fixes amb amortització automàtica i integració amb Comptabilitat (assentaments automàtics).
-- ✅ **Inventory (Inventari)**: Gestió d'stock amb articles, moviments d'entrada/sortida i control de nivells.
-- ✅ **User Management (Gestió d'Usuaris)**: Sistema d'autenticació i autorització amb JWT. Rols: ADMIN, MANAGER, USER, READ_ONLY. Panell d'administració per a gestió d'usuaris.
-- ✅ **Budgets (Pressupostos)**: Gestió de pressupostos anuals i seguiment pressupostari per partides.
-- ✅ **Finance (Finances)**: Gestió de préstecs i pòlisses de crèdit amb càlcul automàtic de quotes (amortització francesa).
-- ✅ **Banking (Conciliació)**: Importació d'extractes bancaris (CSV) i conciliació amb assentaments comptables.
+Hem completat un sprint intensiu per dotar l'ERP de capacitats executives reals:
 
+1.  **Panell de Control Executiu (Dashboard v2)**:
+    -   KPIs en Temps Real: Vendes, Tresoreria, Pendents de Conciliació.
+    -   Gràfics interactius (Chart.js) d'evolució de vendes.
+2.  **Conciliació Bancària Automàtica**:
+    -   Suport per a **Norma 43** (format bancari espanyol).
+    -   Motor de suggeriments amb IA/Regles per casar moviments amb factures.
+3.  **Fiscalitat i Models**:
+    -   **Model 303 (IVA)**: Autoliquidació automàtica llegint del Diari Comptable.
+    -   Generació de PDFs professionals (Factures i Nòmines) amb imatge corporativa.
+4.  **Configuració Centralitzada**:
+    -   Gestió de dades d'empresa (NIF, Logo, Adreça) que s'injecten a tots els documents.
 
+---
 
-## Versió Escriptori (Nou!)
+## 🧩 Mòduls Principals
 
-L'ERP ara disposa d'una versió d'escriptori nativa per a Windows.
+### 1. Finances i Comptabilitat
+-   **Comptabilitat General**: Assentaments, Llibre Major i Diari.
+-   **Pla General Comptable (PGC)**: Gestió de comptes i subcomptes.
+-   **Tresoreria**: Control de Caixa i Bancs. Importació de Norma 43.
+-   **Fiscalitat**: Càlcul de models oficials (AEAT).
 
-### Construcció i Execució
+### 2. Vendes i Relacions
+-   **Cicle de Venda**: Pressupostos -> Comandes -> Factures.
+-   **Partners**: CRM bàsic per a Clients i Proveïdors.
+-   **Facturació**: Generació de PDFs automàtiga.
 
-1.  **Construir l'executable**:
+### 3. Recursos Humans
+-   **Gestió d'Empleats**: Fitxa completa.
+-   **Nòmines**: Generació de rebuts de salari (PDF).
+
+### 4. Operacions
+-   **Inventari**: Control d'estoc en temps real.
+-   **Analítica**: Ràtios financeres i informes de rendiment.
+
+---
+
+## 🛠️ Stack Tecnològic
+
+-   **Backend**: Python 3.12, FastAPI (Async).
+-   **Arquitectura**: DDD (Domain, Infrastructure, Interface).
+-   **Base de Dades**: MySQL 8 (SQLAlchemy ORM).
+-   **Frontend**: Jinja2 Templates, Bootstrap 5, Chart.js.
+-   **Infrastructure**: Docker & Docker Compose.
+
+---
+
+## ⚡ Instal·lació Ràpida
+
+### Amb Docker (Recomanat)
+
+1.  **Clonar i Arrencar**:
     ```bash
-    c:\ERP\build_exe.bat
+    git clone https://github.com/IgnaSubirachs/ContaCat-DEMO.git
+    cd ContaCat-DEMO
+    docker-compose up --build
     ```
-    Això generarà l'arxiu `dist\ERP_Catala\ERP_Catala.exe`.
 
-2.  **Executar**:
-    - Assegura't que el servidor MySQL està en marxa.
-    - Executa `ERP_Catala.exe`.
-    - S'obrirà una finestra amb l'aplicació (sense navegador).
+2.  **Accedir**:
+    -   Web: http://localhost:8000
+    -   Login: `admin` / `admin123`
 
-## Requisits
+### Execució Local (Desenvolupament)
 
-- Docker (per a la versió contenidoritzada)
-- Python 3.12+ (per a execució local/escriptori)
-- MySQL 8
+Requeriments: Python 3.12+, MySQL local.
 
-## Instal·lació i Execució (Web / Docker)
+1.  Crear entorn virtual: `python -m venv venv`
+2.  Instal·lar dependències: `pip install -r requirements.txt`
+3.  Executar servidor: `python check_production_ready.py` (Script d'arrencada).
 
-1. Clona el repositori
-2. Executa amb Docker Compose:
+---
 
-```bash
-docker-compose up --build
-```
+## 📄 Llicència
 
-3. Accedeix a l'aplicació:
-   - Interfície Web: http://localhost:8000
-   - Partners: http://localhost:8000/partners/
-   - Documentació API: http://localhost:8000/docs
+Aquest projecte es distribueix sota la **PolyForm Noncommercial License 1.0.0**.
+Pots utilitzar-lo lliurement per a fins no comercials o educatius. Per a ús comercial, contacta amb l'autor.
 
-4. Inicialitza l'usuari administrador (només la primera vegada):
-```bash
-python create_admin_user.py
-```
-Credencials per defecte: `admin` / `admin123` (canvia-les després del primer login!)
-
-## Interfície d'Usuari
-L'aplicació disposa d'una **interfície fosca professional** amb un disseny consistent i modern.
-- **Panell de Control (Dashboard)**: Organitzat per departaments (Finances, Vendes, RRHH, Operacions) amb icones intuïtives i accés ràpid.
-- **Navegació Millorada**: Barra lateral amb scroll per facilitar l'accés a tots els mòduls.
-
-## Assistent IA (El Gat)
-L'ERP inclou un assistent intel·ligent ("El Gat") integrat a la comptabilitat:
-- **Reconeixement de Conceptes**: Entén termes comptables en català/castellà (ex: "factura llum", "nòmina abril").
-- **Suggeriment de Comptes**: Proposa automàticament el compte del Pla General Comptable (PGC) més adequat basant-se en regles fiscals i aprenentatge automàtic.
-- **Interacció Proactiva**: Apareix quan l'usuari ho necessita per oferir ajuda contextual.
-
-## Funcionalitats Destacades (Novetats)
-- **Adjuntar Factures**: Ara es poden pujar fitxers (PDF/Imatge) directament als assentaments comptables per tenir la documentació sempre a mà.
-
-## Gestió d'Usuaris i Seguretat
-
-- **Autenticació JWT**: Sistema d'autenticació segur amb tokens JWT
-- **Control d'Accés Basat en Rols (RBAC)**:
-  - **ADMIN**: Accés total, gestió d'usuaris
-  - **MANAGER**: Accés complet a mòduls de negoci
-  - **USER**: Accés estàndard
-  - **READ_ONLY**: Només lectura
-- **Panell d'Administració**: Gestió completa d'usuaris (només per a ADMIN)
-- **Login**: http://localhost:8000/auth/login-page
-- **Gestió d'Usuaris**: http://localhost:8000/auth/users-page
-
-## Estructura del Projecte
-
-```
-app/
-├── domain/              # Capa de Domini (entitats, repositoris, serveis)
-│   ├── accounts/
-│   ├── partners/
-│   ├── hr/
-│   └── ...
-├── infrastructure/      # Capa d'Infraestructura (persistència)
-│   ├── db/
-│   └── persistence/
-│       ├── accounts/
-│       ├── partners/
-│       └── ...
-└── interface/          # Capa d'Interfície (API, Web)
-    ├── api/
-    │   ├── routers/
-    │   └── main.py
-    └── web/
-        ├── templates/
-        └── static/
-```
-
-## Tecnologies
-
-- **Backend**: Python 3.12, FastAPI
-- **Base de Dades**: MySQL 8
-- **ORM**: SQLAlchemy 2.0
-- **Escriptori**: pywebview, PyInstaller
-- **Contenidors**: Docker, Docker Compose
-- **Frontend**: HTML, CSS (plantilles Jinja2)
-
-## Llicència
-
-Aquest projecte està publicat sota la **PolyForm Noncommercial License 1.0.0**.
-
-Pots utilitzar, modificar i distribuir aquest programari lliurement per a **usos no comercials**.
-Per a qualsevol ús comercial, si us plau contacta amb l'autor per obtenir una llicència comercial.
-
-Consulta el fitxer [LICENSE](LICENSE) per a més detalls.
+---
+*Desenvolupat amb ❤️ i IA per Ignasi Subirachs | Barcelona, 2025*

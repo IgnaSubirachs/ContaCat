@@ -10,6 +10,7 @@ from app.domain.auth.dependencies import get_current_user
 from app.domain.auth.entities import User
 from app.domain.banking.services import BankingService
 from app.infrastructure.persistence.banking.repository import SqlAlchemyBankStatementRepository
+from app.infrastructure.persistence.sales.repository import SqlAlchemySalesInvoiceRepository
 from app.interface.api.templates import templates
 
 router = APIRouter(
@@ -20,7 +21,8 @@ router = APIRouter(
 
 def get_banking_service(db: Session = Depends(get_db)) -> BankingService:
     repo = SqlAlchemyBankStatementRepository(db)
-    return BankingService(repo)
+    invoice_repo = SqlAlchemySalesInvoiceRepository(db)
+    return BankingService(repo, invoice_repo)
 
 @router.get("/", response_class=HTMLResponse)
 async def list_statements(
@@ -68,9 +70,18 @@ async def reconcile_view(
     if not statement:
         raise HTTPException(status_code=404, detail="Statement not found")
         
+    # Get suggestions for PENDING lines
+    suggestions = {}
+    for line in statement.lines:
+        if line.status != 'MATCHED':
+            matches = service.get_reconciliation_suggestions(line.id)
+            if matches:
+                suggestions[line.id] = matches
+
     return templates.TemplateResponse("banking/reconcile.html", {
         "request": request,
         "statement": statement,
+        "suggestions": suggestions,
         "user": current_user
     })
 

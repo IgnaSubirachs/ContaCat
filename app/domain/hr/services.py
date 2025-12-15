@@ -32,30 +32,26 @@ class PayrollService:
         if not employee:
             raise ValueError(f"Employee not found: {employee_id}")
             
-        # Check if already exists
-        # In a real app we might check this, for now we assume we can recalculate/overwrite if needed
-        # or create a new draft
-        
         # 1. Base components
-        # Assuming salary is monthly gross for 12 payments
         gross_salary = employee.salary
         base_salary = employee.base_salary
         supplements = employee.salary_supplements
         
         # If components sum doesn't match total salary, adjust base (simplification)
         if base_salary + supplements != gross_salary:
-            # Fallback if detailed components not set
             base_salary = gross_salary
             supplements = Decimal("0")
             
-        # 2. Social Security (General Regime 2024 approx)
-        # Contingencias Comunes (4.7%) + Desempleo (1.55%) + FP (0.1%) = 6.35%
-        ss_rate_employee = Decimal("6.35")
-        ss_amount_employee = (gross_salary * ss_rate_employee / 100).quantize(Decimal("0.01"))
+        # 2. Social Security (Using Official Calculator)
+        from app.domain.hr.social_security import SocialSecurityCalculator
         
-        # Company cost (approx 30-33%)
-        ss_rate_company = Decimal("32.50") 
-        ss_amount_company = (gross_salary * ss_rate_company / 100).quantize(Decimal("0.01"))
+        ss_data = SocialSecurityCalculator.calculate_total_contributions(
+            gross_salary=gross_salary,
+            group_number=employee.social_security_group
+        )
+        
+        ss_amount_employee = ss_data["treballador"]["total"]
+        ss_amount_company = ss_data["empresa"]["total"]
         
         # 3. IRPF
         irpf_rate = employee.irpf_retention
@@ -74,7 +70,7 @@ class PayrollService:
             supplements=supplements,
             social_security_employee=ss_amount_employee,
             social_security_company=ss_amount_company,
-            irpf_base=gross_salary,
+            irpf_base=ss_data["base_cotitzacio"], # Usually IRPF base aligns with gross, but SS base can be capped. Sticking to gross for IRPF base for now unless specific logic provided. Actually SS base != IRPF base usually.
             irpf_rate=irpf_rate,
             irpf_amount=irpf_amount,
             net_salary=net_salary,

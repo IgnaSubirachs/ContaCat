@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Model 303 (IVA){% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/">Inici</a></li>
+<li class="breadcrumb-item"><a href="/fiscal">Fiscalitat</a></li>
+<li class="breadcrumb-item active">Model 303</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Model 303: Autoliquidació IVA</h1>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Generar Model</h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="form-inline">
+            <label class="mr-2">Exercici:</label>
+            <input type="number" name="year" class="form-control mr-4" value="{{ selected_year }}"
+                style="width: 100px;">
+
+            <label class="mr-2">Període:</label>
+            <select name="period" class="form-control mr-4">
+                {% for p in periods %}
+                <option value="{{ p }}" {% if selected_period==p %}selected{% endif %}>{{ p }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="btn btn-primary">Calcular</button>
+        </form>
+    </div>
+</div>
+
+{% if data %}
+<div class="row">
+    <!-- IVA Meritado (Repercutit) -->
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 border-left-primary">
+                <h6 class="m-0 font-weight-bold text-primary">IVA Repercutit (Vendes)</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr class="bg-light">
+                            <th>Tipus %</th>
+                            <th class="text-right">Base Imposable</th>
+                            <th class="text-right">Quota</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rate, detail in data.repercutit.items()|sort %}
+                        <tr>
+                            <td>{{ rate }}%</td>
+                            <td class="text-right">{{ "%.2f"|format(detail.base) }} €</td>
+                            <td class="text-right">{{ "%.2f"|format(detail.quota) }} €</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="font-weight-bold bg-gray-100">
+                            <td>TOTAL</td>
+                            <td class="text-right">-</td>
+                            <td class="text-right">{{ "%.2f"|format(data.total_repercutit_quota) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- IVA Deduïble (Suportat) -->
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 border-left-success">
+                <h6 class="m-0 font-weight-bold text-success">IVA Suportat (Compres)</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr class="bg-light">
+                            <th>Tipus %</th>
+                            <th class="text-right">Base Imposable</th>
+                            <th class="text-right">Quota</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rate, detail in data.suportat.items()|sort %}
+                        <tr>
+                            <td>{{ rate }}%</td>
+                            <td class="text-right">{{ "%.2f"|format(detail.base) }} €</td>
+                            <td class="text-right">{{ "%.2f"|format(detail.quota) }} €</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="font-weight-bold bg-gray-100">
+                            <td>TOTAL</td>
+                            <td class="text-right">-</td>
+                            <td class="text-right">{{ "%.2f"|format(data.total_suportat_quota) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resultat -->
+<div class="card shadow mb-4">
+    <div class="card-body text-center">
+        <h4>Resultat de la Liquidació</h4>
+        <h2 class="font-weight-bold {% if data.result_quota > 0 %}text-danger{% else %}text-success{% endif %}">
+            {{ "%.2f"|format(data.result_quota) }} €
+        </h2>
+        <p class="text-muted small">
+            {% if data.result_quota > 0 %}
+            A Ingressar (Pagar a Hisenda)
+            {% else %}
+            A Retornar o Compensar
+            {% endif %}
+        </p>
+
+        <div class="mt-4">
+            <button class="btn btn-secondary" disabled title="Coming soon"><i class="fas fa-file-export me-1"></i>
+                Exportar TXT (AEAT)</button>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info small">
+    <i class="fas fa-info-circle me-1"></i> Les dades es calculen a partir dels assentaments comptables.
+    Empresa: <strong>{{ data.company_name }}</strong> (NIF: {{ data.company_nif }})
+</div>
+{% endif %}
+{% endblock %}

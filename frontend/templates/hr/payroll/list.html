@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Gestió de Nòmines{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/">Inici</a></li>
+<li class="breadcrumb-item active">Recursos Humans</li>
+<li class="breadcrumb-item active">Nòmines</li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Gestió de Nòmines
+        </h2>
+        <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal"
+            data-bs-target="#generatePayrollModal">
+            <i class="fas fa-magic me-2"></i>Generar Nòmina
+        </button>
+    </div>
+</div>
+
+<!-- Payrolls List -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 border-left-success">
+        <h6 class="m-0 font-weight-bold text-success">Històric de Nòmines</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="payrollTable" width="100%" cellspacing="0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Empleat</th>
+                        <th>Període</th>
+                        <th>Salari Brut</th>
+                        <th>Deduccions</th>
+                        <th>Net a Percebre</th>
+                        <th>Estat</th>
+                        <th>Accions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payroll in payrolls %}
+                    <tr>
+                        <td class="font-weight-bold">{{ payroll.employee.full_name }}</td>
+                        <td>{{ payroll.month }}/{{ payroll.year }}</td>
+                        <td>{{ "%.2f"|format(payroll.gross_salary) }} €</td>
+                        <td class="text-danger">-{{ "%.2f"|format(payroll.gross_salary - payroll.net_salary) }} €</td>
+                        <td class="text-success font-weight-bold">{{ "%.2f"|format(payroll.net_salary) }} €</td>
+                        <td>
+                            {% if payroll.status == "DRAFT" %}
+                            <span class="badge badge-warning">Esborrany</span>
+                            {% else %}
+                            <span class="badge badge-success">Pagada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/hr/payroll/{{ payroll.id }}" class="btn btn-info btn-sm btn-circle"
+                                title="Veure Detalls">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="text-gray-500">
+                                <i class="fas fa-file-invoice fa-3x mb-3"></i>
+                                <p class="mb-0">No hi ha nòmines generades.</p>
+                                <small>Utilitza el botó "Generar Nòmina" per començar.</small>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Modal -->
+<div class="modal fade" id="generatePayrollModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-calculator me-2"></i>Generar Nova Nòmina</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/hr/payroll/generate" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="employee_id" class="form-label">Empleat</label>
+                        <!-- Assuming we pass employees list in context if available, or fetch via AJAX -->
+                        <!-- For simplicity in this iteration, we relied on employees being passed or just input ID? -->
+                        <!-- Router says: if existing payrolls, lists them. Does not pass all employees for modal dropdown unless requested. -->
+                        <!-- Let's assume we need to fix Router to pass 'employees' list for this modal. -->
+
+                        <select class="form-select" id="employee_id" name="employee_id" required>
+                            <option value="">Seleccionar...</option>
+                            {% for employee in employees %}
+                            <option value="{{ employee.id }}">{{ employee.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Selecciona l'empleat per calcular la nòmina.</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label for="month" class="form-label">Mes</label>
+                            <select class="form-select" name="month" required>
+                                <option value="1">Gener</option>
+                                <option value="2">Febrer</option>
+                                <option value="3">Març</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Maig</option>
+                                <option value="6">Juny</option>
+                                <option value="7">Juliol</option>
+                                <option value="8">Agost</option>
+                                <option value="9">Setembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Novembre</option>
+                                <option value="12">Desembre</option>
+                            </select>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label for="year" class="form-label">Any</label>
+                            <input type="number" class="form-control" name="year" value="2025" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
+                    <button type="submit" class="btn btn-primary">Generar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

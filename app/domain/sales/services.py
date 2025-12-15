@@ -324,13 +324,36 @@ class SalesInvoiceService:
         invoice_repo: SalesInvoiceRepository,
         order_repo: SalesOrderRepository,
         partner_repo: PartnerRepository,
-        accounting_service: AccountingService
+        accounting_service: AccountingService,
+        account_mapping_service: Optional['AccountMappingService'] = None,
+        audit_service: Optional['AuditService'] = None,
+        inventory_service: Optional['InventoryService'] = None
     ):
         self._invoice_repo = invoice_repo
         self._order_repo = order_repo
         self._partner_repo = partner_repo
         self._accounting_service = accounting_service
-    
+        
+        if account_mapping_service:
+             self._account_mapping_service = account_mapping_service
+        else:
+             from app.domain.accounting.mapping_service import AccountMappingService
+             self._account_mapping_service = AccountMappingService()
+
+        # Audit Service Injection
+        if audit_service:
+            self._audit_service = audit_service
+        else:
+            self._audit_service = None
+
+        # Inventory Service Injection
+        if inventory_service:
+            self._inventory_service = inventory_service
+        else:
+            self._inventory_service = None
+
+    # ... (create_invoice and other methods remain unchanged) ...
+
     def create_invoice(
         self,
         partner_id: str,
@@ -439,7 +462,7 @@ class SalesInvoiceService:
         self._invoice_repo.add(invoice)
         return invoice
     
-    def post_invoice(self, invoice_id: str) -> SalesInvoice:
+    def post_invoice(self, invoice_id: str, user: str = "system") -> SalesInvoice:
         """Post invoice and create accounting journal entry."""
         invoice = self._invoice_repo.find_by_id(invoice_id)
         if not invoice:
@@ -448,17 +471,21 @@ class SalesInvoiceService:
         # Post invoice
         invoice.post()
         
+        # Resolve Accounts using the Service
+        partner = self._partner_repo.find_by_id(invoice.partner_id)
+        customer_account = self._account_mapping_service.get_customer_account(partner)
+        sales_account = self._account_mapping_service.get_sales_account() # defaulting category
+        
         # Create journal entry
-        # Debit: Customer account (430)
-        # Credit: Sales account (700)
-        # Credit: VAT account (477)
+        # Debit: Customer account 
+        # Credit: Sales account
+        # Credit: VAT account
         
         journal_lines = []
         
         # Debit: Customer account (total)
-        # Using standard customer receivables account
         journal_lines.append((
-            "43000000",  # Customer receivables account
+            customer_account,
             invoice.total,
             Decimal("0"),
             f"Factura {invoice.invoice_number}"
@@ -466,7 +493,7 @@ class SalesInvoiceService:
         
         # Credit: Sales account (subtotal)
         journal_lines.append((
-            "70000000",  # Sales revenue account
+            sales_account,
             Decimal("0"),
             invoice.subtotal,
             f"Venda factura {invoice.invoice_number}"
@@ -476,8 +503,9 @@ class SalesInvoiceService:
         tax_breakdown = invoice.tax_breakdown
         for rate, amounts in tax_breakdown.items():
             if amounts["tax"] > 0:
+                vat_account = self._account_mapping_service.get_vat_payable_account(rate)
                 journal_lines.append((
-                    "47700000",  # VAT payable account
+                    vat_account,
                     Decimal("0"),
                     amounts["tax"],
                     f"IVA {rate}% factura {invoice.invoice_number}"
@@ -496,6 +524,45 @@ class SalesInvoiceService:
         # Link journal entry to invoice
         invoice.journal_entry_id = journal_entry.id
         self._invoice_repo.update(invoice)
+
+        # Inventory Integration: Register Stock Consumption
+        if self._inventory_service:
+            from app.domain.inventory.entities import StockMovement
+            for line in invoice.lines:
+                if line.product_code: # Only for lines with product code
+                    # Positive movement = ENTRY, Negative = OUTPUT
+                    # Sale = Output => Negative
+                    try:
+                        self._inventory_service.register_movement(StockMovement(
+                            stock_item_code=line.product_code,
+                            date=invoice.invoice_date,
+                            quantity=-int(line.quantity), # Assuming quantity is integer for inventory for now
+                            description=f"Sortida per Factura {invoice.invoice_number}"
+                        ))
+                    except ValueError as e:
+                        # Log error but don't fail the whole transaction for now (or should we?)
+                        # For "CEO Level" audit, transaction safety is key. But inventory failures shouldn't necessarily block sales if stock check wasn't done before.
+                        # However, let's just log it in audit log if fails?
+                        # Or better, re-raise if we want strict inventory control.
+                        # Let's wrap in try/except and log warning, but proceed.
+                        if self._audit_service:
+                            self._audit_service.log_action(
+                                entity_type="SALES_INVOICE",
+                                entity_id=invoice.id,
+                                action="INVENTORY_ERROR",
+                                user=user,
+                                new_values={"error": str(e), "product": line.product_code}
+                            )
+        
+        # Audit Log
+        if self._audit_service:
+            self._audit_service.log_action(
+                entity_type="SALES_INVOICE",
+                entity_id=invoice.id,
+                action="POST",
+                user=user,
+                new_values={"status": "POSTED", "journal_entry_id": journal_entry.id}
+            )
         
         return invoice
     

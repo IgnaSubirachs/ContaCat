@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2.5cm;
+
+            @frame footer_frame {
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 2.5cm;
+                margin-right: 2.5cm;
+                height: 1cm;
+            }
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 11pt;
+            color: #333;
+        }
+
+        .logo {
+            font-size: 24pt;
+            color: #4e73df;
+            font-weight: bold;
+        }
+
+        .title {
+            font-size: 18pt;
+            color: #555;
+            text-align: right;
+        }
+
+        .client-box {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f8f9fc;
+        }
+
+        table.items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        table.items th {
+            background-color: #f1f1f1;
+            border-bottom: 2px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 10pt;
+        }
+
+        table.items td {
+            border-bottom: 1px solid #eee;
+            padding: 8px;
+            font-size: 10pt;
+        }
+
+        .totals td {
+            padding: 4px;
+        }
+
+        .grand-total {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #4e73df;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <table width="100%">
+        <tr>
+            <td width="60%" valign="top">
+                <div class="logo">
+                    {% if company.logo_url %}<img src="{{ company.logo_url }}" style="height: 50px;">{% else %}{{
+                    company.name }}{% endif %}
+                </div>
+                <div style="font-size: 10pt; color: #777; margin-top: 5px;">
+                    {{ company.name }}<br>
+                    {{ company.full_address }}<br>
+                    NIF: {{ company.tax_id }}<br>
+                    {{ company.email }}
+                </div>
+            </td>
+            <td width="40%" align="right" valign="top">
+                <div class="title">FACTURA</div>
+                <h3 style="margin: 5px 0 0 0; color: #222;">{{ invoice.invoice_number }}</h3>
+                <br>
+                <div style="font-size: 10pt;"><strong>Data:</strong> {{ invoice.invoice_date.strftime('%d/%m/%Y') }}
+                </div>
+                <div style="font-size: 10pt;"><strong>Venciment:</strong> {{ invoice.due_date.strftime('%d/%m/%Y') }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <br><br>
+
+    <!-- Client Info -->
+    <div class="client-box">
+        <div style="font-size: 10pt; color: #777; margin-bottom: 4px;">Facturar a:</div>
+        <div style="font-size: 12pt; font-weight: bold;">{{ partner.name if partner else invoice.partner_id }}</div>
+        {% if partner and partner.tax_id %}
+        <div>NIF/CIF: {{ partner.tax_id }}</div>
+        {% endif %}
+        {% if partner and partner.full_address %}
+        <div>{{ partner.full_address }}</div>
+        {% endif %}
+    </div>
+
+    <!-- Items -->
+    <table class="items">
+        <thead>
+            <tr>
+                <th width="15%">Codi</th>
+                <th width="40%">Descripció</th>
+                <th width="10%" align="right">Quant.</th>
+                <th width="12%" align="right">Preu</th>
+                <th width="8%" align="right">Dto.</th>
+                <th width="15%" align="right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in invoice.lines %}
+            <tr>
+                <td>{{ line.product_code }}</td>
+                <td>{{ line.description }}</td>
+                <td align="right">{{ "%.2f"|format(line.quantity) }}</td>
+                <td align="right">{{ "%.2f"|format(line.unit_price) }} €</td>
+                <td align="right">{{ line.discount_percent|int }}%</td>
+                <td align="right">{{ "%.2f"|format(line.total) }} €</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Totals -->
+    <br>
+    <table width="100%">
+        <tr>
+            <td width="60%" valign="top">
+                {% if invoice.notes %}
+                <div style="border: 1px solid #eee; padding: 10px; background: #fff;">
+                    <strong>Notes:</strong><br>
+                    <i style="color: #666; font-size: 9pt;">{{ invoice.notes }}</i>
+                </div>
+                {% endif %}
+
+                <div style="margin-top: 20px; font-size: 9pt; color: #888;">
+                    <strong>Dades de pagament:</strong><br>
+                    IBAN: ES98 0000 0000 0000 0000 0000<br>
+                    Banc: CaixaBank
+                </div>
+            </td>
+            <td width="40%" align="right" valign="top">
+                <table class="totals" width="100%">
+                    <tr>
+                        <td>Base Imposable:</td>
+                        <td align="right">{{ "%.2f"|format(invoice.subtotal) }} €</td>
+                    </tr>
+                    <tr>
+                        <td>Impostos (IVA):</td>
+                        <td align="right">{{ "%.2f"|format(invoice.total_tax) }} €</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <hr style="color: #ddd;">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding-top: 5px;"><strong>Total:</strong></td>
+                        <td align="right" class="grand-total" style="padding-top: 5px;">{{ "%.2f"|format(invoice.total)
+                            }} €</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Footer for all pages -->
+    <div id="footerContent"
+        style="text-align: center; font-size: 9pt; color: #999; border-top: 1px solid #ddd; padding-top: 5px;">
+        ContaCat ERP &copy; 2024 - Document generat automàticament - Pàgina <pdf:pagenumber>
+    </div>
+</body>
+
+</html>

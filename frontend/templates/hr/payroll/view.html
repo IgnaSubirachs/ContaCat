@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Detall de Nòmina{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/">Inici</a></li>
+<li class="breadcrumb-item"><a href="/hr/employees">Empleats</a></li>
+<li class="breadcrumb-item"><a href="/hr/payroll">Nòmines</a></li>
+<li class="breadcrumb-item active">{{ payroll.month }}/{{ payroll.year }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Nòmina: {{ payroll.employee.full_name }} ({{ payroll.month }}/{{ payroll.year }})
+    </h1>
+    <div>
+        <a href="/hr/payroll/{{ payroll.id }}/pdf" class="btn btn-sm btn-primary shadow-sm" target="_blank"><i
+                class="fas fa-download fa-sm text-white-50"></i>
+            Descarregar PDF</a>
+        <a href="#" class="btn btn-sm btn-success shadow-sm"><i class="fas fa-money-bill-wave fa-sm text-white-50"></i>
+            Pagar</a>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">Detall del Rebut de Salari</h6>
+        <span class="badge {% if payroll.status == 'DRAFT' %}badge-warning{% else %}badge-success{% endif %}">
+            {{ payroll.status }}
+        </span>
+    </div>
+    <div class="card-body">
+        <!-- Header Info -->
+        <div class="row mb-4 border-bottom pb-4">
+            <div class="col-md-6">
+                <h5 class="font-weight-bold">Empresa</h5>
+                <p class="mb-1">El Meu ERP, S.L.</p>
+                <p class="mb-1">C/ Indústria 123</p>
+                <p class="mb-1">08000 Barcelona</p>
+                <p>NIF: B-12345678</p>
+            </div>
+            <div class="col-md-6 text-end">
+                <h5 class="font-weight-bold">Treballador</h5>
+                <p class="mb-1">{{ payroll.employee.full_name }}</p>
+                <p class="mb-1">NIF: {{ payroll.employee.dni }}</p>
+                <p class="mb-1">NSS: {{ payroll.employee.nss }}</p>
+                <p>Cat. Prof: {{ payroll.employee.position }} (Grup {{ payroll.employee.social_security_group }})</p>
+            </div>
+        </div>
+
+        <!-- Perceptions (Meritacions) -->
+        <h5 class="text-primary mb-3">1. Meritacions (Ingressos)</h5>
+        <table class="table table-sm table-borderless">
+            <thead>
+                <tr class="border-bottom">
+                    <th>Concepte</th>
+                    <th class="text-end" style="width: 150px;">Import</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Salari Base</td>
+                    <td class="text-end">{{ "%.2f"|format(payroll.base_salary) }} €</td>
+                </tr>
+                {% if payroll.supplements > 0 %}
+                <tr>
+                    <td>Complements Salarials</td>
+                    <td class="text-end">{{ "%.2f"|format(payroll.supplements) }} €</td>
+                </tr>
+                {% endif %}
+                <tr class="border-top font-weight-bold bg-light">
+                    <td>TOTAL MERITAT (A)</td>
+                    <td class="text-end">{{ "%.2f"|format(payroll.gross_salary) }} €</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Deductions -->
+        <h5 class="text-danger mt-4 mb-3">2. Deduccions</h5>
+        <table class="table table-sm table-borderless">
+            <thead>
+                <tr class="border-bottom">
+                    <th>Concepte</th>
+                    <th class="text-end">Base</th>
+                    <th class="text-end">Tipus</th>
+                    <th class="text-end" style="width: 150px;">Import</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- SS Employee -->
+                <tr>
+                    <td>Seguretat Social (Treballador)</td>
+                    <td class="text-end">{{ "%.2f"|format(payroll.gross_salary) }} €</td>
+                    <!-- Assuming base matches gross for simplicity displayed here -->
+                    <td class="text-end">~6.35%</td>
+                    <td class="text-end">{{ "%.2f"|format(payroll.social_security_employee) }} €</td>
+                </tr>
+                <!-- IRPF -->
+                <tr>
+                    <td>IRPF</td>
+                    <td class="text-end">{{ "%.2f"|format(payroll.irpf_base) }} €</td>
+                    <td class="text-end">{{ "%.2f"|format(payroll.irpf_rate) }}%</td>
+                    <td class="text-end">{{ "%.2f"|format(payroll.irpf_amount) }} €</td>
+                </tr>
+
+                <tr class="border-top font-weight-bold bg-light">
+                    <td colspan="3">TOTAL A DEDUIR (B)</td>
+                    <td class="text-end text-danger">-{{ "%.2f"|format(payroll.social_security_employee +
+                        payroll.irpf_amount) }} €</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Total -->
+        <div class="row mt-4 pt-3 border-top border-dark">
+            <div class="col-8 text-end">
+                <h4 class="font-weight-bold">LÍQUID A PERCEBRE (A - B)</h4>
+            </div>
+            <div class="col-4 text-end">
+                <h3 class="font-weight-bold text-success">{{ "%.2f"|format(payroll.net_salary) }} €</h3>
+            </div>
+        </div>
+
+        <!-- Footer Info (Company Cost) -->
+        <div class="alert alert-secondary mt-5">
+            <h6 class="alert-heading font-weight-bold"><i class="fas fa-info-circle me-1"></i>Cost Empresa (Informativa)
+            </h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <span>Cotització Seguretat Social (Empresa):</span>
+                </div>
+                <div class="col-md-6 text-end font-weight-bold">
+                    {{ "%.2f"|format(payroll.social_security_company) }} €
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-6">
+                    <span>Cost Total (Brut + SS Empresa):</span>
+                </div>
+                <div class="col-md-6 text-end font-weight-bold text-dark">
+                    {{ "%.2f"|format(payroll.gross_salary + payroll.social_security_company) }} €
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

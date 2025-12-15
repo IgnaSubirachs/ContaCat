@@ -1,86 +1,102 @@
 {% extends "base.html" %}
 
+{% block breadcrumbs %}
+<div class="breadcrumb-container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Inici</a></li>
+            <li class="breadcrumb-item text-muted">Vendes</li>
+            <li class="breadcrumb-item active" aria-current="page">Factures</li>
+        </ol>
+    </nav>
+</div>
+{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h1><i class="fas fa-file-invoice-dollar me-2"></i>Factures de Venda</h1>
-        <p class="text-muted">Gestió de facturació a clients</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-1 text-gray-800">Factures de Venda</h1>
+        <p class="text-muted mb-0">Gestió i seguiment de la facturació</p>
     </div>
-    <div class="col-md-4 text-end">
-        <a href="/sales/invoices/new" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i> Nova Factura
-        </a>
-    </div>
+    <a href="/sales/invoices/new" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus fa-sm text-white-50 me-2"></i>Nova Factura
+    </a>
 </div>
 
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
+<!-- Filters Card -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-2">
         <div class="d-flex gap-2">
             <a href="/sales/invoices/"
-                class="btn btn-outline-secondary {% if not current_status %}active{% endif %}">Totes</a>
+                class="btn btn-sm {% if not current_status %}btn-secondary active{% else %}btn-ghost-secondary{% endif %}">Totes</a>
             <a href="/sales/invoices/?status=draft"
-                class="btn btn-outline-secondary {% if current_status == 'draft' %}active{% endif %}">Esborranys</a>
+                class="btn btn-sm {% if current_status == 'draft' %}btn-secondary active{% else %}btn-ghost-secondary{% endif %}">Esborranys</a>
             <a href="/sales/invoices/?status=posted"
-                class="btn btn-outline-secondary {% if current_status == 'posted' %}active{% endif %}">Comptabilitzades</a>
+                class="btn btn-sm {% if current_status == 'posted' %}btn-secondary active{% else %}btn-ghost-secondary{% endif %}">Comptabilitzades</a>
             <a href="/sales/invoices/?status=paid"
-                class="btn btn-outline-secondary {% if current_status == 'paid' %}active{% endif %}">Pagades</a>
+                class="btn btn-sm {% if current_status == 'paid' %}btn-secondary active{% else %}btn-ghost-secondary{% endif %}">Pagades</a>
         </div>
     </div>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
+<!-- Data Table Card -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
         {% if invoices %}
         <div class="table-responsive">
-            <table class="table table-hover align-middle table-compact">
-                <thead class="table-light">
+            <table class="table table-hover table-striped align-middle table-compact mb-0">
+                <thead class="bg-light">
                     <tr>
-                        <th>Número</th>
+                        <th class="ps-3">Número</th>
                         <th>Data</th>
                         <th>Venciment</th>
                         <th>Client</th>
                         <th class="text-end">Total</th>
                         <th>Estat</th>
                         <th>Pagament</th>
-                        <th>Accions</th>
+                        <th class="text-end pe-3">Accions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for invoice in invoices %}
                     <tr>
-                        <td class="fw-bold">
-                            <a href="/sales/invoices/{{ invoice.id }}" class="text-decoration-none">{{
+                        <td class="ps-3 fw-bold font-monospace">
+                            <a href="/sales/invoices/{{ invoice.id }}" class="text-decoration-none text-corporate">{{
                                 invoice.invoice_number }}</a>
                         </td>
-                        <td>{{ invoice.invoice_date.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ invoice.due_date.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ invoice.partner_id[:8] }}</td>
+                        <td class="text-muted">{{ invoice.invoice_date.strftime('%d/%m/%Y') }}</td>
+                        <td class="text-muted">{{ invoice.due_date.strftime('%d/%m/%Y') }}</td>
+                        <td>
+                            <span class="d-inline-block text-truncate" style="max-width: 200px;">
+                                {{ invoice.partner_id }} <!-- Needs Partner Name lookup ideally -->
+                            </span>
+                        </td>
                         <td class="text-end fw-bold">{{ "%.2f"|format(invoice.total) }} €</td>
                         <td>
                             {% if invoice.status.value == 'DRAFT' %}
-                            <span class="badge bg-secondary">Esborrany</span>
+                            <span class="badge bg-secondary rounded-pill">Esborrany</span>
                             {% elif invoice.status.value == 'POSTED' %}
-                            <span class="badge bg-success">Comptabilitzada</span>
+                            <span class="badge bg-success rounded-pill">Comptabilitzada</span>
                             {% elif invoice.status.value == 'CANCELLED' %}
-                            <span class="badge bg-danger">Cancel·lada</span>
+                            <span class="badge bg-danger rounded-pill">Cancel·lada</span>
                             {% else %}
-                            <span class="badge bg-light text-dark">{{ invoice.status.value }}</span>
+                            <span class="badge bg-light text-dark border">{{ invoice.status.value }}</span>
                             {% endif %}
                         </td>
                         <td>
                             {% if invoice.payment_status.value == 'PAID' %}
-                            <span class="badge bg-success">Pagada</span>
+                            <span class="badge bg-success rounded-pill">Pagada</span>
                             {% elif invoice.payment_status.value == 'NOT_PAID' %}
-                            <span class="badge bg-danger">Pendent</span>
+                            <span class="badge bg-warning text-dark rounded-pill">Pendent</span>
                             {% elif invoice.payment_status.value == 'PARTIALLY_PAID' %}
-                            <span class="badge bg-warning text-dark">Parcial</span>
+                            <span class="badge bg-info text-dark rounded-pill">Parcial</span>
                             {% else %}
-                            <span class="badge bg-light text-dark">{{ invoice.payment_status.value }}</span>
+                            <span class="badge bg-light text-dark border">{{ invoice.payment_status.value }}</span>
                             {% endif %}
                         </td>
-                        <td>
-                            <a href="/sales/invoices/{{ invoice.id }}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-eye"></i>
+                        <td class="text-end pe-3">
+                            <a href="/sales/invoices/{{ invoice.id }}" class="btn btn-sm btn-outline-secondary">
+                                Details
                             </a>
                         </td>
                     </tr>
@@ -90,7 +106,11 @@
         </div>
         {% else %}
         <div class="text-center py-5">
-            <h4 class="text-muted">No s'han trobat factures</h4>
+            <div class="mb-3">
+                <i class="fas fa-file-invoice fa-3x text-muted"></i>
+            </div>
+            <h5 class="text-muted">No s'han trobat factures</h5>
+            <p class="text-muted small">Comença creant-ne una de nova.</p>
         </div>
         {% endif %}
     </div>

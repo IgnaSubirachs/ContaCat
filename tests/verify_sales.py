@@ -36,10 +36,18 @@ def verify_sales():
         account_repo = SqlAlchemyAccountRepository(SessionLocal)
         journal_repo = SqlAlchemyJournalRepository(SessionLocal)
         
+        from app.domain.accounting.mapping_service import AccountMappingService
+        from app.infrastructure.persistence.audit.repository import SqlAlchemyAuditRepository
+        from app.domain.audit.services import AuditService
+
+        mapping_service = AccountMappingService()
+        audit_repo = SqlAlchemyAuditRepository(SessionLocal)
+        audit_service = AuditService(audit_repo)
+
         quote_service = QuoteService(quote_repo, partner_repo)
         order_service = SalesOrderService(order_repo, quote_repo, partner_repo)
         accounting_service = AccountingService(account_repo, journal_repo)
-        invoice_service = SalesInvoiceService(invoice_repo, order_repo, partner_repo, accounting_service)
+        invoice_service = SalesInvoiceService(invoice_repo, order_repo, partner_repo, accounting_service, mapping_service, audit_service)
         
         # Step 1: Get or create a test customer
         print("[Step 1] Getting test customer...")

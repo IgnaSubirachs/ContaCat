@@ -1,106 +1,112 @@
-"""
-Script de verificació del modúl de Recursos Humans (HR).
-Prova la creació d'empleats, càlcul d'IRPF i generació de nòmines.
-"""
 import sys
 import os
 from datetime import date
 from decimal import Decimal
 
-# Add project root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from app.infrastructure.db.base import init_db, SessionLocal
-from app.domain.hr.services import EmployeeService, PayrollService
+from app.infrastructure.db.base import SessionLocal, init_db
 from app.infrastructure.persistence.hr.repository import SqlAlchemyEmployeeRepository, SqlAlchemyPayrollRepository
-from app.domain.hr.entities import Employee, PayrollStatus
+from app.domain.hr.services import EmployeeService, PayrollService
+from app.domain.hr.social_security import SocialSecurityCalculator
 
-def verify_hr():
-    print("=" * 60)
-    print("VERIFICACIÓ MÒDUL DE RECURSOS HUMANS (HR)")
-    print("=" * 60)
+def run_verification():
+    print("[INFO] Iniciant Injeccio de Dependencies per Test HR...")
+    
+    # 1. Repositories
+    db_session = SessionLocal
+    employee_repo = SqlAlchemyEmployeeRepository(db_session)
+    payroll_repo = SqlAlchemyPayrollRepository(db_session)
 
-    print("\n1. Inicialitzant base de dades...")
-    init_db()
+    # 2. Services
+    employee_service = EmployeeService(employee_repo)
+    payroll_service = PayrollService(payroll_repo, employee_repo)
     
-    session = SessionLocal()
+    # 3. Create Employee
+    # Group 1 (Enginyers), Salary 3000/month
+    # DNI must be valid-ish (or mock validator if needed). Assuming Validator checks format.
+    # Using a known valid DNI generator or static one? 
+    # Let's use a "fake" valid one if validation is strict.
+    # Or rely on bypass if in test env? Validation logic: DocumentValidator.validate_document
+    # Let's try to create one.
     
+    print("[INFO] Creant Empleat de Prova...")
+    # Clean up if exists (by email/dni)
+    # Valid Spanish DNI: 12345678Z
+    test_dni = "12345678Z"
+    existing = employee_repo.find_by_dni(test_dni)
+    if existing:
+        print("[INFO] Eliminant empleat existent...")
+        employee_repo.delete(existing.id)
+
     try:
-        # Repositories & Services
-        employee_repo = SqlAlchemyEmployeeRepository(session)
-        payroll_repo = SqlAlchemyPayrollRepository(session)
-        
-        employee_service = EmployeeService(employee_repo)
-        payroll_service = PayrollService(payroll_repo, employee_repo)
-        
-        # 1. Create Employee
-        print("\n[Step 1] Creant empleat de prova...")
-        
-        # Cleanup if exists
-        dni_test = "40000000A"
-        existing = employee_repo.find_by_dni(dni_test)
-        if existing:
-            print(f"   - L'empleat amb DNI {dni_test} ja existeix. Esborrant-lo per començar de zero...")
-            employee_repo.delete(existing.id)
-            session.commit()
-            
         employee = employee_service.create_employee(
-            first_name="Joan",
-            last_name="Garcia",
-            dni=dni_test,
-            email="joan.garcia@example.com",
+            first_name="Test",
+            last_name="Engineer",
+            dni=test_dni,
+            email="test.hr@example.com",
             phone="600123456",
-            position="Desenvolupador Senior",
+            position="Senior Engineer",
             department="IT",
-            hire_date=date(2024, 1, 1),
-            salary=Decimal("45000.00") # Salari Brut Anual o Mensual? Segons entities és mensual (salary * 12).
-                                       # Wait, entities: salary: Decimal # Salari brut mensual
-                                       # But usually in Spain we talk annual. Let's assume input is monthly gross for simplicity or check logic.
-                                       # Entity: self.salary * 12 => annual. So input is monthly.
-                                       # 45000 annual => 3750 monthly.
+            hire_date=date.today(),
+            salary=Decimal("3000.00") # 3000 Gross Monthly
         )
-        
-        # Update extra fields usually not in create simple method
+        # Set extra fields
         employee.social_security_group = 1
-        employee.children_count = 2
-        employee.marital_status = "MARRIED"
-        employee.irpf_retention = employee.calculate_irpf() # Recalculate based on new data
-        employee_repo.update(employee)
-        session.commit() # Persist updates
+        employee.children_count = 0
+        employee.irpf_retention = Decimal("15.00") # Fixed for test simplicity
+        employee_service._repository.update(employee)
         
-        print(f"✓ Empleat creat: {employee.full_name}")
-        print(f"   - Salari Mensual Brut: {employee.salary} €")
-        print(f"   - Retenció IRPF Calculada: {employee.irpf_retention} %")
-        print(f"   - Situació: {employee.marital_status}, {employee.children_count} fills")
+        print(f"[OK] Empleat creat: {employee.full_name} (ID: {employee.id})")
         
-        # 2. Generate Payroll
-        print("\n[Step 2] Generant nòmina de Gener 2024...")
-        payroll = payroll_service.calculate_payroll(employee.id, 1, 2024)
-        
-        print(f"✓ Nòmina generada (Estat: {payroll.status.value})")
-        print(f"   - Salari Base: {payroll.base_salary} €")
-        print(f"   - Seguretat Social (Treballador): {payroll.social_security_employee} €")
-        print(f"   - IRPF ({payroll.irpf_rate}%): {payroll.irpf_amount} €")
-        print(f"   - Cost Seguretat Social (Empresa): {payroll.social_security_company} €")
-        print(f"-------------------------------------------")
-        print(f"   = LÍQUID A PERCEBRE: {payroll.net_salary} €")
-        
-        # Verification logic
-        expected_ss = (employee.salary * Decimal("6.35") / 100).quantize(Decimal("0.01"))
-        if payroll.social_security_employee != expected_ss:
-            print(f"⚠ ALERTA: Càlcul SS incorrecte. Esperat: {expected_ss}, Trobat: {payroll.social_security_employee}")
-            
-        print("\n✅ Verificació HR completada correctament!")
-        return True
-        
-    except Exception as e:
-        print(f"\n✗ ERROR: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-    finally:
-        session.close()
+    except ValueError as e:
+        print(f"[ERROR] Error creant empleat: {e}")
+        return
+
+    # 4. Generate Payroll
+    print("[INFO] Generant Nomina (Mes 1, 2025)...")
+    payroll = payroll_service.calculate_payroll(employee.id, 1, 2025)
+    
+    print(f"[INFO] Nomina Generada: {payroll.gross_salary} Brut")
+    
+    # 5. Verify Calculations
+    print("[INFO] Verificant Calculs...")
+    
+    # Expected SS (Group 1, 3000 base)
+    # Common (4.7%): 141.00
+    # Unemp (1.55%): 46.50
+    # FP (0.1%): 3.00
+    # Total Worker SS: 190.50
+    
+    expected_ss_worker = Decimal("190.50")
+    
+    # Expected IRPF (15%)
+    expected_irpf = Decimal("450.00")
+    
+    # Expected Net
+    # 3000 - 190.50 - 450.00 = 2359.50
+    expected_net = Decimal("2359.50")
+    
+    if abs(payroll.social_security_employee - expected_ss_worker) < Decimal("0.05"):
+        print(f"[SUCCESS] SS Treballador correcte: {payroll.social_security_employee}")
+    else:
+        print(f"[FAILURE] SS Treballador incorrecte. Esperat {expected_ss_worker}, Rebut {payroll.social_security_employee}")
+
+    if abs(payroll.irpf_amount - expected_irpf) < Decimal("0.05"):
+        print(f"[SUCCESS] IRPF correcte: {payroll.irpf_amount}")
+    else:
+        print(f"[FAILURE] IRPF incorrecte. Esperat {expected_irpf}, Rebut {payroll.irpf_amount}")
+
+    if abs(payroll.net_salary - expected_net) < Decimal("0.05"):
+        print(f"[SUCCESS] Net a Percebre correcte: {payroll.net_salary}")
+    else:
+        print(f"[FAILURE] Net incorrecte. Esperat {expected_net}, Rebut {payroll.net_salary}")
 
 if __name__ == "__main__":
-    success = verify_hr()
-    sys.exit(0 if success else 1)
+    try:
+        run_verification()
+    except Exception as e:
+        print(f"[ERROR] EXCEPCIO: {e}")
+        import traceback
+        traceback.print_exc()

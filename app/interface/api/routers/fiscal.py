@@ -114,3 +114,57 @@ async def get_current_fiscal_year(
         "end_date": fiscal_year.end_date.isoformat(),
         "status": fiscal_year.status.value
     }
+
+# Fical Models
+from app.domain.fiscal.services import FiscalModelService
+from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
+from app.infrastructure.persistence.settings.repository import SqlAlchemyCompanySettingsRepository
+from app.domain.settings.services import SettingsService
+from app.infrastructure.db.base import SessionLocal
+
+def get_fiscal_model_service() -> FiscalModelService:
+    journal_repo = SqlAlchemyJournalRepository(SessionLocal)
+    settings_repo = SqlAlchemyCompanySettingsRepository(SessionLocal)
+    settings_service = SettingsService(settings_repo)
+    return FiscalModelService(journal_repo, settings_service)
+
+@router.get("/models/303", response_class=HTMLResponse)
+async def model_303(
+    request: Request,
+    year: int = None,
+    period: str = None,
+    service: FiscalModelService = Depends(get_fiscal_model_service)
+):
+    """
+    Show Model 303.
+    If year/period provided, calculate and populate template.
+    Else show empty form.
+    """
+    data = None
+    if year and period:
+        # Calculate dates
+        # T1: Jan-Mar, T2: Apr-Jun...
+        # 01...12 for monthly
+        # Assume Quarterly for MVP
+        quarters = {
+            "1T": ((date(year, 1, 1), date(year, 3, 31))),
+            "2T": ((date(year, 4, 1), date(year, 6, 30))),
+            "3T": ((date(year, 7, 1), date(year, 9, 30))),
+            "4T": ((date(year, 10, 1), date(year, 12, 31)))
+        }
+        
+        if period in quarters:
+            start_date, end_date = quarters[period]
+            data = service.calculate_model_303(year, period, start_date, end_date)
+    
+    # Get current year for default
+    if not year:
+        year = date.today().year
+    
+    return templates.TemplateResponse("fiscal/model303.html", {
+        "request": request,
+        "data": data,
+        "selected_year": year,
+        "selected_period": period,
+        "periods": ["1T", "2T", "3T", "4T"]
+    })
