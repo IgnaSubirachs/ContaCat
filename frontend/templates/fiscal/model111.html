@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Model 111 - ERP Català{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-file-invoice-dollar me-2" style="color: #6f42c1;"></i>Model 111 (IRPF)
+        </h1>
+        <p class="text-muted">Autoliquidació de retencions i ingressos a compte (Trimestral)</p>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="year" class="form-label">Exercici</label>
+                <input type="number" class="form-control" id="year" name="year" value="{{ selected_year }}">
+            </div>
+            <div class="col-md-3">
+                <label for="period" class="form-label">Període</label>
+                <select class="form-select" id="period" name="period">
+                    <option value="">Selecciona...</option>
+                    {% for p in periods %}
+                    <option value="{{ p }}" {% if p==selected_period %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-calculator me-2"></i>Calcular
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if data %}
+<div class="row">
+    <!-- Dades Identificatives -->
+    <div class="col-12 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Declarant</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.company_name }} ({{ data.nif }})
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- I. Rendiments del treball -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow mb-4 h-100">
+            <div class="card-header py-3 border-left-primary">
+                <h6 class="m-0 font-weight-bold text-primary">I. Rendiments del treball (Nòmines)</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th>Concepte</th>
+                            <th class="text-right">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nº Perceptors</td>
+                            <td class="text-right">{{ data.work_perceptors }}</td>
+                        </tr>
+                        <tr>
+                            <td>Import de les Percepcions (Base)</td>
+                            <td class="text-right">{{ "%.2f"|format(data.work_base) }} €</td>
+                        </tr>
+                        <tr>
+                            <td>Import de les Retencions (Quota)</td>
+                            <td class="text-right font-weight-bold">{{ "%.2f"|format(data.work_quota) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- II. Activitats Econòmiques -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow mb-4 h-100">
+            <div class="card-header py-3 border-left-success">
+                <h6 class="m-0 font-weight-bold text-success">II. Activitats Econòmiques (Professionals)</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-sm">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th>Concepte</th>
+                            <th class="text-right">Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nº Perceptors</td>
+                            <td class="text-right">{{ data.pro_perceptors }}</td>
+                        </tr>
+                        <tr>
+                            <td>Import de les Percepcions (Base)</td>
+                            <td class="text-right">{{ "%.2f"|format(data.pro_base) }} €</td>
+                        </tr>
+                        <tr>
+                            <td>Import de les Retencions (Quota)</td>
+                            <td class="text-right font-weight-bold">{{ "%.2f"|format(data.pro_quota) }} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resultat -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4 border-bottom-danger">
+            <div class="card-body text-center">
+                <h4 class="mb-2">Total a Ingressar</h4>
+                <h2 class="display-4 font-weight-bold text-danger">{{ "%.2f"|format(data.total_quota) }} €</h2>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

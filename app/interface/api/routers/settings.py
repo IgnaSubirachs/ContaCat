@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Request, Form, Depends, UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
+from typing import Optional
 from app.interface.api.templates import templates
 from app.infrastructure.db.base import SessionLocal
 from app.domain.settings.services import SettingsService
 from app.domain.settings.entities import CompanySettings
 from app.infrastructure.persistence.settings.repository import SqlAlchemyCompanySettingsRepository
+from app.domain.auth.dependencies import get_current_user_or_redirect
+from app.domain.auth.entities import User
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -13,13 +16,20 @@ def get_settings_service():
     return SettingsService(repo)
 
 @router.get("/", response_class=HTMLResponse)
-async def settings_form(request: Request):
+async def settings_form(
+    request: Request,
+    current_user: Optional[User] = Depends(get_current_user_or_redirect)
+):
     """Show settings form."""
+    if current_user is None:
+        return RedirectResponse(url="/auth/login-page", status_code=302)
+        
     service = get_settings_service()
     settings = service.get_settings_or_default()
     
     return templates.TemplateResponse("settings/edit.html", {
         "request": request,
+        "user": current_user,
         "settings": settings
     })
 
@@ -34,6 +44,17 @@ async def update_settings(
     email: str = Form(""),
     phone: str = Form(""),
     website: str = Form(""),
+    smtp_host: str = Form(""),
+    smtp_port: int = Form(587),
+    smtp_user: str = Form(""),
+    smtp_password: str = Form(""),
+    smtp_from_email: str = Form(""),
+    smtp_from_name: str = Form(""),
+    smtp_use_tls: str = Form(None),
+    sii_enabled: str = Form(None),
+    sii_test_mode: str = Form(None),
+    sii_certificate_path: str = Form(""),
+    sii_certificate_password: str = Form(""),
     logo: UploadFile = File(None)
 ):
     """Update settings."""
@@ -70,7 +91,18 @@ async def update_settings(
         email=email,
         phone=phone,
         website=website,
-        logo_url=logo_url
+        logo_url=logo_url,
+        smtp_host=smtp_host,
+        smtp_port=smtp_port,
+        smtp_user=smtp_user,
+        smtp_password=smtp_password,
+        smtp_from_email=smtp_from_email,
+        smtp_from_name=smtp_from_name,
+        smtp_use_tls=bool(smtp_use_tls),
+        sii_enabled=bool(sii_enabled),
+        sii_test_mode=bool(sii_test_mode),
+        sii_certificate_path=sii_certificate_path,
+        sii_certificate_password=sii_certificate_password
     )
     
     service.save_settings(new_settings)

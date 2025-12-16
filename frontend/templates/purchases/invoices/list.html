@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Factures de Compra{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/">Inici</a></li>
+<li class="breadcrumb-item">Compres</li>
+<li class="breadcrumb-item active">Factures</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Factures de Compra</h1>
+    <a href="/purchases/invoices/new" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Nova Factura
+    </a>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Ref. Proveïdor</th>
+                        <th>Proveïdor</th>
+                        <th>Data</th>
+                        <th>Total</th>
+                        <th>Estat</th>
+                        <th>Pagament</th>
+                        <th>Accions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                    <tr>
+                        <td><a href="/purchases/invoices/{{ invoice.id }}">{{ invoice.invoice_number }}</a></td>
+                        <td>{{ invoice.supplier_reference or '-' }}</td>
+                        <td>{{ partners.get(invoice.partner_id).name if partners.get(invoice.partner_id) else
+                            invoice.partner_id }}</td>
+                        <td>{{ invoice.invoice_date }}</td>
+                        <td class="text-end">{{ "%.2f"|format(invoice.total_amount) }} €</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if invoice.status.value == 'POSTED' else 'secondary' }}">
+                                {{ invoice.status.value }}
+                            </span>
+                        </td>
+                        <td>
+                            <span
+                                class="badge bg-{{ 'success' if invoice.payment_status.value == 'PAID' else 'warning' }}">
+                                {{ invoice.payment_status.value }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/purchases/invoices/{{ invoice.id }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

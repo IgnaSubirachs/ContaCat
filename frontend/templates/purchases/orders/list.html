@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Comandes de Compra{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0">Comandes de Compra</h1>
+    <a href="/purchases/orders/new" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Nova Comanda
+    </a>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Número</th>
+                        <th>Proveïdor</th>
+                        <th>Data</th>
+                        <th>Total</th>
+                        <th>Estat</th>
+                        <th>Accions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td><a href="/purchases/orders/{{ order.id }}">{{ order.order_number }}</a></td>
+                        <td>{{ partners.get(order.partner_id).name if partners.get(order.partner_id) else
+                            order.partner_id }}</td>
+                        <td>{{ order.order_date }}</td>
+                        <td class="text-end">{{ "%.2f"|format(order.total_amount) }} €</td>
+                        <td>
+                            <span
+                                class="badge bg-{{ 'success' if order.status.value == 'CONFIRMED' else 'secondary' }}">
+                                {{ order.status.value }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/purchases/orders/{{ order.id }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

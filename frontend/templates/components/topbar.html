@@ -25,12 +25,8 @@
                 <i class="fas fa-calendar-alt text-gray-400"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="fiscalYearDropdown">
-                <li><a class="dropdown-item" href="#">2025 (Obert)</a></li>
-                <li><a class="dropdown-item" href="#">2024 (Tancat)</a></li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
-                <li><a class="dropdown-item" href="/fiscal">Gestionar Exercicis</a></li>
+                <li><a class="dropdown-item" href="/fiscal"><i class="fas fa-calendar-plus fa-sm fa-fw mr-2"></i>
+                        Gestionar Exercicis Fiscals</a></li>
             </ul>
         </li>
 
@@ -47,9 +43,10 @@
                     style="width: 32px; height: 32px;">
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow animated--grow-in" aria-labelledby="userDropdown">
-                <li><a class="dropdown-item" href="#"><i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                <li><a class="dropdown-item" href="/settings/profile"><i
+                            class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                         Perfil: {{ user.username if user else 'Guest' }}</a></li>
-                <li><a class="dropdown-item" href="#"><i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                <li><a class="dropdown-item" href="/settings"><i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
                         Configuració</a></li>
                 <li>
                     <hr class="dropdown-divider">

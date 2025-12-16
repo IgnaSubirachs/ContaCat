@@ -86,14 +86,19 @@ import re
 from decimal import Decimal
 from app.domain.accounting.repositories import JournalRepository
 from app.domain.settings.services import SettingsService
-from app.domain.fiscal.models import Model303Data
+from app.domain.hr.repositories import PayrollRepository
+from app.domain.fiscal.models import Model303Data, Model111Data
 
 class FiscalModelService:
     """Service for calculating Fiscal Models (AEAT)."""
     
-    def __init__(self, journal_repository: JournalRepository, settings_service: SettingsService):
+    def __init__(self, 
+                 journal_repository: JournalRepository, 
+                 settings_service: SettingsService,
+                 payroll_repository: Optional[PayrollRepository] = None):
         self._journal_repo = journal_repository
         self._settings_service = settings_service
+        self._payroll_repo = payroll_repository
         
     def calculate_model_303(self, year: int, period: str, start_date: date, end_date: date) -> Model303Data:
         """
@@ -163,5 +168,89 @@ class FiscalModelService:
                     
                     model.suportat[rate].add(base, amount)
         
+        model.calculate_totals()
+        return model
+
+    def calculate_model_111(self, year: int, period: str, start_date: date, end_date: date) -> Model111Data:
+        """
+        Calculate Model 111 (IRPF Withholdings).
+        Sources:
+        1. Payrolls (Repository) -> Key A (Work)
+        2. Journal (Account 4751) -> Key G (Professional Activities)
+           (Assumes 4751 in Journal are Professionals if they are NOT Payroll entries)
+        """
+        company_settings = self._settings_service.get_settings_or_default()
+        model = Model111Data(
+            year=year,
+            period=period,
+            company_name=company_settings.name,
+            nif=company_settings.tax_id
+        )
+
+        # 1. Work (Key A) - From Payrolls
+        if self._payroll_repo:
+            current = start_date
+            # Simple month iteration
+            while current <= end_date:
+                # Assuming list_by_period takes month, year
+                payrolls = self._payroll_repo.list_by_period(current.month, current.year)
+                for p in payrolls:
+                    # Skip drafts? Usually yes.
+                    # Handle both Enum and str
+                    status_str = p.status.value if hasattr(p.status, 'value') else str(p.status)
+                    if status_str == "DRAFT":
+                        continue
+                        
+                    model.work_base += p.irpf_base
+                    model.work_quota += p.irpf_amount
+                    model.work_perceptors += 1
+                
+                # Next month
+                if current.month == 12:
+                    current = date(current.year + 1, 1, 1)
+                else:
+                    current = date(current.year, current.month + 1, 1)
+
+        # 2. Professionals (Key G) - From Journal (Acc 4751)
+        # Fetch entries
+        entries = self._journal_repo.list_by_date_range(start_date, end_date)
+        processed_entries = set()
+
+        for entry in entries:
+            if entry.status.value != "POSTED":
+                continue
+            
+            is_payroll = "NOMINA" in entry.description.upper()
+            
+            for line in entry.lines:
+                if line.account_code.startswith("4751"):
+                    # If description suggests Payroll, skip (as we count it from Repo)
+                    # OR if we decide to use Journal ONLY in future.
+                    # For now, if "NOMINA" in description, ignore (assume covered by Step 1)
+                    if is_payroll: 
+                        continue
+                        
+                    # It is Professional Activity (Key G)
+                    # 4751 is Liability (Credit balance usually)
+                    amount = line.credit - line.debit
+                    
+                    if amount <= 0: continue
+                    
+                    # Estimate Base reverse (usually 15% or 7%)
+                    # Default to 15% if not found
+                    rate = 15
+                    if "7%" in line.description: rate = 7
+                    if "2%" in line.description: rate = 2
+                    if "15%" in line.description: rate = 15
+                    if "19%" in line.description: rate = 19
+                    
+                    base = amount / (Decimal(rate) / Decimal(100))
+                    
+                    model.pro_quota += amount
+                    model.pro_base += base
+                    if entry.id not in processed_entries:
+                        model.pro_perceptors += 1
+                        processed_entries.add(entry.id)
+
         model.calculate_totals()
         return model

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ca">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nòmina</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .content {
+            padding: 30px 0;
+        }
+
+        .payslip-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .detail-value {
+            color: #333;
+        }
+
+        .salary-highlight {
+            font-size: 28px;
+            color: #28a745;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px 0;
+            background-color: #d4edda;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid #dee2e6;
+            margin-top: 30px;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .confidential {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 20px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="company-name">{{ company_name }}</div>
+        <p style="color: #666; margin-top: 5px;">Departament de Recursos Humans</p>
+    </div>
+
+    <div class="content">
+        <h2>Hola {{ employee.name }},</h2>
+
+        <p>T'enviem adjunta la teva nòmina del període <strong>{{ payroll.period_month }}/{{ payroll.period_year
+                }}</strong>.</p>
+
+        <div class="payslip-details">
+            <div class="detail-row">
+                <span class="detail-label">Període:</span>
+                <span class="detail-value">{{ payroll.period_month }}/{{ payroll.period_year }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Salari Base:</span>
+                <span class="detail-value">{{ "%.2f"|format(payroll.base_salary) }} €</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Deduccions SS:</span>
+                <span class="detail-value">-{{ "%.2f"|format(payroll.social_security_deduction) }} €</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">IRPF:</span>
+                <span class="detail-value">-{{ "%.2f"|format(payroll.irpf_amount) }} €</span>
+            </div>
+        </div>
+
+        <div class="salary-highlight">
+            Salari Net: {{ "%.2f"|format(payroll.net_salary) }} €
+        </div>
+
+        <div class="confidential">
+            <strong>⚠️ Informació Confidencial:</strong> Aquest document conté informació personal i confidencial. Si us
+            plau, guarda'l de manera segura i no el comparteixis amb tercers.
+        </div>
+
+        <p>Si tens qualsevol dubte o incidència, si us plau contacta amb el Departament de RRHH.</p>
+
+        <p>Gràcies per la teva dedicació!</p>
+    </div>
+
+    <div class="footer">
+        <p>{{ company_name }}</p>
+        <p>Aquest és un correu electrònic generat automàticament. Si us plau, no respongueu a aquest missatge.</p>
+    </div>
+</body>
+
+</html>

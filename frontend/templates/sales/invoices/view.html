@@ -44,6 +44,14 @@
             </button>
         </form>
         {% endif %}
+
+        {% if invoice.status.value == 'POSTED' %}
+        <form action="/sales/invoices/{{ invoice.id }}/submit-sii" method="post" class="d-inline">
+            <button type="submit" class="btn btn-outline-warning">
+                <i class="fas fa-paper-plane me-1"></i> Enviar SII
+            </button>
+        </form>
+        {% endif %}
     </div>
 </div>
 

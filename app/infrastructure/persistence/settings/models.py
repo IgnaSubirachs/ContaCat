@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text
+from sqlalchemy import Column, String, Text, Integer, Boolean
 from app.infrastructure.db.base import Base
 
 class CompanySettingsModel(Base):
@@ -20,3 +20,19 @@ class CompanySettingsModel(Base):
     
     logo_url = Column(String(500), nullable=True)
     currency = Column(String(3), default="EUR")
+    
+    # SMTP Configuration
+    smtp_host = Column(String(255), nullable=True)
+    smtp_port = Column(Integer, default=587)
+    smtp_user = Column(String(255), nullable=True)
+    smtp_password = Column(String(500), nullable=True)
+    smtp_from_email = Column(String(255), nullable=True)
+    smtp_from_name = Column(String(255), nullable=True)
+    smtp_use_tls = Column(Boolean, default=True)
+    
+    # SII Configuration
+    sii_enabled = Column(Boolean, default=False)
+    sii_test_mode = Column(Boolean, default=True)
+    sii_certificate_path = Column(String(500), nullable=True)
+    sii_certificate_password = Column(String(500), nullable=True)
+

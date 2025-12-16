@@ -6,6 +6,35 @@ Desenvolupat amb  **Domain-Driven Design (DDD)**, **FastAPI** i **MySQL**, aques
 
 ---
 
+## 🚀 Novetats# ContaCAT ERP - Sistema ERP en Català
+
+Sistema ERP complet desenvolupat en Python amb FastAPI, dissenyat específicament per empreses catalanes.
+
+## ✨ Actualitzacions Recents (Desembre 2024)
+
+### Millores Implementades
+
+**Interfície d'Usuari:**
+- ✅ **AI Chat Interface**: Nova interfície web completa per prediccions de comptes comptables amb IA
+- ✅ **Cat Assistant**: Navegació millorada amb enllaços correctes a la pàgina d'IA
+- ✅ **Topbar Navigation**: Corregits enllaços de configuració i perfil
+- ✅ **Dashboard**: Gràfics Chart.js funcionant correctament, símbol € arreglat
+
+**Backend i Base de Dades:**
+- ✅ **Settings Module**: Migració MySQL completada amb camps SMTP i SII
+- ✅ **Authentication**: Sistema d'autenticació opcional per routers `/ai/` i `/settings/`
+- ✅ **Templates**: Auto-reload activat per desenvolupament més àgil
+- ✅ **Docker**: Deployment completament funcional amb MySQL
+
+**Files Principals Actualitzats:**
+- `frontend/templates/ai/chat.html` (NOU - 239 línies)
+- `frontend/templates/components/topbar.html`
+- `frontend/templates/components/cat_assistant.html`
+- `app/interface/api/routers/ai.py`
+- `app/interface/api/routers/settings.py`
+- `app/interface/api/templates.py`
+- `migrations/add_smtp_sii_to_company_settings.sql` (NOU)
+
 ## 🚀 Novetats "CEO Plan" (Desembre 2025)
 
 Hem completat un sprint intensiu per dotar l'ERP de capacitats executives reals:

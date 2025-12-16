@@ -87,6 +87,71 @@
                         {% endif %}
                     </div>
 
+                    <hr>
+                    <h6 class="text-secondary mb-3">📧 Configuració Email (SMTP)</h6>
+                    <p class="small text-muted">Configura l'enviament d'emails (factures, nòmines, reports).</p>
+
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">Servidor SMTP</label>
+                            <input type="text" name="smtp_host" class="form-control" value="{{ settings.smtp_host }}"
+                                placeholder="smtp.gmail.com">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Port</label>
+                            <input type="number" name="smtp_port" class="form-control"
+                                value="{{ settings.smtp_port or 587 }}">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Usuari SMTP</label>
+                            <input type="text" name="smtp_user" class="form-control" value="{{ settings.smtp_user }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contrasenya</label>
+                            <input type="password" name="smtp_password" class="form-control"
+                                value="{{ settings.smtp_password }}">
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="smtp_use_tls" value="true" {{ 'checked' if
+                            settings.smtp_use_tls else '' }}>
+                        <label class="form-check-label">Usar TLS</label>
+                    </div>
+
+                    <hr>
+                    <h6 class="text-secondary mb-3">🏛️ SII - Integració AEAT</h6>
+                    <p class="small text-muted">Enviament automàtic de factures a l'Agència Tributària (opcional).</p>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="sii_enabled" value="true" {{ 'checked' if
+                            settings.sii_enabled else '' }}>
+                        <label class="form-check-label fw-bold">Activar SII</label>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="sii_test_mode" value="true" {{ 'checked'
+                            if settings.sii_test_mode else '' }}>
+                        <label class="form-check-label">Mode Demo (sense certificat)</label>
+                        <small class="d-block text-muted">Simula enviaments sense connectar a AEAT.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ruta Certificat (.pfx)</label>
+                        <input type="text" name="sii_certificate_path" class="form-control"
+                            value="{{ settings.sii_certificate_path }}" placeholder="/path/to/certificate.pfx">
+                        <small class="text-muted">Només necessari per mode real (producció).</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Contrasenya Certificat</label>
+                        <input type="password" name="sii_certificate_password" class="form-control"
+                            value="{{ settings.sii_certificate_password }}">
+                    </div>
+
                     <div class="text-end mt-4">
                         <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Guardar
                             Configuració</button>

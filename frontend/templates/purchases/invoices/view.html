@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Factura {{ invoice.invoice_number }}{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/">Inici</a></li>
+<li class="breadcrumb-item">Compres</li>
+<li class="breadcrumb-item"><a href="/purchases/invoices">Factures</a></li>
+<li class="breadcrumb-item active">{{ invoice.invoice_number }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0">Factura Compra {{ invoice.invoice_number }}</h1>
+        {% if invoice.supplier_reference %}
+        <p class="text-muted mb-0">Ref. Proveïdor: {{ invoice.supplier_reference }}</p>
+        {% endif %}
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/purchases/invoices" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Tornar
+        </a>
+
+        {% if invoice.status.value == 'DRAFT' %}
+        <form action="/purchases/invoices/{{ invoice.id }}/post" method="post" class="d-inline">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-check me-1"></i> Comptabilitzar
+            </button>
+        </form>
+        {% endif %}
+
+        {% if invoice.status.value == 'POSTED' and invoice.payment_status.value != 'PAID' %}
+        <form action="/purchases/invoices/{{ invoice.id }}/mark-paid" method="post" class="d-inline">
+            <input type="hidden" name="amount" value="{{ invoice.total_amount }}">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-dollar-sign me-1"></i> Marcar Pagada
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">Informació Proveïdor</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Nom:</strong> {{ partner.name if partner else invoice.partner_id }}</p>
+                {% if partner %}
+                <p><strong>NIF:</strong> {{ partner.tax_id }}</p>
+                <p><strong>Email:</strong> {{ partner.email }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold">Detalls Factura</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Data:</strong> {{ invoice.invoice_date }}</p>
+                <p><strong>Venciment:</strong> {{ invoice.due_date or '-' }}</p>
+                <p><strong>Estat:</strong>
+                    <span class="badge bg-{{ 'success' if invoice.status.value == 'POSTED' else 'secondary' }}">
+                        {{ invoice.status.value }}
+                    </span>
+                </p>
+                <p><strong>Pagament:</strong>
+                    <span class="badge bg-{{ 'success' if invoice.payment_status.value == 'PAID' else 'warning' }}">
+                        {{ invoice.payment_status.value }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow mb-4">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold">Línies de Factura</h6>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Descripció</th>
+                    <th>Quantitat</th>
+                    <th class="text-end">Preu Unit.</th>
+                    <th class="text-end">Subtotal</th>
+                    <th class="text-end">IVA</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in invoice.lines %}
+                <tr>
+                    <td>{{ line.description }}</td>
+                    <td>{{ line.quantity }}</td>
+                    <td class="text-end">{{ "%.2f"|format(line.unit_price) }} €</td>
+                    <td class="text-end">{{ "%.2f"|format(line.quantity * line.unit_price) }} €</td>
+                    <td class="text-end">{{ "%.2f"|format(line.tax_amount) }} €</td>
+                    <td class="text-end">{{ "%.2f"|format(line.total) }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="fw-bold">
+                    <td colspan="5" class="text-end">TOTAL:</td>
+                    <td class="text-end">{{ "%.2f"|format(invoice.total_amount) }} €</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

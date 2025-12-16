@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Previsió de Tresoreria{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="/">Inici</a></li>
+<li class="breadcrumb-item active">Tresoreria</li>
+{% endblock %}
+
+{% block content %}
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">
+        <i class="fas fa-chart-line me-2"></i>Previsió de Tresoreria
+    </h1>
+</div>
+
+<!-- Risk Alerts -->
+{% for alert in dashboard.risk.alerts %}
+<div
+    class="alert {{ 'alert-danger' if dashboard.risk.level == 'HIGH' else 'alert-warning' if dashboard.risk.level == 'MEDIUM' else 'alert-success' }} alert-dismissible fade show">
+    {{ alert }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+
+<!-- KPI Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Caixa Actual</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ "%.2f"|format(dashboard.forecast.current_cash) }} €
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-wallet fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div
+            class="card border-left-{{ 'success' if dashboard.forecast.projections.day_30 > 0 else 'danger' }} shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Previsió 30 dies</div>
+                        <div
+                            class="h5 mb-0 font-weight-bold {{ 'text-success' if dashboard.forecast.projections.day_30 > 0 else 'text-danger' }}">
+                            {{ "%.2f"|format(dashboard.forecast.projections.day_30) }} €
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div
+            class="card border-left-{{ 'success' if dashboard.forecast.projections.day_60 > 0 else 'danger' }} shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Previsió 60 dies</div>
+                        <div
+                            class="h5 mb-0 font-weight-bold {{ 'text-success' if dashboard.forecast.projections.day_60 > 0 else 'text-danger' }}">
+                            {{ "%.2f"|format(dashboard.forecast.projections.day_60) }} €
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div
+            class="card border-left-{{ 'success' if dashboard.forecast.projections.day_90 > 0 else 'danger' }} shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">Previsió 90 dies</div>
+                        <div
+                            class="h5 mb-0 font-weight-bold {{ 'text-success' if dashboard.forecast.projections.day_90 > 0 else 'text-danger' }}">
+                            {{ "%.2f"|format(dashboard.forecast.projections.day_90) }} €
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Evolució de Caixa (90 dies)</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="cashFlowChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tables Row -->
+<div class="row">
+    <!-- Receivables -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-arrow-down me-2"></i>Cobraments Pendents (Top 5)
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if dashboard.top_receivables %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Factura</th>
+                                <th>Venciment</th>
+                                <th class="text-end">Import</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in dashboard.top_receivables %}
+                            <tr>
+                                <td>{{ rec.invoice_number }}</td>
+                                <td>
+                                    {{ rec.due_date }}
+                                    <span
+                                        class="badge {{ 'bg-danger' if rec.days_until_due < 0 else 'bg-warning' if rec.days_until_due < 15 else 'bg-success' }} ms-1">
+                                        {{ rec.days_until_due }}d
+                                    </span>
+                                </td>
+                                <td class="text-end">{{ "%.2f"|format(rec.amount) }} €</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No hi ha cobraments pendents</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recurring Expenses -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-danger">
+                    <i class="fas fa-arrow-up me-2"></i>Despeses Recurrents Mensuals
+                </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td>Nòmines</td>
+                        <td class="text-end">{{ "%.2f"|format(dashboard.recurring_expenses.payroll_monthly) }} €</td>
+                    </tr>
+                    <tr class="fw-bold">
+                        <td>Total Mensual</td>
+                        <td class="text-end">{{ "%.2f"|format(dashboard.recurring_expenses.total_monthly) }} €</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    const ctx = document.getElementById('cashFlowChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Avui', '30 dies', '60 dies', '90 dies'],
+            datasets: [{
+                label: 'Caixa Prevista (€)',
+                data: [
+                    {{ dashboard.forecast.projections.day_0 }},
+            {{ dashboard.forecast.projections.day_30 }},
+                {{ dashboard.forecast.projections.day_60 }},
+    { { dashboard.forecast.projections.day_90 } }
+            ],
+    borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.3,
+                fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+            maintainAspectRatio: true,
+                plugins: {
+            legend: {
+                display: true,
+                    position: 'top'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                    ticks: {
+                    callback: function(value) {
+                        return value.toFixed(2) + ' €';
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

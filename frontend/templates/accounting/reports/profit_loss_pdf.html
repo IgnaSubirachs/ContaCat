@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+
+
+        }
+
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .company-name {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .company-details {
+            font-size: 9pt;
+            color: #666;
+        }
+
+        h1 {
+            font-size: 18pt;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        h2 {
+            font-size: 14pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #667eea;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        th,
+        td {
+            padding: 4px 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            text-align: left;
+            font-weight: bold;
+            color: #555;
+            background-color: #f1f1f1;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .fw-bold {
+            font-weight: bold;
+        }
+
+        .group-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .result-row {
+            background-color: #e9ecef;
+            font-weight: bold;
+            border-top: 2px solid #ced4da;
+        }
+
+        .final-result {
+            background-color: #d4edda;
+            font-weight: bold;
+            font-size: 11pt;
+            border: 1px solid #c3e6cb;
+        }
+
+        .negative-result {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <table style="border: none;">
+            <tr>
+                <td style="border: none; width: 60%;">
+                    <div class="company-name">{{ settings.company_name }}</div>
+                    <div class="company-details">
+                        {{ settings.tax_id }}<br>
+                        {{ settings.address }}<br>
+                        {{ settings.city }}
+                    </div>
+                </td>
+                <td style="border: none; text-align: right;">
+                    {% if settings.logo_path %}
+                    <img src="{{ settings.logo_path }}" style="max-height: 50px;">
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h1>COMPTE DE PÈRDUES I GUANYS</h1>
+    <div style="text-align: center; margin-bottom: 20px; color: #666;">
+        {% if profit_loss.start_date and profit_loss.end_date %}
+        Període: {{ profit_loss.start_date.strftime('%d/%m/%Y') }} - {{ profit_loss.end_date.strftime('%d/%m/%Y') }}
+        {% else %}
+        Tot el període històric
+        {% endif %}
+    </div>
+
+    <h2>A) OPERACIONS CONTINUADES</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 70%;">Partida</th>
+                <th class="text-right">Import</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group_name, group_data in profit_loss.groups.items()|sort %}
+            <tr class="group-header">
+                <td>{{ group_name }}</td>
+                <td class="text-right">{{ "%.2f"|format(group_data.total) }} €</td>
+            </tr>
+            {% for item in group_data.account_lines %}
+            <tr>
+                <td style="padding-left: 20px; color: #555;">{{ item.code }} - {{ item.name }}</td>
+                <td class="text-right" style="color: #555;">{{ "%.2f"|format(item.amount) }} €</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <table style="margin-top: 20px;">
+        <tr class="result-row">
+            <td style="width: 70%;">A.1) RESULTAT D'EXPLOTACIÓ</td>
+            <td class="text-right">{{ "%.2f"|format(profit_loss.resultat_explotacio) }} €</td>
+        </tr>
+        <tr class="result-row">
+            <td>A.2) RESULTAT FINANCER</td>
+            <td class="text-right">{{ "%.2f"|format(profit_loss.resultat_financer) }} €</td>
+        </tr>
+        <tr class="result-row" style="background-color: #dee2e6;">
+            <td>A.3) RESULTAT ABANS D'IMPOSTOS</td>
+            <td class="text-right">{{ "%.2f"|format(profit_loss.resultat_abans_impostos) }} €</td>
+        </tr>
+    </table>
+
+    <div class="final-result {% if profit_loss.resultat_exercici < 0 %}negative-result{% endif %}"
+        style="padding: 10px; margin-top: 20px;">
+        <table style="border: none; margin: 0;">
+            <tr>
+                <td style="border: none;">A.4) RESULTAT DE L'EXERCICI</td>
+                <td style="border: none;" class="text-right">{{ "%.2f"|format(profit_loss.resultat_exercici) }} €</td>
+            </tr>
+        </table>
+    </div>
+
+</body>
+
+</html>

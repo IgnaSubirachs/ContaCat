@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+
+
+        }
+
+        body {
+            font-family: Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .company-name {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .company-details {
+            font-size: 9pt;
+            color: #666;
+        }
+
+        h1 {
+            font-size: 18pt;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        h2 {
+            font-size: 14pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #667eea;
+            border-bottom: 1px solid #ddd;
+        }
+
+        h3 {
+            font-size: 11pt;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #555;
+            background-color: #f8f9fa;
+            padding: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        th,
+        td {
+            padding: 4px 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            text-align: left;
+            font-weight: bold;
+            color: #555;
+            background-color: #f1f1f1;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .fw-bold {
+            font-weight: bold;
+        }
+
+        .text-muted {
+            color: #888;
+        }
+
+        .total-row {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .grand-total {
+            background-color: #e2e6ea;
+            font-weight: bold;
+            font-size: 11pt;
+            border-top: 2px solid #667eea;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <table style="border: none;">
+            <tr>
+                <td style="border: none; width: 60%;">
+                    <div class="company-name">{{ settings.company_name }}</div>
+                    <div class="company-details">
+                        {{ settings.tax_id }}<br>
+                        {{ settings.address }}<br>
+                        {{ settings.city }}
+                    </div>
+                </td>
+                <td style="border: none; text-align: right;">
+                    {% if settings.logo_path %}
+                    <img src="{{ settings.logo_path }}" style="max-height: 50px;">
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <h1>BALANÇ DE SITUACIÓ</h1>
+    <div style="text-align: center; margin-bottom: 20px; color: #666;">
+        {% if balance_sheet.end_date %}
+        Data de tancament: {{ balance_sheet.end_date.strftime('%d/%m/%Y') }}
+        {% else %}
+        Situació actual
+        {% endif %}
+    </div>
+
+    <!-- ACTIU -->
+    <h2>A) ACTIU</h2>
+
+    <h3>Actiu No Corrent</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Compte / Descripció</th>
+                <th class="text-right">Import</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group_name, group_data in balance_sheet.actiu.no_corrent.groups.items() %}
+            <tr style="background-color: #fdfdfd;">
+                <td colspan="2" class="fw-bold" style="padding-left: 5px;">{{ group_name }}</td>
+            </tr>
+            {% for account in group_data.accounts %}
+            <tr>
+                <td style="padding-left: 20px;">{{ account.code }} - {{ account.name }}</td>
+                <td class="text-right">{{ "%.2f"|format(account.balance) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td style="padding-left: 20px;">Total {{ group_name }}</td>
+                <td class="text-right">{{ "%.2f"|format(group_data.total) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="grand-total">
+                <td>TOTAL ACTIU NO CORRENT</td>
+                <td class="text-right">{{ "%.2f"|format(balance_sheet.actiu.no_corrent.total) }} €</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Actiu Corrent</h3>
+    <table>
+        <tbody>
+            {% for group_name, group_data in balance_sheet.actiu.corrent.groups.items() %}
+            <tr style="background-color: #fdfdfd;">
+                <td colspan="2" class="fw-bold" style="padding-left: 5px;">{{ group_name }}</td>
+            </tr>
+            {% for account in group_data.accounts %}
+            <tr>
+                <td style="padding-left: 20px;">{{ account.code }} - {{ account.name }}</td>
+                <td class="text-right">{{ "%.2f"|format(account.balance) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td style="padding-left: 20px;">Total {{ group_name }}</td>
+                <td class="text-right">{{ "%.2f"|format(group_data.total) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="grand-total">
+                <td>TOTAL ACTIU CORRENT</td>
+                <td class="text-right">{{ "%.2f"|format(balance_sheet.actiu.corrent.total) }} €</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div
+        style="background-color: #d4edda; padding: 10px; font-weight: bold; border: 1px solid #c3e6cb; margin-top: 10px;">
+        TOTAL ACTIU: {{ "%.2f"|format(balance_sheet.actiu.total) }} €
+    </div>
+
+    <div style="page-break-before: always;"></div>
+
+    <!-- PATRIMONI NET I PASSIU -->
+    <h2>B) PATRIMONI NET I PASSIU</h2>
+
+    <h3>Patrimoni Net</h3>
+    <table>
+        <tbody>
+            {% for group_name, group_data in balance_sheet.patrimoni_net_i_passiu.patrimoni_net.groups.items() %}
+            <tr style="background-color: #fdfdfd;">
+                <td colspan="2" class="fw-bold" style="padding-left: 5px;">{{ group_name }}</td>
+            </tr>
+            {% for account in group_data.accounts %}
+            <tr>
+                <td style="padding-left: 20px;">{{ account.code }} - {{ account.name }}</td>
+                <td class="text-right">{{ "%.2f"|format(account.balance) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td style="padding-left: 20px;">Total {{ group_name }}</td>
+                <td class="text-right">{{ "%.2f"|format(group_data.total) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="grand-total">
+                <td>TOTAL PATRIMONI NET</td>
+                <td class="text-right">{{ "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.patrimoni_net.total) }} €
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Passiu No Corrent</h3>
+    <table>
+        <tbody>
+            {% for group_name, group_data in balance_sheet.patrimoni_net_i_passiu.passiu_no_corrent.groups.items() %}
+            <tr style="background-color: #fdfdfd;">
+                <td colspan="2" class="fw-bold" style="padding-left: 5px;">{{ group_name }}</td>
+            </tr>
+            {% for account in group_data.accounts %}
+            <tr>
+                <td style="padding-left: 20px;">{{ account.code }} - {{ account.name }}</td>
+                <td class="text-right">{{ "%.2f"|format(account.balance) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td style="padding-left: 20px;">Total {{ group_name }}</td>
+                <td class="text-right">{{ "%.2f"|format(group_data.total) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="grand-total">
+                <td>TOTAL PASSIU NO CORRENT</td>
+                <td class="text-right">{{ "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.passiu_no_corrent.total) }}
+                    €</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Passiu Corrent</h3>
+    <table>
+        <tbody>
+            {% for group_name, group_data in balance_sheet.patrimoni_net_i_passiu.passiu_corrent.groups.items() %}
+            <tr style="background-color: #fdfdfd;">
+                <td colspan="2" class="fw-bold" style="padding-left: 5px;">{{ group_name }}</td>
+            </tr>
+            {% for account in group_data.accounts %}
+            <tr>
+                <td style="padding-left: 20px;">{{ account.code }} - {{ account.name }}</td>
+                <td class="text-right">{{ "%.2f"|format(account.balance) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td style="padding-left: 20px;">Total {{ group_name }}</td>
+                <td class="text-right">{{ "%.2f"|format(group_data.total) }} €</td>
+            </tr>
+            {% endfor %}
+            <tr class="grand-total">
+                <td>TOTAL PASSIU CORRENT</td>
+                <td class="text-right">{{ "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.passiu_corrent.total) }} €
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div
+        style="background-color: #f8d7da; padding: 10px; font-weight: bold; border: 1px solid #f5c6cb; margin-top: 10px;">
+        TOTAL PATRIMONI NET I PASSIU: {{ "%.2f"|format(balance_sheet.patrimoni_net_i_passiu.total) }} €
+    </div>
+
+</body>
+
+</html>

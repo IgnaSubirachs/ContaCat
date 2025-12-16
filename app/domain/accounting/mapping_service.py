@@ -34,3 +34,24 @@ class AccountMappingService:
         # Could distinguish by rate (e.g. 47700021 for 21%, 47700010 for 10%)
         # For now return the standard root, or specific if needed.
         return "47700000"
+    
+    def get_purchase_account(self, product_category: str = None) -> str:
+        """
+        Returns the expense account (Compres).
+        Default: 600 (Compres de mercaderies)
+        """
+        return "60000000"
+    
+    def get_input_vat_account(self, tax_rate: float = None) -> str:
+        """
+        Returns the Input VAT account (IVA Suportat - deductible).
+        Account 472: H.P. IVA Suportat
+        """
+        return "47200000"
+    
+    def get_accounts_payable_account(self) -> str:
+        """
+        Returns the supplier payable account (Proveïdors).
+        Account 400: Proveïdors
+        """
+        return "40000000"

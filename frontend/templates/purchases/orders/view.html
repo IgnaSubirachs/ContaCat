@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Comanda {{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Comanda {{ order.order_number }}</h1>
+    <div class="d-flex gap-2">
+        <a href="/purchases/orders" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Tornar
+        </a>
+
+        {% if order.status.value == 'DRAFT' %}
+        <form action="/purchases/orders/{{ order.id }}/confirm" method="post" class="d-inline">
+            <button type="submit" class="btn btn-primary">Confirmar</button>
+        </form>
+        {% endif %}
+
+        {% if order.status.value == 'CONFIRMED' %}
+        <form action="/purchases/orders/{{ order.id }}/receive" method="post" class="d-inline">
+            <button type="submit" class="btn btn-success">Rebre</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="m-0">Proveïdor</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Nom:</strong> {{ partner.name if partner else order.partner_id }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h6 class="m-0">Detalls</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Data:</strong> {{ order.order_date }}</p>
+                <p><strong>Estat:</strong>
+                    <span class="badge bg-{{ 'success' if order.status.value == 'CONFIRMED' else 'secondary' }}">
+                        {{ order.status.value }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow">
+    <div class="card-header">
+        <h6 class="m-0">Línies</h6>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Descripció</th>
+                    <th>Quantitat</th>
+                    <th class="text-end">Preu</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in order.lines %}
+                <tr>
+                    <td>{{ line.description }}</td>
+                    <td>{{ line.quantity }}</td>
+                    <td class="text-end">{{ "%.2f"|format(line.unit_price) }} €</td>
+                    <td class="text-end">{{ "%.2f"|format(line.total) }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="fw-bold">
+                    <td colspan="3" class="text-end">TOTAL:</td>
+                    <td class="text-end">{{ "%.2f"|format(order.total_amount) }} €</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -19,12 +19,21 @@ class DashboardService:
         try:
             today = date.today()
             
-            # 1. Sales MTD (Month to Date)
-            sales_mtd = session.query(func.sum(SalesInvoiceModel.total))\
+            # 1. Sales MTD (Month to Date) - Calculate from lines
+            # Get all invoices for current month
+            invoices = session.query(SalesInvoiceModel)\
                 .filter(extract('month', SalesInvoiceModel.invoice_date) == today.month)\
                 .filter(extract('year', SalesInvoiceModel.invoice_date) == today.year)\
                 .filter(SalesInvoiceModel.status != InvoiceStatus.DRAFT.name)\
-                .scalar() or Decimal(0)
+                .all()
+            
+            # Calculate total from lines (simplified - just sum quantity * unit_price)
+            sales_mtd = Decimal(0)
+            for inv in invoices:
+                for line in inv.lines:
+                    subtotal = line.quantity * line.unit_price
+                    tax = subtotal * (line.tax_rate / 100)
+                    sales_mtd += subtotal + tax
                 
             # 2. Pending Conciliation
             # Assuming "reconciled" means linked to something? Or logic in BankingService?
@@ -59,22 +68,26 @@ class DashboardService:
             values = []
             
             for i in range(5, -1, -1):
-                # Calculate month/year
-                d = today.replace(day=1) - timedelta(days=i*30) # Approx
-                # Better: date math
-                
-                # Let's simple fetch for current year months
                 month = today.month - i
                 year = today.year
                 if month <= 0:
                     month += 12
                     year -= 1
-                    
-                total = session.query(func.sum(SalesInvoiceModel.total))\
+                
+                # Get invoices for this month
+                invoices = session.query(SalesInvoiceModel)\
                     .filter(extract('month', SalesInvoiceModel.invoice_date) == month)\
                     .filter(extract('year', SalesInvoiceModel.invoice_date) == year)\
                     .filter(SalesInvoiceModel.status != InvoiceStatus.DRAFT.name)\
-                    .scalar() or 0
+                    .all()
+                
+                # Calculate total from lines
+                total = Decimal(0)
+                for inv in invoices:
+                    for line in inv.lines:
+                        subtotal = line.quantity * line.unit_price
+                        tax = subtotal * (line.tax_rate / 100)
+                        total += subtotal + tax
                 
                 labels.append(f"{month}/{year}")
                 values.append(float(total))

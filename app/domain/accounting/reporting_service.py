@@ -155,9 +155,9 @@ class ReportingService:
         
         def add_item(report_group, code, name, amount):
             if report_group not in report["groups"]:
-                report["groups"][report_group] = {"total": Decimal(0), "items": []}
+                report["groups"][report_group] = {"total": Decimal(0), "account_lines": []}
             
-            report["groups"][report_group]["items"].append({
+            report["groups"][report_group]["account_lines"].append({
                 "code": code,
                 "name": name,
                 "amount": amount

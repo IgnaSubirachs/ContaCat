@@ -108,7 +108,7 @@
                             {{ "%.2f"|format(group_data.total) }} €
                         </td>
                     </tr>
-                    {% for item in group_data.items %}
+                    {% for item in group_data.account_lines %}
                     <tr>
                         <td class="ps-5 text-muted">{{ item.name }}</td>
                         <td class="text-end text-muted font-monospace small px-2">{{ item.code }}</td>

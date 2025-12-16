@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-corporate mb-1">
+                <i class="fas fa-robot me-2"></i>Assistent Intel·ligent ContaCAT
+            </h2>
+            <p class="text-muted">Obtén suggeriments de comptes comptables per les teves transaccions</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Input Column -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-corporate text-white">
+                    <i class="fas fa-keyboard me-2"></i>Descriu la transacció
+                </div>
+                <div class="card-body">
+                    <form id="aiForm">
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Descripció de la transacció</label>
+                            <textarea class="form-control" id="description" rows="4"
+                                placeholder="Ex: Compra d'ordinador per l'oficina, Pagament de nòmina desembre, Lloguer local comercial..."
+                                required minlength="3"></textarea>
+                            <div class="form-text">Introdueix almenys 3 caràcters per obtenir suggeriments</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="predictBtn">
+                            <i class="fas fa-magic me-2"></i>Obtenir Suggeriments
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Card -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-info-circle me-2 text-info"></i>Com funciona?</h6>
+                    <p class="card-text small">
+                        L'assistent analitza la descripció de la teva transacció i suggereix els comptes comptables
+                        més adequats basant-se en patrons similars i el Pla General Comptable Espanyol.
+                    </p>
+                    <ul class="small mb-0">
+                        <li>Sigues específic amb la descripció</li>
+                        <li>Menciona el tipus d'operació (compra, venda, pagament...)</li>
+                        <li>Inclou el concepte principal (material, servei, actiu...)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Column -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>Suggeriments de Comptes
+                </div>
+                <div class="card-body">
+                    <div id="results">
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-robot fa-3x mb-3 opacity-25"></i>
+                            <p>Introdueix una descripció i fes clic al botó per veure els suggeriments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Card -->
+            <div class="card shadow-sm mt-3" id="historyCard" style="display: none;">
+                <div class="card-header bg-light">
+                    <i class="fas fa-history me-2"></i>Historial de Consultes
+                </div>
+                <div class="card-body">
+                    <div id="history" class="small"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('aiForm');
+    const description = document.getElementById('description');
+    const predictBtn = document.getElementById('predictBtn');
+    const resultsDiv = document.getElementById('results');
+    const historyDiv = document.getElementById('history');
+    const historyCard = document.getElementById('historyCard');
+
+    let queryHistory = [];
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const desc = description.value.trim();
+        if (desc.length < 3) {
+            alert('La descripció ha de tenir almenys 3 caràcters');
+            return;
+        }
+
+        // Show loading
+        predictBtn.disabled = true;
+        predictBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analitzant...';
+        resultsDiv.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregant...</span>
+                </div>
+                <p class="mt-3 text-muted">Analitzant la teva descripció...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`/ai/predict-accounts?description=${encodeURIComponent(desc)}`);
+
+            if (!response.ok) {
+                throw new Error('Error al obtenir suggeriments');
+            }
+
+            const suggestions = await response.json();
+            displayResults(suggestions, desc);
+            addToHistory(desc, suggestions);
+
+        } catch (error) {
+            resultsDiv.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error: ${error.message}. Torna-ho a intentar.
+                </div>
+            `;
+        } finally {
+            predictBtn.disabled = false;
+            predictBtn.innerHTML = '<i class="fas fa-magic me-2"></i>Obtenir Suggeriments';
+        }
+    });
+
+    function displayResults(suggestions, desc) {
+        if (!suggestions || suggestions.length === 0) {
+            resultsDiv.innerHTML = `
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No s'han trobat suggeriments per aquesta descripció. Prova amb una descripció més específica.
+                </div>
+            `;
+            return;
+        }
+
+        let html = `
+            <div class="mb-3">
+                <strong class="text-corporate">Consulta:</strong> "${desc}"
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>Compte</th>
+                            <th>Nom</th>
+                            <th class="text-end">Confiança</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        suggestions.forEach((sugg, index) => {
+            const confidencePercent = (sugg.confidence * 100).toFixed(1);
+            const badgeClass = sugg.confidence > 0.7 ? 'bg-success' : sugg.confidence > 0.4 ? 'bg-warning' : 'bg-secondary';
+
+            html += `
+                <tr>
+                    <td><code>${sugg.account_code}</code></td>
+                    <td>${sugg.account_name || 'Compte suggerit'}</td>
+                    <td class="text-end">
+                        <span class="badge ${badgeClass}">${confidencePercent}%</span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert alert-info alert-sm mt-3 mb-0">
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    Els comptes estan ordenats per nivell de confiança. Selecciona el més adequat segons el context.
+                </small>
+            </div>
+        `;
+
+        resultsDiv.innerHTML = html;
+    }
+
+    function addToHistory(desc, suggestions) {
+        queryHistory.unshift({
+            description: desc,
+            count: suggestions.length,
+            timestamp: new Date().toLocaleTimeString('ca-ES')
+        });
+
+        // Keep only last 5
+        if (queryHistory.length > 5) {
+            queryHistory = queryHistory.slice(0, 5);
+        }
+
+        updateHistoryDisplay();
+    }
+
+    function updateHistoryDisplay() {
+        if (queryHistory.length === 0) {
+            historyCard.style.display = 'none';
+            return;
+        }
+
+        historyCard.style.display = 'block';
+        let html = '<ul class="list-unstyled mb-0">';
+
+        queryHistory.forEach((item, index) => {
+            html += `
+                <li class="border-bottom pb-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-truncate" style="max-width: 70%;">"${item.description}"</span>
+                        <small class="text-muted">${item.timestamp}</small>
+                    </div>
+                    <small class="text-muted">
+                        <i class="fas fa-check-circle text-success"></i> ${item.count} suggeriments
+                    </small>
+                </li>
+            `;
+        });
+
+        html += '</ul>';
+        historyDiv.innerHTML = html;
+    }
+</script>
+{% endblock %}

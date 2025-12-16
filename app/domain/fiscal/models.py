@@ -50,3 +50,27 @@ class Model303Data:
         self.total_repercutit_quota = sum(d.quota for d in self.repercutit.values())
         self.total_suportat_quota = sum(d.quota for d in self.suportat.values())
         self.result_quota = self.total_repercutit_quota - self.total_suportat_quota
+
+
+@dataclass
+class Model111Data:
+    year: int
+    period: str
+    
+    # I. Rendiments del treball (Nomines)
+    work_perceptors: int = 0
+    work_base: Decimal = Decimal(0)
+    work_quota: Decimal = Decimal(0)
+    
+    # II. Activitats economiques (Professionals)
+    pro_perceptors: int = 0
+    pro_base: Decimal = Decimal(0)
+    pro_quota: Decimal = Decimal(0)
+    
+    total_quota: Decimal = Decimal(0)
+    
+    company_name: str = ""
+    nif: str = ""
+
+    def calculate_totals(self):
+        self.total_quota = self.work_quota + self.pro_quota

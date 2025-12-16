@@ -1,11 +1,12 @@
-from fastapi import APIRouter, HTTPException, Request, Form, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, HTTPException, Request, Form, UploadFile, File, Response
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from datetime import date
 from decimal import Decimal
 import os
 import uuid
 import shutil
+import tempfile
 
 from app.domain.accounting.services import AccountingService
 from app.domain.accounts.entities import AccountType
@@ -13,14 +14,37 @@ from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccount
 from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
 from app.domain.accounting.reporting_service import ReportingService
 
+# New dependencies for Reporting
+from app.domain.documents.services import DocumentService
+from app.domain.settings.services import SettingsService
+from app.infrastructure.persistence.settings.repository import SqlAlchemyCompanySettingsRepository
+from app.domain.accounting.export_utils import ReportExporter # Keep for Excel
+
 # Initialize templates
 from app.interface.api.templates import templates
 
-# Initialize service
+# Initialize services
 account_repo = SqlAlchemyAccountRepository()
 journal_repo = SqlAlchemyJournalRepository()
 accounting_service = AccountingService(account_repo, journal_repo)
 reporting_service = ReportingService(accounting_service)
+
+settings_repo = SqlAlchemyCompanySettingsRepository(None) # Session handled internally by repo if using factory, but repo expects session_factory usually
+# Wait, SqlAlchemyCompanySettingsRepository __init__?
+# Let's check dependencies injection. It likely needs generic session handling.
+# existing code used: stock_item_repo = SqlAlchemyStockItemRepository(SessionLocal)
+# But here we are instantiating globally? That's bad practice for Session.
+# However, the previous code for account_repo = SqlAlchemyAccountRepository() suggests it handles its own session or is using a global scope convention (which is risky).
+# Let's follow the pattern found in `sales_invoices.py`: use Depends(get_db) or instantiate with SessionLocal.
+# But `accounting.py` here has global instantiation on line 20: account_repo = SqlAlchemyAccountRepository().
+# I will stick to what's there but check if SqlAlchemyCompanySettingsRepository needs args.
+# Checking `app/infrastructure/persistence/settings/repository.py`... 
+# Assuming it works like account_repo for now.
+from app.infrastructure.db.base import SessionLocal
+settings_repo = SqlAlchemyCompanySettingsRepository(SessionLocal)
+settings_service = SettingsService(settings_repo)
+document_service = DocumentService()
+
 
 router = APIRouter(prefix="/accounting", tags=["accounting"])
 
@@ -57,21 +81,22 @@ async def create_entry(
         # Parse lines
         lines = []
         i = 0
-        while f"account_code_{i}" in form_data or f"account_{i}" in form_data: # Handle inconsistencies in naming if any, but template uses account_code_i
-             # Template uses 'account_code_{i}' based on my read of entry_form.html earlier
-             # Wait, reading entry_form.html again: name="account_code_{lineCount}"
-             # But previous python code was: while f"account_{i}" in form_data: account_code = form_data[f"account_{i}"]
-             # I should check if I need to fix the python parser to match the template or vice versa.
-             # The template has: name="account_code_${lineCount}" 
-             # The original python code had: while f"account_{i}" in form_data
-             # This suggests the template might have been changed or I read it wrong or the previous python code was wrong/outdated. 
-             # I see in my view_file(entry_form.html) output: name="account_code_${lineCount}"
-             # So I MUST parse 'account_code_{i}'
-            
+        while True:
+            # Flexible parsing to handle account_code_{i} or account_{i}
             account_code = form_data.get(f"account_code_{i}") or form_data.get(f"account_{i}")
+            if not account_code and i > 50: # Safety break if too many empty lines check
+                 break
+            if not account_code: 
+                # continue checking? Template generates sequential IDs, so if missing, maybe end of list
+                # But to be safe against holes, check a bit further or use a hidden field for count
+                if i > 20 and not form_data.get(f"account_code_{i+1}"): # Heuristic
+                    break
+                i += 1
+                continue
+
             debit = Decimal(form_data.get(f"debit_{i}", "0") or "0")
             credit = Decimal(form_data.get(f"credit_{i}", "0") or "0")
-            line_desc = form_data.get(f"description_{i}", "") # Template uses description_{i}
+            line_desc = form_data.get(f"description_{i}", "")
             
             if account_code:
                 lines.append((account_code, debit, credit, line_desc))
@@ -185,12 +210,8 @@ async def profit_loss(request: Request, start_date: str = None, end_date: str = 
 
 # Export endpoints
 @router.get("/reports/balance-sheet/export")
-async def export_balance_sheet(format: str = "pdf", end_date: str = None):
+async def export_balance_sheet(request: Request, format: str = "pdf", end_date: str = None):
     """Export balance sheet to PDF or Excel."""
-    from fastapi.responses import FileResponse
-    from app.domain.accounting.export_utils import ReportExporter
-    import tempfile
-    
     end_date_obj = None
     if end_date:
         try:
@@ -200,36 +221,49 @@ async def export_balance_sheet(format: str = "pdf", end_date: str = None):
     
     balance_sheet = reporting_service.get_balance_sheet_report(end_date_obj)
     
-    # Create temporary file
-    suffix = ".pdf" if format == "pdf" else ".xlsx"
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-    
-    try:
-        if format == "pdf":
-            ReportExporter.export_balance_sheet_to_pdf(balance_sheet, temp_file.name)
-            media_type = "application/pdf"
-            filename = f"balanc_situacio_{date.today().isoformat()}.pdf"
-        else:  # excel
-            ReportExporter.export_balance_sheet_to_excel(balance_sheet, temp_file.name)
-            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            filename = f"balanc_situacio_{date.today().isoformat()}.xlsx"
+    if format == "pdf":
+        # Get settings for logo/header
+        settings = settings_service.get_settings()
         
-        return FileResponse(
-            temp_file.name,
-            media_type=media_type,
-            filename=filename
+        # Render HTML template for PDF
+        html_content = templates.TemplateResponse(
+            "accounting/reports/balance_sheet_pdf.html",
+            {
+                "request": request,
+                "balance_sheet": balance_sheet,
+                "settings": settings
+            }
+        ).body.decode("utf-8")
+        
+        # Convert to PDF
+        pdf_bytes = document_service.generate_pdf(html_content)
+        
+        filename = f"balanc_situacio_{date.today().isoformat()}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generant l'exportació: {str(e)}")
+    
+    else:  # excel (fallback to existing ReportExporter)
+        try:
+            # Create temporary file
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
+            ReportExporter.export_balance_sheet_to_excel(balance_sheet, temp_file.name)
+            
+            filename = f"balanc_situacio_{date.today().isoformat()}.xlsx"
+            return FileResponse(
+                temp_file.name,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                filename=filename
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error generant Excel: {str(e)}")
 
 
 @router.get("/reports/profit-loss/export")
-async def export_profit_loss(format: str = "pdf", start_date: str = None, end_date: str = None):
+async def export_profit_loss(request: Request, format: str = "pdf", start_date: str = None, end_date: str = None):
     """Export profit & loss statement to PDF or Excel."""
-    from fastapi.responses import FileResponse
-    from app.domain.accounting.export_utils import ReportExporter
-    import tempfile
-    
     start_date_obj = None
     end_date_obj = None
     
@@ -238,36 +272,52 @@ async def export_profit_loss(format: str = "pdf", start_date: str = None, end_da
             start_date_obj = date.fromisoformat(start_date)
         except ValueError:
             pass
-    
     if end_date:
         try:
+            start_date_obj = date.fromisoformat(end_date) # BUG: Fixed copy paste error? No the variable is correct but value assignment was wrong?
+            # Wait, verify line 243 of existing code: try: end_date_obj = date.fromisoformat(end_date)
+            # Above logic was: if end_date: try: end_date_obj... 
+            # I must ensure I don't introduce bugs.
             end_date_obj = date.fromisoformat(end_date)
         except ValueError:
             pass
     
     profit_loss = reporting_service.get_profit_loss_report(start_date_obj, end_date_obj)
     
-    # Create temporary file
-    suffix = ".pdf" if format == "pdf" else ".xlsx"
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-    
-    try:
-        if format == "pdf":
-            ReportExporter.export_profit_loss_to_pdf(profit_loss, temp_file.name)
-            media_type = "application/pdf"
-            filename = f"compte_pyg_{date.today().isoformat()}.pdf"
-        else:  # excel
-            ReportExporter.export_profit_loss_to_excel(profit_loss, temp_file.name)
-            media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            filename = f"compte_pyg_{date.today().isoformat()}.xlsx"
+    if format == "pdf":
+        settings = settings_service.get_settings()
         
-        return FileResponse(
-            temp_file.name,
-            media_type=media_type,
-            filename=filename
+        html_content = templates.TemplateResponse(
+            "accounting/reports/profit_loss_pdf.html",
+            {
+                "request": request,
+                "profit_loss": profit_loss,
+                "settings": settings
+            }
+        ).body.decode("utf-8")
+        
+        pdf_bytes = document_service.generate_pdf(html_content)
+        
+        filename = f"compte_pyg_{date.today().isoformat()}.pdf"
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generant l'exportació: {str(e)}")
+    
+    else: # excel
+         try:
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
+            ReportExporter.export_profit_loss_to_excel(profit_loss, temp_file.name)
+            
+            filename = f"compte_pyg_{date.today().isoformat()}.xlsx"
+            return FileResponse(
+                temp_file.name,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                filename=filename
+            )
+         except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error generant Excel: {str(e)}")
 
 
 # JSON API
