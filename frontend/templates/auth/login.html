@@ -92,7 +92,7 @@
                                     <span class="input-group-text bg-white border-end-0 text-muted"><i
                                             class="fas fa-user"></i></span>
                                     <input type="text" class="form-control border-start-0 ps-0" id="username"
-                                        name="username" required placeholder="admin" value="admin">
+                                        name="username" required placeholder="admin" autocomplete="off">
                                 </div>
                             </div>
 
@@ -121,9 +121,15 @@
                             </div>
 
                             <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-primary shadow-sm">
-                                    <i class="fas fa-sign-in-alt me-2"></i> INICIAR SESSIÓ
+                                <button type="submit" class="btn btn-gradient btn-lg w-100" id="submitBtn">
+                                    INICIAR SESSIÓ
                                 </button>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <a href="/auth/forgot-password-page" class="text-muted text-decoration-none small">
+                                    <i class="fas fa-key me-1"></i>He oblidat la meva contrasenya
+                                </a>
                             </div>
                         </form>
                     </div>
@@ -159,6 +165,18 @@
             }
         });
 
+        // FORCE CLEAR username field on page load to prevent duplication
+        window.addEventListener('DOMContentLoaded', function () {
+            const usernameField = document.getElementById('username');
+            usernameField.value = '';  // Clear any pre-filled value
+            usernameField.setAttribute('autocomplete', 'off');
+
+            // Clear on focus to ensure no duplication
+            usernameField.addEventListener('focus', function () {
+                this.value = '';
+            });
+        });
+
         // Login Logic
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -187,7 +205,10 @@
 
                 if (response.ok) {
                     const data = await response.json();
+                    // Save token to cookie for server-side auth
                     document.cookie = `access_token=${data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+                    // Also save to localStorage for client-side JavaScript compatibility
+                    localStorage.setItem('access_token', data.access_token);
                     window.location.href = '/';
                 } else {
                     errorMessage.textContent = '⛔ Usuari o contrasenya incorrectes';

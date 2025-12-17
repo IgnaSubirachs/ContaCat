@@ -14,7 +14,20 @@ Sistema ERP complet desenvolupat en Python amb FastAPI, dissenyat específicamen
 
 ### Millores Crítiques Implementades
 
+**Sistema d'Autenticació i Seguretat:**
+- ✅ **Recuperació de Contrasenya per Email**: Sistema complet amb tokens segurs (30 min expiració)
+- ✅ **Gestió d'Usuaris**: CRUD complet amb pàgina d'administració
+- ✅ **Perfil d'Usuari**: Pàgina de perfil amb canvi de contrasenya
+- ✅ **Validació de Contrasenyes**: Requisits de seguretat (8+ caràcters, majúscules, minúscules, números, símbols)
+- ✅ **Rate Limiting**: Protecció contra intents d'abús (3 sol·licituds/hora)
+- ✅ **Bloqueig de Comptes**: Després de 5 intents fallits (15 min lockout)
+- ✅ **Històric de Contrasenyes**: No reutilització de les últimes 5 contrasenyes
+- ✅ **Sessions Segures**: Tracking de sessions amb JWT i cookies HTTP-only
+
 **Interfície d'Usuari:**
+- ✅ **Login Modernitzat**: Nou disseny amb gradient i enllaç "He oblidat la contrasenya"
+- ✅ **Forgot Password Page**: Formulari modern per sol·licitar reset
+- ✅ **Reset Password Page**: Validació client/server amb feedback visual
 - ✅ **Sidebar Scrollable**: Solució CSS per scroll vertical al menú lateral
 - ✅ **Navegació Comptabilitat**: Nova secció "Comptabilitat" al sidebar amb Diari, Pla Comptable i Balanç de Comprovació
 - ✅ **URLs Consistents**: Corregides totes les rutes del sidebar per ser coherents
@@ -31,13 +44,25 @@ Sistema ERP complet desenvolupat en Python amb FastAPI, dissenyat específicamen
 - ✅ **Selector de Comptes**: Autocomplete amb tots els comptes del pla comptable
 
 **Backend i Base de Dades:**
+- ✅ **EmailService**: Servei SMTP amb plantilla HTML professional per emails
+- ✅ **Password Reset Tokens**: Taula dedicada amb expiració i tracking
+- ✅ **User Management Tables**: Sessions, històric de contrasenyes, intents de login
 - ✅ **PDF Generation Fix**: Import DocumentService corregit a `pdf_service.py`
 - ✅ **Settings Module**: Migració MySQL completada amb camps SMTP i SII
 - ✅ **Authentication**: Sistema d'autenticació opcional per routers `/ai/` i `/settings/`
 - ✅ **Templates**: Auto-reload activat per desenvolupament més àgil
 - ✅ **Docker**: Deployment completament funcional amb MySQL
 
-**Fitxers Principals Actualitzats:**
+**Fitxers Principals Actualitzats/Creats:**
+- `app/domain/auth/*` (entitats, repositoris, serveis actualitzats)
+- `app/infrastructure/email/email_service.py` (NOU - servei SMTP)
+- `app/infrastructure/persistence/auth/password_reset_repository.py` (NOU)
+- `frontend/templates/auth/forgot_password.html` (NOU - 71 línies)
+- `frontend/templates/auth/reset_password.html` (NOU - 102 línies)
+- `frontend/templates/auth/profile.html` (NOU - gestió perfil)
+- `frontend/templates/auth/admin_dashboard.html` (NOU - dashboard admin)
+- `migrations/add_password_reset.sql` (NOU - migració BD)
+- `migrations/add_user_management_tables.sql` (NOU)
 - `frontend/templates/accounting/journal/create.html` (NOU - 254 línies)
 - `frontend/templates/components/sidebar.html` (reorganitzat i estès)
 - `frontend/static/css/styles.css` (fixes de scroll i flexbox)

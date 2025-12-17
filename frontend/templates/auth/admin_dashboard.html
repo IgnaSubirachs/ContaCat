@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-shield-alt me-2"></i>Dashboard de Seguretat</h1>
+        <p class="text-muted">Monitor d'activitat i alertes de seguretat del sistema</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <button class="btn btn-outline-primary" onclick="refreshData()">
+            <i class="fas fa-sync-alt me-1"></i> Actualitzar
+        </button>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Usuaris</h6>
+                        <h2 class="mb-0" id="totalUsers">-</h2>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-users fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Usuaris Actius</h6>
+                        <h2 class="mb-0" id="activeUsers">-</h2>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-user-check fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Comptes Bloquejats</h6>
+                        <h2 class="mb-0" id="lockedUsers">-</h2>
+                    </div>
+                    <div class="bg-danger bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-lock fa-2x text-danger"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Contrasenyes Caducant</h6>
+                        <h2 class="mb-0" id="passwordExpiring">-</h2>
+                    </div>
+                    <div class="bg-warning bg-opacity-10 p-3 rounded">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Activity Chart -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Activitat Recent (24h)</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="p-3">
+                            <i class="fas fa-sign-in-alt fa-3x text-success mb-2"></i>
+                            <h3 id="recentLogins">-</h3>
+                            <p class="text-muted mb-0">Logins Correctes</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3">
+                            <i class="fas fa-times-circle fa-3x text-danger mb-2"></i>
+                            <h3 id="failedLogins">-</h3>
+                            <p class="text-muted mb-0">Intents Fallits</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Alerts -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Alertes de Seguretat</h5>
+                <span class="badge bg-danger" id="alertCount">0</span>
+            </div>
+            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                <div id="alertsList">
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-2">Carregant alertes...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Accions Ràpides</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-primary" onclick="window.location.href='/auth/users-page'">
+                        <i class="fas fa-users me-1"></i> Gestió d'Usuaris
+                    </button>
+                    <button class="btn btn-outline-success" onclick="unlockAllUsers()">
+                        <i class="fas fa-unlock me-1"></i> Desbloquejar Tots els Usuaris
+                    </button>
+                    <button class="btn btn-outline-info" onclick="exportSecurityReport()">
+                        <i class="fas fa-file-export me-1"></i> Exportar Informe
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const API_BASE = '/auth';
+
+    document.addEventListener('DOMContentLoaded', function () {
+        loadDashboard();
+    });
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('access_token');
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+    }
+
+    async function loadDashboard() {
+        await Promise.all([
+            loadStats(),
+            loadAlerts()
+        ]);
+    }
+
+    async function loadStats() {
+        try {
+            const response = await fetch(`${API_BASE}/admin/activity`, {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const stats = await response.json();
+                renderStats(stats);
+            } else if (response.status === 401) {
+                window.location.href = '/auth/login-page';
+            }
+        } catch (error) {
+            console.error('Error loading stats:', error);
+        }
+    }
+
+    function renderStats(stats) {
+        document.getElementById('totalUsers').textContent = stats.total_users;
+        document.getElementById('activeUsers').textContent = stats.active_users;
+        document.getElementById('lockedUsers').textContent = stats.locked_users;
+        document.getElementById('passwordExpiring').textContent = stats.password_expiring_soon;
+        document.getElementById('recentLogins').textContent = stats.recent_logins_24h;
+        document.getElementById('failedLogins').textContent = stats.failed_logins_24h;
+    }
+
+    async function loadAlerts() {
+        try {
+            const response = await fetch(`${API_BASE}/admin/security-alerts`, {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const alerts = await response.json();
+                renderAlerts(alerts);
+            }
+        } catch (error) {
+            console.error('Error loading alerts:', error);
+            document.getElementById('alertsList').innerHTML =
+                '<p class="text-danger">Error al carregar alertes</p>';
+        }
+    }
+
+    function renderAlerts(alerts) {
+        const container = document.getElementById('alertsList');
+        document.getElementById('alertCount').textContent = alerts.length;
+
+        if (alerts.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-success py-3">
+                    <i class="fas fa-check-circle fa-3x mb-2"></i>
+                    <p class="mb-0">No hi ha alertes de seguretat</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = alerts.map(alert => {
+            const bgClass = alert.severity === 'high' ? 'bg-danger' :
+                alert.severity === 'medium' ? 'bg-warning' : 'bg-info';
+            const icon = alert.alert_type === 'locked_account' ? 'fa-lock' :
+                alert.alert_type === 'password_expiry' ? 'fa-key' :
+                    'fa-exclamation-circle';
+
+            return `
+                <div class="alert ${bgClass} bg-opacity-10 border-${alert.severity === 'high' ? 'danger' : alert.severity === 'medium' ? 'warning' : 'info'} d-flex align-items-start mb-2">
+                    <i class="fas ${icon} me-2 mt-1"></i>
+                    <div class="flex-grow-1">
+                        <strong>${alert.username}</strong>: ${alert.message}
+                        <br>
+                        <small class="text-muted">${formatDateTime(alert.timestamp)}</small>
+                    </div>
+                    ${alert.alert_type === 'locked_account' && alert.user_id ? `
+                        <button class="btn btn-sm btn-outline-success ms-2" onclick="unlockUser(${alert.user_id}, '${alert.username}')">
+                            <i class="fas fa-unlock"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function formatDateTime(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleString('ca-ES');
+    }
+
+    async function unlockUser(userId, username) {
+        if (!confirm(`Segur que vols desbloquejar l'usuari ${username}?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/admin/unlock-user/${userId}`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                alert(`Usuari ${username} desbloquejat correctament`);
+                refreshData();
+            } else {
+                alert('Error al desbloquejar usuari');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error de connexió');
+        }
+    }
+
+    async function unlockAllUsers() {
+        if (!confirm('Segur que vols desbloquejar TOTS els usuaris bloquejats?')) {
+            return;
+        }
+
+        // This would need a backend endpoint to unlock all, for now we'll just reload
+        alert('Funcionalitat en desenvolupament');
+    }
+
+    function exportSecurityReport() {
+        alert('Funcionalitat d\'exportació en desenvolupament');
+    }
+
+    function refreshData() {
+        loadDashboard();
+    }
+</script>
+{% endblock %}

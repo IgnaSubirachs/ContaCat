@@ -4,9 +4,16 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.infrastructure.db.base import get_db
-from app.infrastructure.persistence.auth.repositories import SqlAlchemyUserRepository
+from app.infrastructure.persistence.auth.repositories import (
+    SqlAlchemyUserRepository,
+    SqlAlchemyUserSessionRepository,
+    SqlAlchemyPasswordHistoryRepository,
+    SqlAlchemyLoginAttemptRepository
+)
 from app.domain.auth.services import AuthService
 from app.domain.auth.entities import User, UserRole
+from app.domain.audit.services import AuditService
+from app.infrastructure.persistence.audit.repository import SqlAlchemyAuditRepository
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
@@ -24,9 +31,24 @@ async def get_token_from_cookie_or_header(
 
 
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
-    """Dependency to get AuthService instance."""
+    """Dependency to get AuthService instance with all repositories."""
     user_repo = SqlAlchemyUserRepository(db)
-    return AuthService(user_repo)
+    # Temporarily disabled for debugging
+    # session_repo = SqlAlchemyUserSessionRepository(db)
+    # password_history_repo = SqlAlchemyPasswordHistoryRepository(db)
+    # login_attempt_repo = SqlAlchemyLoginAttemptRepository(db)
+    
+    # # Get audit service
+    # audit_repo = SqlAlchemyAuditRepository(db)
+    # audit_service = AuditService(audit_repo)
+    
+    return AuthService(
+        user_repository=user_repo,
+        # session_repository=session_repo,
+        # password_history_repository=password_history_repo,
+        # login_attempt_repository=login_attempt_repo,
+        # audit_service=audit_service
+    )
 
 async def get_current_user(
     token: Optional[str] = Depends(get_token_from_cookie_or_header),

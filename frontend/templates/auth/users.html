@@ -90,7 +90,7 @@
 
     function getAuthHeaders() {
         // Cookie based auth is now used for web, but API might check headers. 
-        // If we use session cookies, we might not need Bearer token manually here 
+        //  If we use session cookies, we might not need Bearer token manually here 
         // if the backend checks cookies too. 
         // Assuming we still use the token from localStorage if valid, or cookie.
         // For this refactor, let's keep it simple. If we rely on cookies, headers shouldn't be needed 
@@ -98,10 +98,15 @@
         // Let's assume text/html requests use cookies, but fetch might need headers?
         // Actually the previous code used localStorage.
         const token = localStorage.getItem('access_token');
-        return {
-            'Authorization': `Bearer ${token}`,
+        const headers = {
             'Content-Type': 'application/json'
         };
+        // Only add Authorization header if token exists
+        // If no token, the cookie will be used automatically
+        if (token && token !== 'null') {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        return headers;
     }
 
     async function loadUsers() {

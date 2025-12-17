@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="fas fa-user-circle me-2"></i>El Meu Perfil</h1>
+        <p class="text-muted">Gestiona la teva informació i configuració de seguretat</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Info Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="avatar-circle bg-primary text-white mx-auto mb-3"
+                    style="width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h4 id="profileUsername">...</h4>
+                <p class="text-muted" id="profileRole">...</p>
+                <small class="text-muted">Membre desde <span id="profileCreated">...</span></small>
+            </div>
+        </div>
+
+        <!-- Password Expiry Warning -->
+        <div class="card shadow-sm mt-3" id="passwordWarning" style="display: none;">
+            <div class="card-body">
+                <div class="alert alert-warning mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Contrasenya caduca aviat!</strong>
+                    <p class="mb-0 mt-2">La teva contrasenya caduca en <span id="daysLeft"></span> dies.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-8">
+        <!-- Password Change Card -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-key me-2"></i>Canviar Contrasenya</h5>
+            </div>
+            <div class="card-body">
+                <form id="passwordForm">
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label">Contrasenya Actual</label>
+                        <input type="password" class="form-control" id="currentPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Nova Contrasenya</label>
+                        <input type="password" class="form-control" id="newPassword" required>
+                        <div class="form-text">
+                            Mínim 8 caràcters, amb majúscules, minúscules, números i caràcters especials
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirmar Nova Contrasenya</label>
+                        <input type="password" class="form-control" id="confirmPassword" required>
+                    </div>
+                    <div id="passwordError" class="alert alert-danger" style="display: none;"></div>
+                    <div id="passwordSuccess" class="alert alert-success" style="display: none;"></div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Canviar Contrasenya
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Active Sessions Card -->
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-desktop me-2"></i>Sessions Actives</h5>
+                <span class="badge bg-primary" id="sessionCount">0</span>
+            </div>
+            <div class="card-body">
+                <div id="sessionsList">
+                    <div class="text-center text-muted py-3">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-2">Carregant sessions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const API_BASE = '/auth';
+    let currentProfile = null;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        loadProfile();
+        loadSessions();
+
+        document.getElementById('passwordForm').addEventListener('submit', changePassword);
+    });
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('access_token');
+        return {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        };
+    }
+
+    async function loadProfile() {
+        try {
+            const response = await fetch(`${API_BASE}/me/profile`, {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                currentProfile = await response.json();
+                renderProfile(currentProfile);
+            } else if (response.status === 401) {
+                window.location.href = '/auth/login-page';
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+        }
+    }
+
+    function renderProfile(profile) {
+        document.getElementById('profileUsername').textContent = profile.username;
+        document.getElementById('profileRole').textContent = getRoleLabel(profile.role);
+
+        if (profile.created_at) {
+            const date = new Date(profile.created_at);
+            document.getElementById('profileCreated').textContent = date.toLocaleDateString('ca-ES');
+        }
+
+        // Show password expiry warning if needed
+        if (profile.password_expires_in_days !== null && profile.password_expires_in_days <= 7) {
+            document.getElementById('daysLeft').textContent = profile.password_expires_in_days;
+            document.getElementById('passwordWarning').style.display = 'block';
+        }
+    }
+
+    async function loadSessions() {
+        try {
+            const response = await fetch(`${API_BASE}/me/sessions`, {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const sessions = await response.json();
+                renderSessions(sessions);
+            }
+        } catch (error) {
+            console.error('Error loading sessions:', error);
+            document.getElementById('sessionsList').innerHTML =
+                '<p class="text-danger">Error al carregar sessions</p>';
+        }
+    }
+
+    function renderSessions(sessions) {
+        const container = document.getElementById('sessionsList');
+        document.getElementById('sessionCount').textContent = sessions.length;
+
+        if (sessions.length === 0) {
+            container.innerHTML = '<p class="text-muted">No hi ha sessions actives</p>';
+            return;
+        }
+
+        container.innerHTML = sessions.map(session => `
+            <div class="d-flex justify-content-between align-items-start p-3 border-bottom ${session.is_current ? 'bg-light' : ''}">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center mb-1">
+                        <i class="fas ${getDeviceIcon(session.device_info)} me-2"></i>
+                        <strong>${session.device_info || 'Unknown Device'}</strong>
+                        ${session.is_current ? '<span class="badge bg-success ms-2">Actual</span>' : ''}
+                    </div>
+                    <small class="text-muted d-block">IP: ${session.ip_address}</small>
+                    <small class="text-muted d-block">Última activitat: ${formatDateTime(session.last_activity)}</small>
+                    <small class="text-muted d-block">Creada: ${formatDateTime(session.created_at)}</small>
+                </div>
+                ${!session.is_current ? `
+                    <button class="btn btn-sm btn-outline-danger" onclick="revokeSession('${session.id}')">
+                        <i class="fas fa-times"></i> Revocar
+                    </button>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+    function getDeviceIcon(deviceInfo) {
+        if (!deviceInfo) return 'fa-desktop';
+        const device = deviceInfo.toLowerCase();
+        if (device.includes('iphone') || device.includes('android')) return 'fa-mobile-alt';
+        if (device.includes('tablet') || device.includes('ipad')) return 'fa-tablet-alt';
+        if (device.includes('mac')) return 'fa-laptop';
+        return 'fa-desktop';
+    }
+
+    function formatDateTime(dateStr) {
+        const date = new Date(dateStr);
+        return date.toLocaleString('ca-ES');
+    }
+
+    function getRoleLabel(role) {
+        const labels = {
+            'ADMIN': 'Administrador',
+            'MANAGER': 'Gestor',
+            'USER': 'Usuari',
+            'READ_ONLY': 'Només  Lectura'
+        };
+        return labels[role] || role;
+    }
+
+    async function revokeSession(sessionId) {
+        if (!confirm('Segur que vols revocar aquesta sessió?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/sessions/${sessionId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                loadSessions();
+                showSuccess('Sessió revocada correctament');
+            } else {
+                showError('Error al revocar la sessió');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('Error de connexió');
+        }
+    }
+
+    async function changePassword(e) {
+        e.preventDefault();
+
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        hideMessages();
+
+        if (newPassword !== confirmPassword) {
+            showError('Les contrasenyes no coincideixen');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/me/change-password`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword
+                })
+            });
+
+            if (response.ok) {
+                document.getElementById('passwordForm').reset();
+                showSuccess('Contrasenya canviada correctament!');
+                loadProfile(); // Reload to update expiry info
+            } else {
+                const error = await response.json();
+                showError(error.detail || 'Error al canviar la contrasenya');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showError('Error de connexió');
+        }
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('passwordError');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+
+    function showSuccess(message) {
+        const successDiv = document.getElementById('passwordSuccess');
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+    }
+
+    function hideMessages() {
+        document.getElementById('passwordError').style.display = 'none';
+        document.getElementById('passwordSuccess').style.display = 'none';
+    }
+</script>
+{% endblock %}
