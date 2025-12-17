@@ -64,9 +64,20 @@ async def create_entry_form(request: Request):
     try:
         accounts = accounting_service.list_accounts()
         
+        # Convert accounts to dicts for template serialization
+        accounts_data = [
+            {
+                "code": acc.code,
+                "name": acc.name,
+                "type": acc.account_type.value if hasattr(acc.account_type, 'value') else str(acc.account_type),
+                "group": acc.group
+            }
+            for acc in accounts
+        ]
+        
         return templates.TemplateResponse(
             "accounting/journal/create.html",
-            {"request": request, "accounts": accounts}
+            {"request": request, "accounts": accounts_data}
         )
     except Exception as e:
         # Log the error and return error page
