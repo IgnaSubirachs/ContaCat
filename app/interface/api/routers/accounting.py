@@ -48,6 +48,31 @@ document_service = DocumentService()
 
 router = APIRouter(prefix="/accounting", tags=["accounting"])
 
+@router.get("/journal", response_class=HTMLResponse)
+async def journal_list(request: Request):
+    """Show journal entries list (Llibre Diari)."""
+    entries = accounting_service.list_journal_entries()
+    
+    return templates.TemplateResponse(
+        "accounting/journal.html",
+        {"request": request, "entries": entries}
+    )
+
+@router.get("/journal/create", response_class=HTMLResponse)
+async def create_entry_form(request: Request):
+    """Show form to create new journal entry."""
+    try:
+        accounts = accounting_service.list_accounts()
+        
+        return templates.TemplateResponse(
+            "accounting/journal/create.html",
+            {"request": request, "accounts": accounts}
+        )
+    except Exception as e:
+        # Log the error and return error page
+        print(f"Error loading journal create form: {e}")
+        raise HTTPException(status_code=500, detail=f"Error loading accounts: {str(e)}")
+
 @router.post("/journal/create")
 async def create_entry(
     request: Request,

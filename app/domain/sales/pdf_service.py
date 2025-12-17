@@ -1,6 +1,7 @@
 from fastapi.templating import Jinja2Templates
 from app.domain.sales.entities import SalesInvoice
 from app.domain.settings.entities import CompanySettings
+from app.domain.documents.services import DocumentService
 
 class PdfService:
     def __init__(self, templates: Jinja2Templates):

@@ -12,27 +12,42 @@ Sistema ERP complet desenvolupat en Python amb FastAPI, dissenyat específicamen
 
 ## ✨ Actualitzacions Recents (Desembre 2024)
 
-### Millores Implementades
+### Millores Crítiques Implementades
 
 **Interfície d'Usuari:**
+- ✅ **Sidebar Scrollable**: Solució CSS per scroll vertical al menú lateral
+- ✅ **Navegació Comptabilitat**: Nova secció "Comptabilitat" al sidebar amb Diari, Pla Comptable i Balanç de Comprovació
+- ✅ **URLs Consistents**: Corregides totes les rutes del sidebar per ser coherents
 - ✅ **AI Chat Interface**: Nova interfície web completa per prediccions de comptes comptables amb IA
 - ✅ **Cat Assistant**: Navegació millorada amb enllaços correctes a la pàgina d'IA
 - ✅ **Topbar Navigation**: Corregits enllaços de configuració i perfil
 - ✅ **Dashboard**: Gràfics Chart.js funcionant correctament, símbol € arreglat
 
+**Mòdul de Comptabilitat:**
+- ✅ **Llibre Diari**: Ruta GET `/accounting/journal` per llistar assentaments
+- ✅ **Creació d'Assentaments**: Ruta GET `/accounting/journal/create` amb formulari complet
+- ✅ **Template Dinàmic**: Formulari interactiu amb validació Deure=Haver en temps real
+- ✅ **Gestió d'Errors**: Error handling millorat amb missatges descriptius
+- ✅ **Selector de Comptes**: Autocomplete amb tots els comptes del pla comptable
+
 **Backend i Base de Dades:**
+- ✅ **PDF Generation Fix**: Import DocumentService corregit a `pdf_service.py`
 - ✅ **Settings Module**: Migració MySQL completada amb camps SMTP i SII
 - ✅ **Authentication**: Sistema d'autenticació opcional per routers `/ai/` i `/settings/`
 - ✅ **Templates**: Auto-reload activat per desenvolupament més àgil
 - ✅ **Docker**: Deployment completament funcional amb MySQL
 
-**Files Principals Actualitzats:**
+**Fitxers Principals Actualitzats:**
+- `frontend/templates/accounting/journal/create.html` (NOU - 254 línies)
+- `frontend/templates/components/sidebar.html` (reorganitzat i estès)
+- `frontend/static/css/styles.css` (fixes de scroll i flexbox)
+- `app/interface/api/routers/accounting.py` (noves rutes i error handling)
+- `app/domain/sales/pdf_service.py` (import fix)
 - `frontend/templates/ai/chat.html` (NOU - 239 línies)
 - `frontend/templates/components/topbar.html`
 - `frontend/templates/components/cat_assistant.html`
 - `app/interface/api/routers/ai.py`
 - `app/interface/api/routers/settings.py`
-- `app/interface/api/templates.py`
 - `migrations/add_smtp_sii_to_company_settings.sql` (NOU)
 
 ## 🚀 Novetats "CEO Plan" (Desembre 2025)

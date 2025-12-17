@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-plus-circle me-2"></i>Nou Assentament Comptable</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/accounting/journal" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Tornar al Diari
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Detalls de l'Assentament</h5>
+            </div>
+            <div class="card-body">
+                <form action="/accounting/journal/create" method="POST" enctype="multipart/form-data" id="journalForm">
+                    <!-- Basic Info -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="entry_date" class="form-label">Data<span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="entry_date" name="entry_date" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="description" class="form-label">Descripció<span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="description" name="description" required
+                                placeholder="Ex: Factura de venda client X">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="attachment" class="form-label">Adjunt (opcional)</label>
+                            <input type="file" class="form-control" id="attachment" name="attachment"
+                                accept=".pdf,.jpg,.jpeg,.png">
+                            <small class="text-muted">Formats: PDF, JPG, PNG (màx 10MB)</small>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Journal Lines -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Apunts Comptables</h5>
+                        <button type="button" class="btn btn-sm btn-success" onclick="addLine()">
+                            <i class="fas fa-plus me-1"></i>Afegir Apunt
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="linesTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 15%;">Compte<span class="text-danger">*</span></th>
+                                    <th style="width: 45%;">Descripció</th>
+                                    <th style="width: 15%;">Deure €</th>
+                                    <th style="width: 15%;">Haver €</th>
+                                    <th style="width: 10%;">Accions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="linesBody">
+                                <!-- Lines will be added here by JavaScript -->
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr class="fw-bold">
+                                    <td colspan="2" class="text-end">Totals:</td>
+                                    <td class="text-end"><span id="totalDebit">0.00</span> €</td>
+                                    <td class="text-end"><span id="totalCredit">0.00</span> €</td>
+                                    <td></td>
+                                </tr>
+                                <tr id="balanceWarning" class="d-none">
+                                    <td colspan="5" class="text-center text-danger">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>Avís:</strong> El Deure i l'Haver han de ser iguals!
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="/accounting/journal" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>Cancel·lar
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save me-1"></i>Crear Assentament
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Helper Card -->
+    <div class="col-lg-2">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Ajuda</h6>
+            </div>
+            <div class="card-body">
+                <p class="small"><strong>Recordatori:</strong></p>
+                <ul class="small mb-0 ps-3">
+                    <li>Deure = Haver</li>
+                    <li>Mínim 2 apunts</li>
+                    <li>El compte és obligatori</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let lineCount = 0;
+    const accounts = {{ accounts| tojson }};
+
+    // Add first two lines on load
+    window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('entry_date').valueAsDate = new Date();
+        addLine();
+        addLine();
+    });
+
+    function addLine() {
+        const tbody = document.getElementById('linesBody');
+        const row = document.createElement('tr');
+        row.id = `line_${lineCount}`;
+
+        row.innerHTML = `
+        <td>
+            <select class="form-select form-select-sm" name="account_code_${lineCount}" id="account_${lineCount}" required onchange="updateTotals()">
+                <option value="">Selecciona...</option>
+                ${accounts.map(acc => `<option value="${acc.code}">${acc.code} - ${acc.name}</option>`).join('')}
+            </select>
+        </td>
+        <td>
+            <input type="text" class="form-control form-control-sm" name="description_${lineCount}" 
+                   placeholder="Descripció de l'apunt">
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm text-end" name="debit_${lineCount}" 
+                   id="debit_${lineCount}" value="0" step="0.01" min="0" onchange="updateTotals(); checkDebitCredit(${lineCount})">
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm text-end" name="credit_${lineCount}" 
+                   id="credit_${lineCount}" value="0" step="0.01" min="0" onchange="updateTotals(); checkDebitCredit(${lineCount})">
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeLine(${lineCount})" title="Eliminar">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+
+        tbody.appendChild(row);
+        lineCount++;
+    }
+
+    function removeLine(id) {
+        const row = document.getElementById(`line_${id}`);
+        if (row) {
+            row.remove();
+            updateTotals();
+        }
+    }
+
+    function checkDebitCredit(lineId) {
+        const debit = parseFloat(document.getElementById(`debit_${lineId}`).value) || 0;
+        const credit = parseFloat(document.getElementById(`credit_${lineId}`).value) || 0;
+
+        // Clear the other field if one is filled
+        if (debit > 0 && credit > 0) {
+            document.getElementById(`credit_${lineId}`).value = 0;
+        }
+    }
+
+    function updateTotals() {
+        let totalDebit = 0;
+        let totalCredit = 0;
+
+        for (let i = 0; i < lineCount; i++) {
+            const debitInput = document.getElementById(`debit_${i}`);
+            const creditInput = document.getElementById(`credit_${i}`);
+
+            if (debitInput) {
+                totalDebit += parseFloat(debitInput.value) || 0;
+            }
+            if (creditInput) {
+                totalCredit += parseFloat(creditInput.value) || 0;
+            }
+        }
+
+        document.getElementById('totalDebit').textContent = totalDebit.toFixed(2);
+        document.getElementById('totalCredit').textContent = totalCredit.toFixed(2);
+
+        // Show warning if not balanced
+        const warning = document.getElementById('balanceWarning');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (Math.abs(totalDebit - totalCredit) > 0.01) {
+            warning.classList.remove('d-none');
+            submitBtn.disabled = true;
+        } else {
+            warning.classList.add('d-none');
+            submitBtn.disabled = false;
+        }
+    }
+
+    // Form validation
+    document.getElementById('journalForm').addEventListener('submit', (e) => {
+        const totalDebit = parseFloat(document.getElementById('totalDebit').textContent);
+        const totalCredit = parseFloat(document.getElementById('totalCredit').textContent);
+
+        if (Math.abs(totalDebit - totalCredit) > 0.01) {
+            e.preventDefault();
+            alert('Error: El Deure i l\'Haver han de ser iguals!');
+            return false;
+        }
+
+        // Count filled rows
+        let filledRows = 0;
+        for (let i = 0; i < lineCount; i++) {
+            const accountInput = document.getElementById(`account_${i}`);
+            if (accountInput && accountInput.value) {
+                filledRows++;
+            }
+        }
+
+        if (filledRows < 2) {
+            e.preventDefault();
+            alert('Error: Cal afegir almenys 2 apunts comptables!');
+            return false;
+        }
+    });
+</script>
+
+<style>
+    .table-responsive {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    #linesTable thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f8f9fa;
+        z-index: 10;
+    }
+</style>
+{% endblock %}
