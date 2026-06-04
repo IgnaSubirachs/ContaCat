@@ -12,13 +12,13 @@ public interface DocumentSequenceRepository extends JpaRepository<DocumentSequen
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
-        select sequence
-        from DocumentSequence sequence
-        where sequence.company.id = :companyId
-          and sequence.documentType = :documentType
-          and sequence.series = :series
-          and sequence.fiscalYear = :fiscalYear
-          and sequence.active = true
+        select seq
+        from DocumentSequence seq
+        where seq.company.id = :companyId
+          and seq.documentType = :documentType
+          and seq.series = :series
+          and seq.fiscalYear = :fiscalYear
+          and seq.active = true
         """)
     Optional<DocumentSequence> lockActiveSequence(
         @Param("companyId") String companyId,
