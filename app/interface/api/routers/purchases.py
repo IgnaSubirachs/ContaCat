@@ -7,11 +7,16 @@ from decimal import Decimal
 
 from app.interface.api.templates import templates
 from app.infrastructure.db.base import SessionLocal
+from app.domain.auth.dependencies import get_current_active_user
 
 from app.domain.purchases.entities import PurchaseOrderLine, PurchaseInvoiceLine
 from app.domain.purchases.services import PurchaseOrderService, PurchaseInvoiceService
 
-router = APIRouter(prefix="/purchases", tags=["purchases"])
+router = APIRouter(
+    prefix="/purchases",
+    tags=["purchases"],
+    dependencies=[Depends(get_current_active_user)]
+)
 
 
 def get_purchase_services():

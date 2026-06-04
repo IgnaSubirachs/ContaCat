@@ -33,21 +33,19 @@ async def get_token_from_cookie_or_header(
 def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
     """Dependency to get AuthService instance with all repositories."""
     user_repo = SqlAlchemyUserRepository(db)
-    # Temporarily disabled for debugging
-    # session_repo = SqlAlchemyUserSessionRepository(db)
-    # password_history_repo = SqlAlchemyPasswordHistoryRepository(db)
-    # login_attempt_repo = SqlAlchemyLoginAttemptRepository(db)
+    session_repo = SqlAlchemyUserSessionRepository(db)
+    password_history_repo = SqlAlchemyPasswordHistoryRepository(db)
+    login_attempt_repo = SqlAlchemyLoginAttemptRepository(db)
     
-    # # Get audit service
-    # audit_repo = SqlAlchemyAuditRepository(db)
-    # audit_service = AuditService(audit_repo)
+    audit_repo = SqlAlchemyAuditRepository(db)
+    audit_service = AuditService(audit_repo)
     
     return AuthService(
         user_repository=user_repo,
-        # session_repository=session_repo,
-        # password_history_repository=password_history_repo,
-        # login_attempt_repository=login_attempt_repo,
-        # audit_service=audit_service
+        session_repository=session_repo,
+        password_history_repository=password_history_repo,
+        login_attempt_repository=login_attempt_repo,
+        audit_service=audit_service
     )
 
 async def get_current_user(

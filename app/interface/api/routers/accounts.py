@@ -6,6 +6,7 @@ from typing import Optional
 
 from app.domain.accounts.services import AccountService
 from app.domain.accounts.entities import AccountType
+from app.domain.auth.dependencies import get_current_active_user
 from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository
 
 # Initialize templates
@@ -16,7 +17,11 @@ def get_account_service():
     repo = SqlAlchemyAccountRepository()
     return AccountService(repo)
 
-router = APIRouter(prefix="/accounts", tags=["accounts"])
+router = APIRouter(
+    prefix="/accounts",
+    tags=["accounts"],
+    dependencies=[Depends(get_current_active_user)]
+)
 
 
 @router.get("/", response_class=HTMLResponse)

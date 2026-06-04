@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException, Request, Form
+from fastapi import APIRouter, Depends, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import os
 
 from app.domain.partners.services import PartnerService
+from app.domain.auth.dependencies import get_current_active_user
 from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
 
 # Initialize templates
@@ -13,7 +14,11 @@ from app.interface.api.templates import templates
 partner_repo = SqlAlchemyPartnerRepository()
 partner_service = PartnerService(partner_repo)
 
-router = APIRouter(prefix="/partners", tags=["partners"])
+router = APIRouter(
+    prefix="/partners",
+    tags=["partners"],
+    dependencies=[Depends(get_current_active_user)]
+)
 
 
 @router.get("/", response_class=HTMLResponse)

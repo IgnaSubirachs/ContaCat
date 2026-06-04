@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Form, UploadFile, File, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Form, UploadFile, File, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from datetime import date
@@ -13,6 +13,7 @@ from app.domain.accounts.entities import AccountType
 from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository
 from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
 from app.domain.accounting.reporting_service import ReportingService
+from app.domain.auth.dependencies import get_current_active_user
 
 # New dependencies for Reporting
 from app.domain.documents.services import DocumentService
@@ -46,7 +47,11 @@ settings_service = SettingsService(settings_repo)
 document_service = DocumentService()
 
 
-router = APIRouter(prefix="/accounting", tags=["accounting"])
+router = APIRouter(
+    prefix="/accounting",
+    tags=["accounting"],
+    dependencies=[Depends(get_current_active_user)]
+)
 
 @router.get("/journal", response_class=HTMLResponse)
 async def journal_list(request: Request):

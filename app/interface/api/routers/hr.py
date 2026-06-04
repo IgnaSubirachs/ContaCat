@@ -6,10 +6,15 @@ from datetime import date
 from decimal import Decimal
 
 from app.infrastructure.db.base import SessionLocal
+from app.domain.auth.dependencies import get_current_active_user
 from app.domain.hr.services import EmployeeService, PayrollService
 from app.infrastructure.persistence.hr.repository import SqlAlchemyEmployeeRepository, SqlAlchemyPayrollRepository
 
-router = APIRouter(prefix="/hr", tags=["hr"])
+router = APIRouter(
+    prefix="/hr",
+    tags=["hr"],
+    dependencies=[Depends(get_current_active_user)]
+)
 from app.interface.api.templates import templates
 
 def get_hr_services():

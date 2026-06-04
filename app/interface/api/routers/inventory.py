@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form, HTTPException
+from fastapi import APIRouter, Depends, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from datetime import date
@@ -6,6 +6,7 @@ import os
 
 from app.domain.inventory.services import InventoryService
 from app.domain.inventory.entities import StockItem, StockMovement
+from app.domain.auth.dependencies import get_current_active_user
 from app.infrastructure.persistence.inventory.repositories import (
     SqlAlchemyStockItemRepository,
     SqlAlchemyStockMovementRepository
@@ -19,7 +20,11 @@ item_repo = SqlAlchemyStockItemRepository()
 movement_repo = SqlAlchemyStockMovementRepository()
 inventory_service = InventoryService(item_repo, movement_repo)
 
-router = APIRouter(prefix="/inventory", tags=["inventory"])
+router = APIRouter(
+    prefix="/inventory",
+    tags=["inventory"],
+    dependencies=[Depends(get_current_active_user)]
+)
 
 
 @router.get("/", response_class=HTMLResponse)

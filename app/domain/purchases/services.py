@@ -239,31 +239,22 @@ class PurchaseInvoiceService:
         payable_account = self._mapping.get_accounts_payable_account()  # 400
         
         entry_lines = [
-            {
-                "account_code": expense_account.code,
-                "debit": float(invoice.subtotal),
-                "credit": 0.0,
-                "description": description
-            },
-            {
-                "account_code": vat_account.code,
-                "debit": float(invoice.tax_amount),
-                "credit": 0.0,
-                "description": f"IVA Suportat ({int(invoice.lines[0].tax_rate if invoice.lines else 21)}%)"
-            },
-            {
-                "account_code": payable_account.code,
-                "debit": 0.0,
-                "credit": float(invoice.total_amount),
-                "description": f"Proveïdor: {partner.name}"
-            }
+            (expense_account, invoice.subtotal, Decimal("0"), description),
+            (
+                vat_account,
+                invoice.tax_amount,
+                Decimal("0"),
+                f"IVA Suportat ({int(invoice.lines[0].tax_rate if invoice.lines else 21)}%)"
+            ),
+            (payable_account, Decimal("0"), invoice.total_amount, f"Proveïdor: {partner.name}")
         ]
         
         journal_entry = self._accounting.create_journal_entry(
-            date=invoice.invoice_date,
+            entry_date=invoice.invoice_date,
             description=description,
             lines=entry_lines
         )
+        self._accounting.post_journal_entry(journal_entry.id)
         
         invoice.journal_entry_id = journal_entry.id
         invoice.status = PurchaseInvoiceStatus.POSTED
@@ -283,12 +274,12 @@ class PurchaseInvoiceService:
         
         # Audit
         if self._audit:
-            self._audit.log(
+            self._audit.log_action(
                 entity_type="PurchaseInvoice",
                 entity_id=invoice.id,
                 action="POST",
-                user_id="system",
-                details=f"Posted invoice {invoice.invoice_number}"
+                user="system",
+                new_values={"status": "POSTED", "journal_entry_id": journal_entry.id}
             )
         
         return self._repo.save(invoice)
@@ -317,25 +308,16 @@ class PurchaseInvoiceService:
         description = f"Pagament {invoice.supplier_reference or invoice.invoice_number}"
         
         entry_lines = [
-            {
-                "account_code": payable_account.code,
-                "debit": float(amount),
-                "credit": 0.0,
-                "description": f"Pagament a {partner.name if partner else 'Proveïdor'}"
-            },
-            {
-                "account_code": bank_account_code,
-                "debit": 0.0,
-                "credit": float(amount),
-                "description": description
-            }
+            (payable_account, amount, Decimal("0"), f"Pagament a {partner.name if partner else 'Proveïdor'}"),
+            (bank_account_code, Decimal("0"), amount, description)
         ]
         
-        self._accounting.create_journal_entry(
-            date=payment_date,
+        journal_entry = self._accounting.create_journal_entry(
+            entry_date=payment_date,
             description=description,
             lines=entry_lines
         )
+        self._accounting.post_journal_entry(journal_entry.id)
         
         # Update invoice
         invoice.amount_paid += amount

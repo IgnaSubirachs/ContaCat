@@ -3,6 +3,7 @@ from typing import Optional, List
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 import re
+from app.config import SECRET_KEY
 from app.domain.auth.entities import User, UserSession, PasswordHistory, LoginAttempt
 from app.domain.auth.repositories import (
     UserRepository, UserSessionRepository,
@@ -10,7 +11,6 @@ from app.domain.auth.repositories import (
 )
 
 # Security configuration
-SECRET_KEY = "your-secret-key-change-this-in-production"  # TODO: Move to .env
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -163,7 +163,7 @@ class AuthService:
                             entity_id=str(user.id),
                             action="ACCOUNT_LOCKED",
                             user="system",
-                            details=f"Account locked after {MAX_LOGIN_ATTEMPTS} failed attempts"
+                            new_values={"reason": f"Account locked after {MAX_LOGIN_ATTEMPTS} failed attempts"}
                         )
                 
                 self._user_repo.save(user)
@@ -277,7 +277,7 @@ class AuthService:
                 entity_id=str(user.id),
                 action="PASSWORD_CHANGED",
                 user=user.username,
-                details="Password changed successfully"
+                new_values={"message": "Password changed successfully"}
             )
         
         return True, None
@@ -331,7 +331,7 @@ class AuthService:
                 entity_id=str(created_user.id),
                 action="CREATED",
                 user="admin",
-                details=f"User {username} created with role {role.value}"
+                new_values={"username": username, "role": role.value}
             )
         
         return created_user
@@ -359,7 +359,7 @@ class AuthService:
                 entity_id=str(user.id),
                 action="UPDATED",
                 user="admin",
-                details=f"User {user.username} updated"
+                new_values={"username": user.username, "role": user.role.value, "is_active": user.is_active}
             )
         
         return updated_user
@@ -376,7 +376,7 @@ class AuthService:
                 entity_id=str(user_id),
                 action="DELETED",
                 user="admin",
-                details=f"User {user.username} deleted"
+                old_values={"username": user.username}
             )
         
         return result
@@ -398,7 +398,7 @@ class AuthService:
                 entity_id=str(user_id),
                 action="UNLOCKED",
                 user="admin",
-                details=f"User {user.username} manually unlocked"
+                new_values={"username": user.username, "locked_until": None, "failed_login_attempts": 0}
             )
         
         return True
@@ -462,11 +462,12 @@ class AuthService:
             ValueError: If password doesn't meet requirements
         """
         # Validate password strength
-        if not self.validate_password_strength(new_password):
-            raise ValueError("Password doesn't meet strength requirements")
+        is_valid, error = self.validate_password_strength(new_password)
+        if not is_valid:
+            raise ValueError(error or "Password doesn't meet strength requirements")
         
         # Hash new password
-        new_hash = self.hash_password(new_password)
+        new_hash = self.get_password_hash(new_password)
         
         # Update password
         user = self._user_repo.get_by_id(user_id)
@@ -487,4 +488,4 @@ class AuthService:
                 password_hash=new_hash,
                 created_at=datetime.now()
             )
-            self._password_history_repo.create(history)
+            self._password_history_repo.save(history)

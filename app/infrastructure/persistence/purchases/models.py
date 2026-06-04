@@ -30,7 +30,7 @@ class PurchaseOrderLineModel(Base):
     
     id = Column(String(36), primary_key=True)
     purchase_order_id = Column(String(36), ForeignKey("purchase_orders.id"), nullable=False)
-    product_id = Column(String(36), ForeignKey("products.id"), nullable=True)
+    product_id = Column(String(36), nullable=True)
     description = Column(Text, nullable=False)
     quantity = Column(Numeric(15, 2), nullable=False)
     unit_price = Column(Numeric(15, 2), nullable=False)
@@ -77,7 +77,7 @@ class PurchaseInvoiceLineModel(Base):
     
     id = Column(String(36), primary_key=True)
     purchase_invoice_id = Column(String(36), ForeignKey("purchase_invoices.id"), nullable=False)
-    product_id = Column(String(36), ForeignKey("products.id"), nullable=True)
+    product_id = Column(String(36), nullable=True)
     description = Column(Text, nullable=False)
     quantity = Column(Numeric(15, 2), nullable=False)
     unit_price = Column(Numeric(15, 2), nullable=False)
