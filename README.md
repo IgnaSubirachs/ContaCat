@@ -1,176 +1,76 @@
-# ![ContaCAT Logo](docs/assets/logo_erp.png) ContaCat v2.0
+# ContaCat ERP
 
-**El Sistema de Gestió Integral per a la Pime Catalana.**
+ContaCat es un ERP pensat per a pimes catalanes. L'objectiu es construir una alternativa moderna a eines com SAP Business One o A3, amb comptabilitat, facturacio, fiscalitat, inventari i processos d'empresa adaptats al context catala i espanyol.
 
-Desenvolupat amb  **Domain-Driven Design (DDD)**, **FastAPI** i **MySQL**, aquest ERP transformal la gestió empresarial oferint una solució modular, robusta i adaptada a la normativa fiscal espanyola.
+El projecte conserva una base Python/FastAPI existent, pero la direccio tecnica actual es migrar el nucli empresarial cap a Java amb Spring Boot.
 
----
+## Estat actual
 
-## 🚀 Novetats# ContaCAT ERP - Sistema ERP en Català
+- `app/`: aplicacio Python/FastAPI existent.
+- `migrations/`: migracions SQL de la base Python.
+- `backend-java/`: nou backend Spring Boot.
+- `docs/SPRING_BOOT_MIGRATION.md`: pla de migracio cap a Java.
 
-Sistema ERP complet desenvolupat en Python amb FastAPI, dissenyat específicament per empreses catalanes.
+## Backend Java
 
-## ✨ Actualitzacions Recents (Desembre 2024)
+El modul `backend-java` ja incorpora:
 
-### Millores Crítiques Implementades
+- Spring Boot 3.5.x.
+- JPA/Hibernate amb Flyway.
+- Model core: empreses, magatzems, productes, impostos i sequencies documentals.
+- CRUD inicial d'empreses.
+- Servei transaccional per reservar numeros documentals.
+- Seed inicial d'una empresa demo i sequencies per a factures de venda, factures de compra i assentaments.
 
-**Sistema d'Autenticació i Seguretat:**
-- ✅ **Recuperació de Contrasenya per Email**: Sistema complet amb tokens segurs (30 min expiració)
-- ✅ **Gestió d'Usuaris**: CRUD complet amb pàgina d'administració
-- ✅ **Perfil d'Usuari**: Pàgina de perfil amb canvi de contrasenya
-- ✅ **Validació de Contrasenyes**: Requisits de seguretat (8+ caràcters, majúscules, minúscules, números, símbols)
-- ✅ **Rate Limiting**: Protecció contra intents d'abús (3 sol·licituds/hora)
-- ✅ **Bloqueig de Comptes**: Després de 5 intents fallits (15 min lockout)
-- ✅ **Històric de Contrasenyes**: No reutilització de les últimes 5 contrasenyes
-- ✅ **Sessions Segures**: Tracking de sessions amb JWT i cookies HTTP-only
+Endpoints principals:
 
-**Interfície d'Usuari:**
-- ✅ **Login Modernitzat**: Nou disseny amb gradient i enllaç "He oblidat la contrasenya"
-- ✅ **Forgot Password Page**: Formulari modern per sol·licitar reset
-- ✅ **Reset Password Page**: Validació client/server amb feedback visual
-- ✅ **Sidebar Scrollable**: Solució CSS per scroll vertical al menú lateral
-- ✅ **Navegació Comptabilitat**: Nova secció "Comptabilitat" al sidebar amb Diari, Pla Comptable i Balanç de Comprovació
-- ✅ **URLs Consistents**: Corregides totes les rutes del sidebar per ser coherents
-- ✅ **AI Chat Interface**: Nova interfície web completa per prediccions de comptes comptables amb IA
-- ✅ **Cat Assistant**: Navegació millorada amb enllaços correctes a la pàgina d'IA
-- ✅ **Topbar Navigation**: Corregits enllaços de configuració i perfil
-- ✅ **Dashboard**: Gràfics Chart.js funcionant correctament, símbol € arreglat
+- `GET /api/core/companies`
+- `GET /api/core/companies/{id}`
+- `POST /api/core/companies`
+- `PUT /api/core/companies/{id}`
+- `DELETE /api/core/companies/{id}`
+- `POST /api/core/sequences/next`
 
-**Mòdul de Comptabilitat:**
-- ✅ **Llibre Diari**: Ruta GET `/accounting/journal` per llistar assentaments
-- ✅ **Creació d'Assentaments**: Ruta GET `/accounting/journal/create` amb formulari complet
-- ✅ **Template Dinàmic**: Formulari interactiu amb validació Deure=Haver en temps real
-- ✅ **Gestió d'Errors**: Error handling millorat amb missatges descriptius
-- ✅ **Selector de Comptes**: Autocomplete amb tots els comptes del pla comptable
+## Requisits
 
-**Backend i Base de Dades:**
-- ✅ **EmailService**: Servei SMTP amb plantilla HTML professional per emails
-- ✅ **Password Reset Tokens**: Taula dedicada amb expiració i tracking
-- ✅ **User Management Tables**: Sessions, històric de contrasenyes, intents de login
-- ✅ **PDF Generation Fix**: Import DocumentService corregit a `pdf_service.py`
-- ✅ **Settings Module**: Migració MySQL completada amb camps SMTP i SII
-- ✅ **Authentication**: Sistema d'autenticació opcional per routers `/ai/` i `/settings/`
-- ✅ **Templates**: Auto-reload activat per desenvolupament més àgil
-- ✅ **Docker**: Deployment completament funcional amb MySQL
+- JDK 17 o superior. Validat localment amb JDK 26.
+- Maven 3.9 o superior.
+- MySQL 8 per executar l'aplicacio completa.
+- Python 3 per validar la base existent.
 
-**Fitxers Principals Actualitzats/Creats:**
-- `app/domain/auth/*` (entitats, repositoris, serveis actualitzats)
-- `app/infrastructure/email/email_service.py` (NOU - servei SMTP)
-- `app/infrastructure/persistence/auth/password_reset_repository.py` (NOU)
-- `frontend/templates/auth/forgot_password.html` (NOU - 71 línies)
-- `frontend/templates/auth/reset_password.html` (NOU - 102 línies)
-- `frontend/templates/auth/profile.html` (NOU - gestió perfil)
-- `frontend/templates/auth/admin_dashboard.html` (NOU - dashboard admin)
-- `migrations/add_password_reset.sql` (NOU - migració BD)
-- `migrations/add_user_management_tables.sql` (NOU)
-- `frontend/templates/accounting/journal/create.html` (NOU - 254 línies)
-- `frontend/templates/components/sidebar.html` (reorganitzat i estès)
-- `frontend/static/css/styles.css` (fixes de scroll i flexbox)
-- `app/interface/api/routers/accounting.py` (noves rutes i error handling)
-- `app/domain/sales/pdf_service.py` (import fix)
-- `frontend/templates/ai/chat.html` (NOU - 239 línies)
-- `frontend/templates/components/topbar.html`
-- `frontend/templates/components/cat_assistant.html`
-- `app/interface/api/routers/ai.py`
-- `app/interface/api/routers/settings.py`
-- `migrations/add_smtp_sii_to_company_settings.sql` (NOU)
+Si el terminal apunta a una versio antiga de Java:
 
-## 🚀 Novetats "CEO Plan" (Desembre 2025)
-
-Hem completat un sprint intensiu per dotar l'ERP de capacitats executives reals:
-
-1.  **Panell de Control Executiu (Dashboard v2)**:
-    -   KPIs en Temps Real: Vendes, Tresoreria, Pendents de Conciliació.
-    -   Gràfics interactius (Chart.js) d'evolució de vendes.
-2.  **Conciliació Bancària Automàtica**:
-    -   Suport per a **Norma 43** (format bancari espanyol).
-    -   Motor de suggeriments amb IA/Regles per casar moviments amb factures.
-3.  **Fiscalitat i Models**:
-    -   **Model 303 (IVA)**: Autoliquidació automàtica llegint del Diari Comptable.
-    -   Generació de PDFs professionals (Factures i Nòmines) amb imatge corporativa.
-4.  **Configuració Centralitzada**:
-    -   Gestió de dades d'empresa (NIF, Logo, Adreça) que s'injecten a tots els documents.
-
----
-
-## 🧩 Mòduls Principals
-
-### 1. Finances i Comptabilitat
--   **Comptabilitat General**: Assentaments, Llibre Major i Diari.
--   **Pla General Comptable (PGC)**: Gestió de comptes i subcomptes.
--   **Tresoreria**: Control de Caixa i Bancs. Importació de Norma 43.
--   **Fiscalitat**: Càlcul de models oficials (AEAT).
-
-### 2. Vendes i Relacions
--   **Cicle de Venda**: Pressupostos -> Comandes -> Factures.
--   **Partners**: CRM bàsic per a Clients i Proveïdors.
--   **Facturació**: Generació de PDFs automàtiga.
-
-### 3. Recursos Humans
--   **Gestió d'Empleats**: Fitxa completa.
--   **Nòmines**: Generació de rebuts de salari (PDF).
-
-### 4. Operacions
--   **Inventari**: Control d'estoc en temps real.
--   **Analítica**: Ràtios financeres i informes de rendiment.
-
----
-
-## � Estructura del Projecte
-
-```
-app/
-├── domain/              # Capa de Domini (entitats, repositoris, serveis)
-├── infrastructure/      # Capa d'Infraestructura (persistència)
-└── interface/           # Capa d'Interfície (API, Web)
-
-scripts/                 # Scripts d'utilitat
-├── setup/               # Inicialització i migracions
-├── maintenance/         # Eines de manteniment (reset pwd)
-└── data/                # Generació de dades de prova
-
-docs/                    # Documentació addicional
+```powershell
+$env:JAVA_HOME='C:\Program Files\Java\jdk-26'
+$env:PATH="$env:JAVA_HOME\bin;$env:PATH"
 ```
 
-## �🛠️ Stack Tecnològic
+## Validacio rapida
 
--   **Backend**: Python 3.12, FastAPI (Async).
--   **Arquitectura**: DDD (Domain, Infrastructure, Interface).
--   **Base de Dades**: MySQL 8 (SQLAlchemy ORM).
--   **Frontend**: Jinja2 Templates, Bootstrap 5, Chart.js.
--   **Infrastructure**: Docker & Docker Compose.
+```powershell
+mvn -f backend-java\pom.xml test
+python -m compileall -q app migrations
+```
 
----
+## Execucio del backend Java
 
-## ⚡ Instal·lació Ràpida
+Configura la connexio a MySQL amb variables d'entorn:
 
-### Amb Docker (Recomanat)
+```powershell
+$env:DATABASE_URL='jdbc:mysql://localhost:3306/erpdb?useUnicode=true&characterEncoding=utf8&serverTimezone=Europe/Madrid'
+$env:DB_USER='root'
+$env:DB_PASSWORD='password'
+mvn -f backend-java\pom.xml spring-boot:run
+```
 
-1.  **Clonar i Arrencar**:
-    ```bash
-    git clone https://github.com/IgnaSubirachs/ContaCat-DEMO.git
-    cd ContaCat-DEMO
-    docker-compose up --build
-    ```
+## Proxims passos
 
-2.  **Accedir**:
-    -   Web: http://localhost:8000
-    -   Login: `admin` / `admin123`
+1. Crear endpoints core per productes, magatzems i impostos.
+2. Migrar clients/proveidors i documents comercials.
+3. Migrar comptabilitat: pla comptable, assentaments, diari i balanços.
+4. Afegir autenticacio i permisos al backend Java.
+5. Fer que el frontend consumeixi progressivament l'API Spring Boot.
 
-### Execució Local (Desenvolupament)
+## Notes de migracio
 
-Requeriments: Python 3.12+, MySQL local.
-
-1.  Crear entorn virtual: `python -m venv venv`
-2.  Instal·lar dependències: `pip install -r requirements.txt`
-3.  Executar servidor: `python check_production_ready.py` (Script d'arrencada).
-
----
-
-## 📄 Llicència
-
-Aquest projecte es distribueix sota la **PolyForm Noncommercial License 1.0.0**.
-Pots utilitzar-lo lliurement per a fins no comercials o educatius. Per a ús comercial, contacta amb l'autor.
-
----
-*Desenvolupat amb ❤️ i IA per Ignasi Subirachs | Barcelona, 2025*
+La decisio es mantenir Python com a referencia funcional mentre el nucli Java guanya cobertura. Cada pas hauria de portar migracio Flyway, servei d'aplicacio, endpoint REST i tests.

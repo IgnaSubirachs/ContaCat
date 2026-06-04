@@ -53,4 +53,20 @@ El primer paquet `core` replica el model ERP canonic definit tambe a Alembic:
 - `TaxRate`
 - `DocumentSequence`
 
-El seguent pas es implementar serveis d'aplicacio i endpoints REST per aquest nucli abans de migrar comptabilitat, vendes i compres.
+## API core disponible
+
+Empreses:
+
+- `GET /api/core/companies`
+- `GET /api/core/companies/{id}`
+- `POST /api/core/companies`
+- `PUT /api/core/companies/{id}`
+- `DELETE /api/core/companies/{id}` desactiva l'empresa.
+
+Sequencies documentals:
+
+- `POST /api/core/sequences/next`
+
+La migracio `V2__seed_default_company_and_sequences.sql` crea una empresa demo i sequencies inicials per factures de venda, factures de compra i assentaments.
+
+El seguent pas es implementar serveis d'aplicacio i endpoints REST per productes, magatzems i impostos abans de migrar comptabilitat, vendes i compres.
