@@ -1,6 +1,7 @@
 package cat.contacat.erp.core.product.api;
 
-import cat.contacat.erp.core.product.ProductService;
+import cat.contacat.erp.core.product.application.ProductApplicationService;
+import cat.contacat.erp.core.product.application.ProductCommand;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -18,20 +19,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/core/companies/{companyId}/products")
 public class ProductController {
 
-    private final ProductService service;
+    private final ProductApplicationService service;
 
-    public ProductController(ProductService service) {
+    public ProductController(ProductApplicationService service) {
         this.service = service;
     }
 
     @GetMapping
     public List<ProductResponse> list(@PathVariable String companyId) {
-        return service.list(companyId);
+        return service.list(companyId).stream().map(ProductResponse::from).toList();
     }
 
     @GetMapping("/{productId}")
     public ProductResponse get(@PathVariable String companyId, @PathVariable String productId) {
-        return service.get(companyId, productId);
+        return ProductResponse.from(service.get(companyId, productId));
     }
 
     @PostMapping
@@ -39,7 +40,7 @@ public class ProductController {
         @PathVariable String companyId,
         @Valid @RequestBody ProductRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(companyId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ProductResponse.from(service.create(companyId, toCommand(request))));
     }
 
     @PutMapping("/{productId}")
@@ -48,12 +49,25 @@ public class ProductController {
         @PathVariable String productId,
         @Valid @RequestBody ProductRequest request
     ) {
-        return service.update(companyId, productId, request);
+        return ProductResponse.from(service.update(companyId, productId, toCommand(request)));
     }
 
     @DeleteMapping("/{productId}")
     public ResponseEntity<Void> deactivate(@PathVariable String companyId, @PathVariable String productId) {
         service.deactivate(companyId, productId);
         return ResponseEntity.noContent().build();
+    }
+
+    private ProductCommand toCommand(ProductRequest request) {
+        return new ProductCommand(
+            request.sku(),
+            request.name(),
+            request.description(),
+            request.productType(),
+            request.defaultTaxCode(),
+            request.salesAccountCode(),
+            request.purchaseAccountCode(),
+            request.active()
+        );
     }
 }

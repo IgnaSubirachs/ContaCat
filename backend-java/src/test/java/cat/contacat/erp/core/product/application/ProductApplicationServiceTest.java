@@ -1,4 +1,4 @@
-package cat.contacat.erp.core.product;
+package cat.contacat.erp.core.product.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,8 +8,9 @@ import static org.mockito.Mockito.when;
 
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyRepository;
-import cat.contacat.erp.core.product.api.ProductRequest;
-import cat.contacat.erp.core.product.api.ProductResponse;
+import cat.contacat.erp.core.product.Product;
+import cat.contacat.erp.core.product.ProductAlreadyExistsException;
+import cat.contacat.erp.core.product.ProductRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ProductServiceTest {
+class ProductApplicationServiceTest {
 
     @Mock
     private ProductRepository repository;
@@ -27,14 +28,14 @@ class ProductServiceTest {
     private CompanyRepository companyRepository;
 
     @InjectMocks
-    private ProductService service;
+    private ProductApplicationService service;
 
     @Test
     void createNormalizesSkuAndPersistsProduct() {
         Company company = new Company();
         company.setId("company-1");
 
-        ProductRequest request = new ProductRequest(
+        ProductCommand command = new ProductCommand(
             " sku-001 ",
             " Teclat mecànic ",
             " Oficina ",
@@ -53,17 +54,16 @@ class ProductServiceTest {
             return product;
         });
 
-        ProductResponse response = service.create("company-1", request);
+        Product product = service.create("company-1", command);
 
-        assertThat(response.id()).isEqualTo("product-1");
-        assertThat(response.companyId()).isEqualTo("company-1");
-        assertThat(response.sku()).isEqualTo("SKU-001");
-        assertThat(response.name()).isEqualTo("Teclat mecànic");
-        assertThat(response.productType()).isEqualTo("SERVICE");
-        assertThat(response.defaultTaxCode()).isEqualTo("IVA21");
-        assertThat(response.salesAccountCode()).isEqualTo("700000");
-        assertThat(response.purchaseAccountCode()).isEqualTo("600000");
-        assertThat(response.active()).isTrue();
+        assertThat(product.getId()).isEqualTo("product-1");
+        assertThat(product.getSku()).isEqualTo("SKU-001");
+        assertThat(product.getName()).isEqualTo("Teclat mecànic");
+        assertThat(product.getProductType()).isEqualTo("SERVICE");
+        assertThat(product.getDefaultTaxCode()).isEqualTo("IVA21");
+        assertThat(product.getSalesAccountCode()).isEqualTo("700000");
+        assertThat(product.getPurchaseAccountCode()).isEqualTo("600000");
+        assertThat(product.isActive()).isTrue();
     }
 
     @Test
@@ -76,12 +76,12 @@ class ProductServiceTest {
         existing.setCompany(existingCompany);
         existing.setSku("SKU-001");
 
-        ProductRequest request = new ProductRequest("SKU-001", "Producte", null, null, null, null, null, true);
+        ProductCommand command = new ProductCommand("SKU-001", "Producte", null, null, null, null, null, true);
 
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(existingCompany));
         when(repository.findByCompanyIdAndSku("company-1", "SKU-001")).thenReturn(Optional.of(existing));
 
-        assertThatThrownBy(() -> service.create("company-1", request))
+        assertThatThrownBy(() -> service.create("company-1", command))
             .isInstanceOf(ProductAlreadyExistsException.class);
     }
 

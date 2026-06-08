@@ -1,4 +1,4 @@
-package cat.contacat.erp.core.warehouse;
+package cat.contacat.erp.core.warehouse.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,8 +8,9 @@ import static org.mockito.Mockito.when;
 
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyRepository;
-import cat.contacat.erp.core.warehouse.api.WarehouseRequest;
-import cat.contacat.erp.core.warehouse.api.WarehouseResponse;
+import cat.contacat.erp.core.warehouse.Warehouse;
+import cat.contacat.erp.core.warehouse.WarehouseAlreadyExistsException;
+import cat.contacat.erp.core.warehouse.WarehouseRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class WarehouseServiceTest {
+class WarehouseApplicationServiceTest {
 
     @Mock
     private WarehouseRepository repository;
@@ -27,14 +28,14 @@ class WarehouseServiceTest {
     private CompanyRepository companyRepository;
 
     @InjectMocks
-    private WarehouseService service;
+    private WarehouseApplicationService service;
 
     @Test
     void createNormalizesCodeAndPersistsWarehouse() {
         Company company = new Company();
         company.setId("company-1");
 
-        WarehouseRequest request = new WarehouseRequest(" bcn ", " Central Barcelona ", null);
+        WarehouseCommand command = new WarehouseCommand(" bcn ", " Central Barcelona ", null);
 
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
         when(repository.findByCompanyIdAndCode("company-1", "BCN")).thenReturn(Optional.empty());
@@ -44,13 +45,12 @@ class WarehouseServiceTest {
             return warehouse;
         });
 
-        WarehouseResponse response = service.create("company-1", request);
+        Warehouse warehouse = service.create("company-1", command);
 
-        assertThat(response.id()).isEqualTo("warehouse-1");
-        assertThat(response.companyId()).isEqualTo("company-1");
-        assertThat(response.code()).isEqualTo("BCN");
-        assertThat(response.name()).isEqualTo("Central Barcelona");
-        assertThat(response.active()).isTrue();
+        assertThat(warehouse.getId()).isEqualTo("warehouse-1");
+        assertThat(warehouse.getCode()).isEqualTo("BCN");
+        assertThat(warehouse.getName()).isEqualTo("Central Barcelona");
+        assertThat(warehouse.isActive()).isTrue();
     }
 
     @Test
@@ -66,7 +66,7 @@ class WarehouseServiceTest {
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
         when(repository.findByCompanyIdAndCode("company-1", "BCN")).thenReturn(Optional.of(existing));
 
-        assertThatThrownBy(() -> service.create("company-1", new WarehouseRequest("BCN", "Magatzem", true)))
+        assertThatThrownBy(() -> service.create("company-1", new WarehouseCommand("BCN", "Magatzem", true)))
             .isInstanceOf(WarehouseAlreadyExistsException.class);
     }
 

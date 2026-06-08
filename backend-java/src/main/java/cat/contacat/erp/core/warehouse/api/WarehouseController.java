@@ -1,6 +1,7 @@
 package cat.contacat.erp.core.warehouse.api;
 
-import cat.contacat.erp.core.warehouse.WarehouseService;
+import cat.contacat.erp.core.warehouse.application.WarehouseApplicationService;
+import cat.contacat.erp.core.warehouse.application.WarehouseCommand;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -18,20 +19,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/core/companies/{companyId}/warehouses")
 public class WarehouseController {
 
-    private final WarehouseService service;
+    private final WarehouseApplicationService service;
 
-    public WarehouseController(WarehouseService service) {
+    public WarehouseController(WarehouseApplicationService service) {
         this.service = service;
     }
 
     @GetMapping
     public List<WarehouseResponse> list(@PathVariable String companyId) {
-        return service.list(companyId);
+        return service.list(companyId).stream().map(WarehouseResponse::from).toList();
     }
 
     @GetMapping("/{warehouseId}")
     public WarehouseResponse get(@PathVariable String companyId, @PathVariable String warehouseId) {
-        return service.get(companyId, warehouseId);
+        return WarehouseResponse.from(service.get(companyId, warehouseId));
     }
 
     @PostMapping
@@ -39,7 +40,7 @@ public class WarehouseController {
         @PathVariable String companyId,
         @Valid @RequestBody WarehouseRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(companyId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(WarehouseResponse.from(service.create(companyId, toCommand(request))));
     }
 
     @PutMapping("/{warehouseId}")
@@ -48,12 +49,16 @@ public class WarehouseController {
         @PathVariable String warehouseId,
         @Valid @RequestBody WarehouseRequest request
     ) {
-        return service.update(companyId, warehouseId, request);
+        return WarehouseResponse.from(service.update(companyId, warehouseId, toCommand(request)));
     }
 
     @DeleteMapping("/{warehouseId}")
     public ResponseEntity<Void> deactivate(@PathVariable String companyId, @PathVariable String warehouseId) {
         service.deactivate(companyId, warehouseId);
         return ResponseEntity.noContent().build();
+    }
+
+    private WarehouseCommand toCommand(WarehouseRequest request) {
+        return new WarehouseCommand(request.code(), request.name(), request.active());
     }
 }

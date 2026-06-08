@@ -1,11 +1,12 @@
-package cat.contacat.erp.core.tax;
+package cat.contacat.erp.core.tax.application;
 
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyNotFoundException;
 import cat.contacat.erp.core.company.CompanyRepository;
-import cat.contacat.erp.core.tax.api.TaxRateRequest;
-import cat.contacat.erp.core.tax.api.TaxRateResponse;
-import java.math.BigDecimal;
+import cat.contacat.erp.core.tax.TaxRate;
+import cat.contacat.erp.core.tax.TaxRateAlreadyExistsException;
+import cat.contacat.erp.core.tax.TaxRateNotFoundException;
+import cat.contacat.erp.core.tax.TaxRateRepository;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Locale;
@@ -14,49 +15,47 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class TaxRateService {
+public class TaxRateApplicationService {
 
     private final TaxRateRepository repository;
     private final CompanyRepository companyRepository;
 
-    public TaxRateService(TaxRateRepository repository, CompanyRepository companyRepository) {
+    public TaxRateApplicationService(TaxRateRepository repository, CompanyRepository companyRepository) {
         this.repository = repository;
         this.companyRepository = companyRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<TaxRateResponse> list(String companyId) {
+    public List<TaxRate> list(String companyId) {
         ensureCompanyExists(companyId);
-        return repository.findAllByCompanyIdOrderByCodeAsc(companyId).stream()
-            .map(TaxRateResponse::from)
-            .toList();
+        return repository.findAllByCompanyIdOrderByCodeAsc(companyId);
     }
 
     @Transactional(readOnly = true)
-    public TaxRateResponse get(String companyId, String taxRateId) {
-        return TaxRateResponse.from(findTaxRate(companyId, taxRateId));
+    public TaxRate get(String companyId, String taxRateId) {
+        return findTaxRate(companyId, taxRateId);
     }
 
     @Transactional
-    public TaxRateResponse create(String companyId, TaxRateRequest request) {
+    public TaxRate create(String companyId, TaxRateCommand command) {
         Company company = findCompany(companyId);
-        String normalizedCode = normalizeUpper(request.code());
+        String normalizedCode = normalizeUpper(command.code());
         ensureCodeAvailable(companyId, normalizedCode, null);
 
         TaxRate taxRate = new TaxRate();
         taxRate.setCompany(company);
-        apply(taxRate, request, normalizedCode);
-        return TaxRateResponse.from(repository.save(taxRate));
+        apply(taxRate, command, normalizedCode);
+        return repository.save(taxRate);
     }
 
     @Transactional
-    public TaxRateResponse update(String companyId, String taxRateId, TaxRateRequest request) {
+    public TaxRate update(String companyId, String taxRateId, TaxRateCommand command) {
         TaxRate taxRate = findTaxRate(companyId, taxRateId);
-        String normalizedCode = normalizeUpper(request.code());
+        String normalizedCode = normalizeUpper(command.code());
         ensureCodeAvailable(companyId, normalizedCode, taxRateId);
 
-        apply(taxRate, request, normalizedCode);
-        return TaxRateResponse.from(repository.save(taxRate));
+        apply(taxRate, command, normalizedCode);
+        return repository.save(taxRate);
     }
 
     @Transactional
@@ -90,19 +89,17 @@ public class TaxRateService {
     private void ensureCodeAvailable(String companyId, String code, String currentTaxRateId) {
         repository.findByCompanyIdAndCode(companyId, code)
             .filter(existing -> !Objects.equals(existing.getId(), currentTaxRateId))
-            .ifPresent(existing -> {
-                throw new TaxRateAlreadyExistsException(companyId, code);
-            });
+            .ifPresent(existing -> { throw new TaxRateAlreadyExistsException(companyId, code); });
     }
 
-    private void apply(TaxRate taxRate, TaxRateRequest request, String normalizedCode) {
+    private void apply(TaxRate taxRate, TaxRateCommand command, String normalizedCode) {
         taxRate.setCode(normalizedCode);
-        taxRate.setName(request.name().trim());
-        taxRate.setRate(request.rate().setScale(2, RoundingMode.HALF_UP));
-        taxRate.setTaxType(normalizeUpperOrDefault(request.taxType(), "VAT"));
-        taxRate.setInputAccountCode(normalizeNullable(request.inputAccountCode()));
-        taxRate.setOutputAccountCode(normalizeNullable(request.outputAccountCode()));
-        taxRate.setActive(request.active() == null || request.active());
+        taxRate.setName(command.name().trim());
+        taxRate.setRate(command.rate().setScale(2, RoundingMode.HALF_UP));
+        taxRate.setTaxType(normalizeUpperOrDefault(command.taxType(), "VAT"));
+        taxRate.setInputAccountCode(normalizeNullable(command.inputAccountCode()));
+        taxRate.setOutputAccountCode(normalizeNullable(command.outputAccountCode()));
+        taxRate.setActive(command.active() == null || command.active());
     }
 
     private String normalizeUpper(String value) {

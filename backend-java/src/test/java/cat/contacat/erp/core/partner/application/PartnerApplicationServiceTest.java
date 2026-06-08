@@ -1,4 +1,4 @@
-package cat.contacat.erp.core.partner;
+package cat.contacat.erp.core.partner.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,8 +8,10 @@ import static org.mockito.Mockito.when;
 
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyRepository;
-import cat.contacat.erp.core.partner.api.PartnerRequest;
-import cat.contacat.erp.core.partner.api.PartnerResponse;
+import cat.contacat.erp.core.partner.Partner;
+import cat.contacat.erp.core.partner.PartnerAlreadyExistsException;
+import cat.contacat.erp.core.partner.PartnerRepository;
+import cat.contacat.erp.core.partner.PartnerValidationException;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -19,7 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PartnerServiceTest {
+class PartnerApplicationServiceTest {
 
     @Mock
     private PartnerRepository repository;
@@ -28,14 +30,14 @@ class PartnerServiceTest {
     private CompanyRepository companyRepository;
 
     @InjectMocks
-    private PartnerService service;
+    private PartnerApplicationService service;
 
     @Test
     void createNormalizesAndPersistsPartner() {
         Company company = new Company();
         company.setId("company-1");
 
-        PartnerRequest request = new PartnerRequest(
+        PartnerCommand command = new PartnerCommand(
             " Client Demo ",
             " b12345678 ",
             "FACTURES@CLIENT.CAT",
@@ -66,18 +68,17 @@ class PartnerServiceTest {
             return partner;
         });
 
-        PartnerResponse response = service.create("company-1", request);
+        Partner partner = service.create("company-1", command);
 
-        assertThat(response.id()).isEqualTo("partner-1");
-        assertThat(response.companyId()).isEqualTo("company-1");
-        assertThat(response.taxId()).isEqualTo("B12345678");
-        assertThat(response.email()).isEqualTo("factures@client.cat");
-        assertThat(response.customer()).isTrue();
-        assertThat(response.supplier()).isFalse();
-        assertThat(response.country()).isEqualTo("Espanya");
-        assertThat(response.iban()).isEqualTo("ES9121000418450200051332");
-        assertThat(response.paymentMethod()).isEqualTo("TRANSFER");
-        assertThat(response.active()).isTrue();
+        assertThat(partner.getId()).isEqualTo("partner-1");
+        assertThat(partner.getTaxId()).isEqualTo("B12345678");
+        assertThat(partner.getEmail()).isEqualTo("factures@client.cat");
+        assertThat(partner.isCustomer()).isTrue();
+        assertThat(partner.isSupplier()).isFalse();
+        assertThat(partner.getCountry()).isEqualTo("Espanya");
+        assertThat(partner.getIban()).isEqualTo("ES9121000418450200051332");
+        assertThat(partner.getPaymentMethod()).isEqualTo("TRANSFER");
+        assertThat(partner.isActive()).isTrue();
     }
 
     @Test
@@ -93,9 +94,9 @@ class PartnerServiceTest {
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
         when(repository.findByCompanyIdAndTaxId("company-1", "B12345678")).thenReturn(Optional.of(existing));
 
-        PartnerRequest request = validRequest();
+        PartnerCommand command = validCommand();
 
-        assertThatThrownBy(() -> service.create("company-1", request))
+        assertThatThrownBy(() -> service.create("company-1", command))
             .isInstanceOf(PartnerAlreadyExistsException.class);
     }
 
@@ -104,33 +105,15 @@ class PartnerServiceTest {
         Company company = new Company();
         company.setId("company-1");
 
-        PartnerRequest request = new PartnerRequest(
-            "Partner",
-            "B12345678",
-            "mail@test.cat",
-            "931000000",
-            false,
-            false,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false,
-            null,
-            null,
-            null,
-            30,
-            true
+        PartnerCommand command = new PartnerCommand(
+            "Partner", "B12345678", "mail@test.cat", "931000000",
+            false, false, null, null, null, null, null, null, null, null, null,
+            false, null, null, null, 30, true
         );
 
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
 
-        assertThatThrownBy(() -> service.create("company-1", request))
+        assertThatThrownBy(() -> service.create("company-1", command))
             .isInstanceOf(PartnerValidationException.class)
             .hasMessageContaining("client");
     }
@@ -153,10 +136,10 @@ class PartnerServiceTest {
 
         when(repository.findAllByCompanyIdAndCustomerTrueOrderByNameAsc("company-1")).thenReturn(List.of(partner));
 
-        List<PartnerResponse> response = service.list("company-1", "customer");
+        List<Partner> response = service.list("company-1", "customer");
 
         assertThat(response).hasSize(1);
-        assertThat(response.get(0).customer()).isTrue();
+        assertThat(response.get(0).isCustomer()).isTrue();
     }
 
     @Test
@@ -177,29 +160,11 @@ class PartnerServiceTest {
         verify(repository).save(partner);
     }
 
-    private PartnerRequest validRequest() {
-        return new PartnerRequest(
-            "Partner",
-            "B12345678",
-            "mail@test.cat",
-            "931000000",
-            true,
-            false,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            false,
-            null,
-            null,
-            null,
-            30,
-            true
+    private PartnerCommand validCommand() {
+        return new PartnerCommand(
+            "Partner", "B12345678", "mail@test.cat", "931000000",
+            true, false, null, null, null, null, null, null, null, null, null,
+            false, null, null, null, 30, true
         );
     }
 }

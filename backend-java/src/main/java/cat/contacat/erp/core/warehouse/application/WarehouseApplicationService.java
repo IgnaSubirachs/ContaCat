@@ -1,10 +1,12 @@
-package cat.contacat.erp.core.warehouse;
+package cat.contacat.erp.core.warehouse.application;
 
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyNotFoundException;
 import cat.contacat.erp.core.company.CompanyRepository;
-import cat.contacat.erp.core.warehouse.api.WarehouseRequest;
-import cat.contacat.erp.core.warehouse.api.WarehouseResponse;
+import cat.contacat.erp.core.warehouse.Warehouse;
+import cat.contacat.erp.core.warehouse.WarehouseAlreadyExistsException;
+import cat.contacat.erp.core.warehouse.WarehouseNotFoundException;
+import cat.contacat.erp.core.warehouse.WarehouseRepository;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -12,49 +14,47 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class WarehouseService {
+public class WarehouseApplicationService {
 
     private final WarehouseRepository repository;
     private final CompanyRepository companyRepository;
 
-    public WarehouseService(WarehouseRepository repository, CompanyRepository companyRepository) {
+    public WarehouseApplicationService(WarehouseRepository repository, CompanyRepository companyRepository) {
         this.repository = repository;
         this.companyRepository = companyRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<WarehouseResponse> list(String companyId) {
+    public List<Warehouse> list(String companyId) {
         ensureCompanyExists(companyId);
-        return repository.findAllByCompanyIdOrderByCodeAsc(companyId).stream()
-            .map(WarehouseResponse::from)
-            .toList();
+        return repository.findAllByCompanyIdOrderByCodeAsc(companyId);
     }
 
     @Transactional(readOnly = true)
-    public WarehouseResponse get(String companyId, String warehouseId) {
-        return WarehouseResponse.from(findWarehouse(companyId, warehouseId));
+    public Warehouse get(String companyId, String warehouseId) {
+        return findWarehouse(companyId, warehouseId);
     }
 
     @Transactional
-    public WarehouseResponse create(String companyId, WarehouseRequest request) {
+    public Warehouse create(String companyId, WarehouseCommand command) {
         Company company = findCompany(companyId);
-        String normalizedCode = normalizeUpper(request.code());
+        String normalizedCode = normalizeUpper(command.code());
         ensureCodeAvailable(companyId, normalizedCode, null);
 
         Warehouse warehouse = new Warehouse();
         warehouse.setCompany(company);
-        apply(warehouse, request, normalizedCode);
-        return WarehouseResponse.from(repository.save(warehouse));
+        apply(warehouse, command, normalizedCode);
+        return repository.save(warehouse);
     }
 
     @Transactional
-    public WarehouseResponse update(String companyId, String warehouseId, WarehouseRequest request) {
+    public Warehouse update(String companyId, String warehouseId, WarehouseCommand command) {
         Warehouse warehouse = findWarehouse(companyId, warehouseId);
-        String normalizedCode = normalizeUpper(request.code());
+        String normalizedCode = normalizeUpper(command.code());
         ensureCodeAvailable(companyId, normalizedCode, warehouseId);
 
-        apply(warehouse, request, normalizedCode);
-        return WarehouseResponse.from(repository.save(warehouse));
+        apply(warehouse, command, normalizedCode);
+        return repository.save(warehouse);
     }
 
     @Transactional
@@ -88,15 +88,13 @@ public class WarehouseService {
     private void ensureCodeAvailable(String companyId, String code, String currentWarehouseId) {
         repository.findByCompanyIdAndCode(companyId, code)
             .filter(existing -> !Objects.equals(existing.getId(), currentWarehouseId))
-            .ifPresent(existing -> {
-                throw new WarehouseAlreadyExistsException(companyId, code);
-            });
+            .ifPresent(existing -> { throw new WarehouseAlreadyExistsException(companyId, code); });
     }
 
-    private void apply(Warehouse warehouse, WarehouseRequest request, String normalizedCode) {
+    private void apply(Warehouse warehouse, WarehouseCommand command, String normalizedCode) {
         warehouse.setCode(normalizedCode);
-        warehouse.setName(request.name().trim());
-        warehouse.setActive(request.active() == null || request.active());
+        warehouse.setName(command.name().trim());
+        warehouse.setActive(command.active() == null || command.active());
     }
 
     private String normalizeUpper(String value) {

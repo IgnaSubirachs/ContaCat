@@ -1,6 +1,7 @@
 package cat.contacat.erp.core.tax.api;
 
-import cat.contacat.erp.core.tax.TaxRateService;
+import cat.contacat.erp.core.tax.application.TaxRateApplicationService;
+import cat.contacat.erp.core.tax.application.TaxRateCommand;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -18,20 +19,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/core/companies/{companyId}/tax-rates")
 public class TaxRateController {
 
-    private final TaxRateService service;
+    private final TaxRateApplicationService service;
 
-    public TaxRateController(TaxRateService service) {
+    public TaxRateController(TaxRateApplicationService service) {
         this.service = service;
     }
 
     @GetMapping
     public List<TaxRateResponse> list(@PathVariable String companyId) {
-        return service.list(companyId);
+        return service.list(companyId).stream().map(TaxRateResponse::from).toList();
     }
 
     @GetMapping("/{taxRateId}")
     public TaxRateResponse get(@PathVariable String companyId, @PathVariable String taxRateId) {
-        return service.get(companyId, taxRateId);
+        return TaxRateResponse.from(service.get(companyId, taxRateId));
     }
 
     @PostMapping
@@ -39,7 +40,7 @@ public class TaxRateController {
         @PathVariable String companyId,
         @Valid @RequestBody TaxRateRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(companyId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(TaxRateResponse.from(service.create(companyId, toCommand(request))));
     }
 
     @PutMapping("/{taxRateId}")
@@ -48,12 +49,24 @@ public class TaxRateController {
         @PathVariable String taxRateId,
         @Valid @RequestBody TaxRateRequest request
     ) {
-        return service.update(companyId, taxRateId, request);
+        return TaxRateResponse.from(service.update(companyId, taxRateId, toCommand(request)));
     }
 
     @DeleteMapping("/{taxRateId}")
     public ResponseEntity<Void> deactivate(@PathVariable String companyId, @PathVariable String taxRateId) {
         service.deactivate(companyId, taxRateId);
         return ResponseEntity.noContent().build();
+    }
+
+    private TaxRateCommand toCommand(TaxRateRequest request) {
+        return new TaxRateCommand(
+            request.code(),
+            request.name(),
+            request.rate(),
+            request.taxType(),
+            request.inputAccountCode(),
+            request.outputAccountCode(),
+            request.active()
+        );
     }
 }

@@ -1,10 +1,12 @@
-package cat.contacat.erp.core.product;
+package cat.contacat.erp.core.product.application;
 
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyNotFoundException;
 import cat.contacat.erp.core.company.CompanyRepository;
-import cat.contacat.erp.core.product.api.ProductRequest;
-import cat.contacat.erp.core.product.api.ProductResponse;
+import cat.contacat.erp.core.product.Product;
+import cat.contacat.erp.core.product.ProductAlreadyExistsException;
+import cat.contacat.erp.core.product.ProductNotFoundException;
+import cat.contacat.erp.core.product.ProductRepository;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -12,49 +14,47 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class ProductService {
+public class ProductApplicationService {
 
     private final ProductRepository repository;
     private final CompanyRepository companyRepository;
 
-    public ProductService(ProductRepository repository, CompanyRepository companyRepository) {
+    public ProductApplicationService(ProductRepository repository, CompanyRepository companyRepository) {
         this.repository = repository;
         this.companyRepository = companyRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<ProductResponse> list(String companyId) {
+    public List<Product> list(String companyId) {
         ensureCompanyExists(companyId);
-        return repository.findAllByCompanyIdOrderBySkuAsc(companyId).stream()
-            .map(ProductResponse::from)
-            .toList();
+        return repository.findAllByCompanyIdOrderBySkuAsc(companyId);
     }
 
     @Transactional(readOnly = true)
-    public ProductResponse get(String companyId, String productId) {
-        return ProductResponse.from(findProduct(companyId, productId));
+    public Product get(String companyId, String productId) {
+        return findProduct(companyId, productId);
     }
 
     @Transactional
-    public ProductResponse create(String companyId, ProductRequest request) {
+    public Product create(String companyId, ProductCommand command) {
         Company company = findCompany(companyId);
-        String normalizedSku = normalizeUpper(request.sku());
+        String normalizedSku = normalizeUpper(command.sku());
         ensureSkuAvailable(companyId, normalizedSku, null);
 
         Product product = new Product();
         product.setCompany(company);
-        apply(product, request, normalizedSku);
-        return ProductResponse.from(repository.save(product));
+        apply(product, command, normalizedSku);
+        return repository.save(product);
     }
 
     @Transactional
-    public ProductResponse update(String companyId, String productId, ProductRequest request) {
+    public Product update(String companyId, String productId, ProductCommand command) {
         Product product = findProduct(companyId, productId);
-        String normalizedSku = normalizeUpper(request.sku());
+        String normalizedSku = normalizeUpper(command.sku());
         ensureSkuAvailable(companyId, normalizedSku, productId);
 
-        apply(product, request, normalizedSku);
-        return ProductResponse.from(repository.save(product));
+        apply(product, command, normalizedSku);
+        return repository.save(product);
     }
 
     @Transactional
@@ -88,20 +88,18 @@ public class ProductService {
     private void ensureSkuAvailable(String companyId, String sku, String currentProductId) {
         repository.findByCompanyIdAndSku(companyId, sku)
             .filter(existing -> !Objects.equals(existing.getId(), currentProductId))
-            .ifPresent(existing -> {
-                throw new ProductAlreadyExistsException(companyId, sku);
-            });
+            .ifPresent(existing -> { throw new ProductAlreadyExistsException(companyId, sku); });
     }
 
-    private void apply(Product product, ProductRequest request, String normalizedSku) {
+    private void apply(Product product, ProductCommand command, String normalizedSku) {
         product.setSku(normalizedSku);
-        product.setName(request.name().trim());
-        product.setDescription(normalizeNullable(request.description()));
-        product.setProductType(normalizeUpperOrDefault(request.productType(), "GOOD"));
-        product.setDefaultTaxCode(normalizeUpperNullable(request.defaultTaxCode()));
-        product.setSalesAccountCode(normalizeNullable(request.salesAccountCode()));
-        product.setPurchaseAccountCode(normalizeNullable(request.purchaseAccountCode()));
-        product.setActive(request.active() == null || request.active());
+        product.setName(command.name().trim());
+        product.setDescription(normalizeNullable(command.description()));
+        product.setProductType(normalizeUpperOrDefault(command.productType(), "GOOD"));
+        product.setDefaultTaxCode(normalizeUpperNullable(command.defaultTaxCode()));
+        product.setSalesAccountCode(normalizeNullable(command.salesAccountCode()));
+        product.setPurchaseAccountCode(normalizeNullable(command.purchaseAccountCode()));
+        product.setActive(command.active() == null || command.active());
     }
 
     private String normalizeUpper(String value) {

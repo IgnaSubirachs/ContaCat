@@ -1,6 +1,7 @@
 package cat.contacat.erp.core.partner.api;
 
-import cat.contacat.erp.core.partner.PartnerService;
+import cat.contacat.erp.core.partner.application.PartnerApplicationService;
+import cat.contacat.erp.core.partner.application.PartnerCommand;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -19,9 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/core/companies/{companyId}/partners")
 public class PartnerController {
 
-    private final PartnerService service;
+    private final PartnerApplicationService service;
 
-    public PartnerController(PartnerService service) {
+    public PartnerController(PartnerApplicationService service) {
         this.service = service;
     }
 
@@ -30,12 +31,12 @@ public class PartnerController {
         @PathVariable String companyId,
         @RequestParam(required = false) String role
     ) {
-        return service.list(companyId, role);
+        return service.list(companyId, role).stream().map(PartnerResponse::from).toList();
     }
 
     @GetMapping("/{partnerId}")
     public PartnerResponse get(@PathVariable String companyId, @PathVariable String partnerId) {
-        return service.get(companyId, partnerId);
+        return PartnerResponse.from(service.get(companyId, partnerId));
     }
 
     @PostMapping
@@ -43,7 +44,7 @@ public class PartnerController {
         @PathVariable String companyId,
         @Valid @RequestBody PartnerRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(companyId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(PartnerResponse.from(service.create(companyId, toCommand(request))));
     }
 
     @PutMapping("/{partnerId}")
@@ -52,12 +53,38 @@ public class PartnerController {
         @PathVariable String partnerId,
         @Valid @RequestBody PartnerRequest request
     ) {
-        return service.update(companyId, partnerId, request);
+        return PartnerResponse.from(service.update(companyId, partnerId, toCommand(request)));
     }
 
     @DeleteMapping("/{partnerId}")
     public ResponseEntity<Void> deactivate(@PathVariable String companyId, @PathVariable String partnerId) {
         service.deactivate(companyId, partnerId);
         return ResponseEntity.noContent().build();
+    }
+
+    private PartnerCommand toCommand(PartnerRequest request) {
+        return new PartnerCommand(
+            request.name(),
+            request.taxId(),
+            request.email(),
+            request.phone(),
+            request.isSupplier(),
+            request.isCustomer(),
+            request.documentType(),
+            request.addressStreet(),
+            request.addressNumber(),
+            request.addressFloor(),
+            request.postalCode(),
+            request.city(),
+            request.province(),
+            request.country(),
+            request.vatRegime(),
+            request.isIntraEu(),
+            request.euVatNumber(),
+            request.iban(),
+            request.paymentMethod(),
+            request.paymentDays(),
+            request.active()
+        );
     }
 }
