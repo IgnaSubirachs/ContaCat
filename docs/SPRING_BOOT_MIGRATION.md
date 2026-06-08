@@ -34,4 +34,17 @@ Migrar ContaCat cap a un backend Java/Spring Boot sense perdre el coneixement fu
 
 ## Estat actual
 
-Creat el modul `backend-java` amb Spring Boot, JPA i Flyway. Encara no substitueix cap funcionalitat Python.
+Creat el modul `backend-java` amb Spring Boot, JPA i Flyway.
+
+Ja hi ha implementat el nucli `core` seguent:
+
+- Empreses
+- Sequencies documentals transaccionals
+- Magatzems
+- Productes
+- Impostos
+- Partners
+- Pla comptable
+- Assentaments comptables i llibre diari base
+
+Encara no substitueix cap funcionalitat Python en produccio, pero ja defineix una base consistent per continuar amb informes comptables, vendes i compres.

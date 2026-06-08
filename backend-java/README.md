@@ -30,6 +30,11 @@ mvn validate -DskipTests
 mvn test
 ```
 
+Regles d'arquitectura i qualitat:
+
+- Veure `docs/ARCHITECTURE.md`
+- Les convencions principals es validen amb tests d'arquitectura (`ArchUnit`) dins de `mvn test`
+
 Variables principals:
 
 - `DATABASE_URL`: JDBC URL, per exemple `jdbc:mysql://localhost:3306/erpdb?useUnicode=true&characterEncoding=utf8&serverTimezone=Europe/Madrid`
@@ -67,6 +72,57 @@ Sequencies documentals:
 
 - `POST /api/core/sequences/next`
 
+Magatzems:
+
+- `GET /api/core/companies/{companyId}/warehouses`
+- `GET /api/core/companies/{companyId}/warehouses/{warehouseId}`
+- `POST /api/core/companies/{companyId}/warehouses`
+- `PUT /api/core/companies/{companyId}/warehouses/{warehouseId}`
+- `DELETE /api/core/companies/{companyId}/warehouses/{warehouseId}` desactiva el magatzem.
+
+Productes:
+
+- `GET /api/core/companies/{companyId}/products`
+- `GET /api/core/companies/{companyId}/products/{productId}`
+- `POST /api/core/companies/{companyId}/products`
+- `PUT /api/core/companies/{companyId}/products/{productId}`
+- `DELETE /api/core/companies/{companyId}/products/{productId}` desactiva el producte.
+
+Impostos:
+
+- `GET /api/core/companies/{companyId}/tax-rates`
+- `GET /api/core/companies/{companyId}/tax-rates/{taxRateId}`
+- `POST /api/core/companies/{companyId}/tax-rates`
+- `PUT /api/core/companies/{companyId}/tax-rates/{taxRateId}`
+- `DELETE /api/core/companies/{companyId}/tax-rates/{taxRateId}` desactiva l'impost.
+
+Partners:
+
+- `GET /api/core/companies/{companyId}/partners`
+- `GET /api/core/companies/{companyId}/partners?role=CUSTOMER`
+- `GET /api/core/companies/{companyId}/partners?role=SUPPLIER`
+- `GET /api/core/companies/{companyId}/partners/{partnerId}`
+- `POST /api/core/companies/{companyId}/partners`
+- `PUT /api/core/companies/{companyId}/partners/{partnerId}`
+- `DELETE /api/core/companies/{companyId}/partners/{partnerId}` desactiva el partner.
+
+Pla comptable:
+
+- `GET /api/core/companies/{companyId}/accounts`
+- `GET /api/core/companies/{companyId}/accounts?group=4`
+- `GET /api/core/companies/{companyId}/accounts/{accountId}`
+- `POST /api/core/companies/{companyId}/accounts`
+- `PUT /api/core/companies/{companyId}/accounts/{accountId}`
+- `DELETE /api/core/companies/{companyId}/accounts/{accountId}` desactiva el compte.
+
+Diari comptable:
+
+- `GET /api/core/companies/{companyId}/journal-entries`
+- `GET /api/core/companies/{companyId}/journal-entries?startDate=2026-01-01&endDate=2026-12-31`
+- `GET /api/core/companies/{companyId}/journal-entries/{entryId}`
+- `POST /api/core/companies/{companyId}/journal-entries`
+- `POST /api/core/companies/{companyId}/journal-entries/{entryId}/post`
+
 La migracio `V2__seed_default_company_and_sequences.sql` crea una empresa demo i sequencies inicials per factures de venda, factures de compra i assentaments.
 
-El seguent pas es implementar serveis d'aplicacio i endpoints REST per productes, magatzems i impostos abans de migrar comptabilitat, vendes i compres.
+El seguent pas es completar informes comptables (`trial balance`, llibre major, balanc de situacio i perdues i guanys) i integrar vendes/compres contra aquest nucli.

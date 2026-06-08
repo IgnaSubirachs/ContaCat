@@ -1,12 +1,8 @@
 package cat.contacat.erp.core.sequence.api;
 
 import cat.contacat.erp.core.sequence.DocumentNumber;
-import cat.contacat.erp.core.sequence.DocumentSequenceNotFoundException;
 import cat.contacat.erp.core.sequence.DocumentSequenceService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,10 +26,5 @@ public class DocumentSequenceController {
             request.series(),
             request.fiscalYear()
         );
-    }
-
-    @ExceptionHandler(DocumentSequenceNotFoundException.class)
-    public ResponseEntity<String> handleNotFound(DocumentSequenceNotFoundException exception) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
     }
 }
