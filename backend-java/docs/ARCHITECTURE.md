@@ -27,13 +27,14 @@ Per cada modul `core/<modul>`:
 
 - `<Modul>.java`: entitats persistents i tipus de domini simples
 - `<Modul>Repository.java`: persistencia Spring Data
-- `<Modul>Service.java`: casos d'us i regles de negoci
+- `application/`: casos d'us i coordinacio de negoci
 - `api/`: controladors HTTP i DTOs REST
 
 ## Regles verificades per tests d'arquitectura
 
 - Els controladors han d'estar a `..api..`.
 - Els controladors no poden dependre directament de repositoris.
+- Els DTOs REST de `api` no entren dins dels serveis d'aplicacio.
 - Els repositoris han de ser interfícies.
 - No s'accepta `field injection`.
 - Els moduls de `core` no poden tenir dependencies cyclics.

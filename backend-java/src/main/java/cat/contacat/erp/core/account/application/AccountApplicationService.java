@@ -1,7 +1,10 @@
-package cat.contacat.erp.core.account;
+package cat.contacat.erp.core.account.application;
 
-import cat.contacat.erp.core.account.api.AccountRequest;
-import cat.contacat.erp.core.account.api.AccountResponse;
+import cat.contacat.erp.core.account.Account;
+import cat.contacat.erp.core.account.AccountAlreadyExistsException;
+import cat.contacat.erp.core.account.AccountNotFoundException;
+import cat.contacat.erp.core.account.AccountRepository;
+import cat.contacat.erp.core.account.AccountValidationException;
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyNotFoundException;
 import cat.contacat.erp.core.company.CompanyRepository;
@@ -11,52 +14,51 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class AccountService {
+public class AccountApplicationService {
 
     private final AccountRepository repository;
     private final CompanyRepository companyRepository;
 
-    public AccountService(AccountRepository repository, CompanyRepository companyRepository) {
+    public AccountApplicationService(AccountRepository repository, CompanyRepository companyRepository) {
         this.repository = repository;
         this.companyRepository = companyRepository;
     }
 
     @Transactional(readOnly = true)
-    public List<AccountResponse> list(String companyId, Integer group) {
+    public List<Account> list(String companyId, Integer group) {
         ensureCompanyExists(companyId);
-        List<Account> accounts = group == null
+        return group == null
             ? repository.findAllByCompanyIdOrderByCodeAsc(companyId)
             : repository.findAllByCompanyIdAndGroupOrderByCodeAsc(companyId, group);
-        return accounts.stream().map(AccountResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
-    public AccountResponse get(String companyId, String accountId) {
-        return AccountResponse.from(findAccountById(companyId, accountId));
+    public Account get(String companyId, String accountId) {
+        return findAccountById(companyId, accountId);
     }
 
     @Transactional
-    public AccountResponse create(String companyId, AccountRequest request) {
-        validateRequest(request);
+    public Account create(String companyId, AccountCommand command) {
+        validateCommand(command);
         Company company = findCompany(companyId);
-        String normalizedCode = normalizeCode(request.code());
+        String normalizedCode = normalizeCode(command.code());
         ensureCodeAvailable(companyId, normalizedCode, null);
 
         Account account = new Account();
         account.setCompany(company);
-        apply(account, companyId, request, normalizedCode);
-        return AccountResponse.from(repository.save(account));
+        apply(account, companyId, command, normalizedCode);
+        return repository.save(account);
     }
 
     @Transactional
-    public AccountResponse update(String companyId, String accountId, AccountRequest request) {
-        validateRequest(request);
+    public Account update(String companyId, String accountId, AccountCommand command) {
+        validateCommand(command);
         Account account = findAccountById(companyId, accountId);
-        String normalizedCode = normalizeCode(request.code());
+        String normalizedCode = normalizeCode(command.code());
         ensureCodeAvailable(companyId, normalizedCode, accountId);
 
-        apply(account, companyId, request, normalizedCode);
-        return AccountResponse.from(repository.save(account));
+        apply(account, companyId, command, normalizedCode);
+        return repository.save(account);
     }
 
     @Transactional
@@ -97,26 +99,26 @@ public class AccountService {
             .ifPresent(existing -> { throw new AccountAlreadyExistsException(companyId, code); });
     }
 
-    private void validateRequest(AccountRequest request) {
-        String normalizedCode = normalizeCode(request.code());
+    private void validateCommand(AccountCommand command) {
+        String normalizedCode = normalizeCode(command.code());
         if (!normalizedCode.matches("\\d+")) {
             throw new AccountValidationException("El codi del compte ha de ser numeric");
         }
-        if (request.group() < 1 || request.group() > 9) {
+        if (command.group() < 1 || command.group() > 9) {
             throw new AccountValidationException("El grup ha d'estar entre 1 i 9");
         }
-        if (Character.getNumericValue(normalizedCode.charAt(0)) != request.group()) {
+        if (Character.getNumericValue(normalizedCode.charAt(0)) != command.group()) {
             throw new AccountValidationException("El primer digit del codi ha de coincidir amb el grup");
         }
     }
 
-    private void apply(Account account, String companyId, AccountRequest request, String normalizedCode) {
+    private void apply(Account account, String companyId, AccountCommand command, String normalizedCode) {
         account.setCode(normalizedCode);
-        account.setName(request.name().trim());
-        account.setAccountType(request.accountType());
-        account.setGroup(request.group());
-        account.setParentAccount(resolveParent(companyId, request.parentAccountId(), account.getId()));
-        account.setActive(request.active() == null || request.active());
+        account.setName(command.name().trim());
+        account.setAccountType(command.accountType());
+        account.setGroup(command.group());
+        account.setParentAccount(resolveParent(companyId, command.parentAccountId(), account.getId()));
+        account.setActive(command.active() == null || command.active());
     }
 
     private Account resolveParent(String companyId, String parentAccountId, String currentAccountId) {

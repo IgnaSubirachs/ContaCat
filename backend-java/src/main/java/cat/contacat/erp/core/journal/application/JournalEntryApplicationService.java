@@ -1,14 +1,19 @@
-package cat.contacat.erp.core.journal;
+package cat.contacat.erp.core.journal.application;
 
 import cat.contacat.erp.core.account.Account;
-import cat.contacat.erp.core.account.AccountService;
+import cat.contacat.erp.core.account.application.AccountApplicationService;
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyNotFoundException;
 import cat.contacat.erp.core.company.CompanyRepository;
-import cat.contacat.erp.core.journal.api.JournalEntryRequest;
-import cat.contacat.erp.core.journal.api.JournalEntryResponse;
-import cat.contacat.erp.core.journal.api.JournalLineRequest;
+import cat.contacat.erp.core.journal.JournalEntry;
+import cat.contacat.erp.core.journal.JournalEntryAlreadyPostedException;
+import cat.contacat.erp.core.journal.JournalEntryNotFoundException;
+import cat.contacat.erp.core.journal.JournalEntryRepository;
+import cat.contacat.erp.core.journal.JournalEntryStatus;
+import cat.contacat.erp.core.journal.JournalEntryValidationException;
+import cat.contacat.erp.core.journal.JournalLine;
 import cat.contacat.erp.core.sequence.DocumentNumber;
+import cat.contacat.erp.core.sequence.DocumentSequence;
 import cat.contacat.erp.core.sequence.DocumentSequenceService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -21,61 +26,60 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class JournalEntryService {
+public class JournalEntryApplicationService {
 
     private final JournalEntryRepository repository;
     private final CompanyRepository companyRepository;
-    private final AccountService accountService;
+    private final AccountApplicationService accountApplicationService;
     private final DocumentSequenceService documentSequenceService;
 
-    public JournalEntryService(
+    public JournalEntryApplicationService(
         JournalEntryRepository repository,
         CompanyRepository companyRepository,
-        AccountService accountService,
+        AccountApplicationService accountApplicationService,
         DocumentSequenceService documentSequenceService
     ) {
         this.repository = repository;
         this.companyRepository = companyRepository;
-        this.accountService = accountService;
+        this.accountApplicationService = accountApplicationService;
         this.documentSequenceService = documentSequenceService;
     }
 
     @Transactional(readOnly = true)
-    public List<JournalEntryResponse> list(String companyId, LocalDate startDate, LocalDate endDate) {
+    public List<JournalEntry> list(String companyId, LocalDate startDate, LocalDate endDate) {
         ensureCompanyExists(companyId);
-        List<JournalEntry> entries = (startDate != null && endDate != null)
+        return (startDate != null && endDate != null)
             ? repository.findAllByCompanyIdAndEntryDateBetweenOrderByEntryDateDescEntryNumberDesc(companyId, startDate, endDate)
             : repository.findAllByCompanyIdOrderByEntryDateDescEntryNumberDesc(companyId);
-        return entries.stream().map(JournalEntryResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
-    public JournalEntryResponse get(String companyId, String entryId) {
-        return JournalEntryResponse.from(findEntry(companyId, entryId));
+    public JournalEntry get(String companyId, String entryId) {
+        return findEntry(companyId, entryId);
     }
 
     @Transactional
-    public JournalEntryResponse create(String companyId, JournalEntryRequest request) {
-        validateRequest(request);
+    public JournalEntry create(String companyId, JournalEntryCommand command) {
+        validateCommand(command);
         Company company = findCompany(companyId);
-        DocumentNumber number = documentSequenceService.allocateNext(companyId, "JOURNAL_ENTRY", "A", request.entryDate().getYear());
+        DocumentNumber number = documentSequenceService.allocateNext(companyId, "JOURNAL_ENTRY", "A", command.entryDate().getYear());
 
         JournalEntry entry = new JournalEntry();
         entry.setCompany(company);
         entry.setSequence(buildSequenceReference(number.sequenceId()));
         entry.setEntryNumber(number.number());
         entry.setFormattedNumber(number.formattedNumber());
-        entry.setEntryDate(request.entryDate());
-        entry.setDescription(request.description().trim());
-        entry.setAttachmentPath(normalizeNullable(request.attachmentPath()));
+        entry.setEntryDate(command.entryDate());
+        entry.setDescription(command.description().trim());
+        entry.setAttachmentPath(normalizeNullable(command.attachmentPath()));
         entry.setStatus(JournalEntryStatus.DRAFT);
-        entry.setLines(buildLines(companyId, entry, request.lines()));
+        entry.setLines(buildLines(companyId, entry, command.lines()));
 
-        return JournalEntryResponse.from(repository.save(entry));
+        return repository.save(entry);
     }
 
     @Transactional
-    public JournalEntryResponse post(String companyId, String entryId) {
+    public JournalEntry post(String companyId, String entryId) {
         JournalEntry entry = findEntry(companyId, entryId);
         if (entry.getStatus() == JournalEntryStatus.POSTED) {
             throw new JournalEntryAlreadyPostedException(entryId);
@@ -83,7 +87,7 @@ public class JournalEntryService {
         validateLines(entry.getLines());
         entry.setStatus(JournalEntryStatus.POSTED);
         entry.setPostedAt(OffsetDateTime.now());
-        return JournalEntryResponse.from(repository.save(entry));
+        return repository.save(entry);
     }
 
     private JournalEntry findEntry(String companyId, String entryId) {
@@ -106,36 +110,36 @@ public class JournalEntryService {
         }
     }
 
-    private cat.contacat.erp.core.sequence.DocumentSequence buildSequenceReference(String sequenceId) {
-        cat.contacat.erp.core.sequence.DocumentSequence sequence = new cat.contacat.erp.core.sequence.DocumentSequence();
+    private DocumentSequence buildSequenceReference(String sequenceId) {
+        DocumentSequence sequence = new DocumentSequence();
         sequence.setId(sequenceId);
         return sequence;
     }
 
-    private List<JournalLine> buildLines(String companyId, JournalEntry entry, List<JournalLineRequest> requests) {
+    private List<JournalLine> buildLines(String companyId, JournalEntry entry, List<JournalLineCommand> commands) {
         List<JournalLine> lines = new ArrayList<>();
         int index = 1;
-        for (JournalLineRequest request : requests) {
-            Account account = accountService.findAccountByCode(companyId, request.accountCode());
+        for (JournalLineCommand command : commands) {
+            Account account = accountApplicationService.findAccountByCode(companyId, command.accountCode());
 
             JournalLine line = new JournalLine();
             line.setJournalEntry(entry);
             line.setAccount(account);
             line.setLineOrder(index++);
-            line.setDebit(scale(request.debit()));
-            line.setCredit(scale(request.credit()));
-            line.setDescription(request.description() == null ? "" : request.description().trim());
+            line.setDebit(scale(command.debit()));
+            line.setCredit(scale(command.credit()));
+            line.setDescription(command.description() == null ? "" : command.description().trim());
             lines.add(line);
         }
         validateLines(lines);
         return lines;
     }
 
-    private void validateRequest(JournalEntryRequest request) {
-        if (request.lines() == null || request.lines().size() < 2) {
+    private void validateCommand(JournalEntryCommand command) {
+        if (command.lines() == null || command.lines().size() < 2) {
             throw new JournalEntryValidationException("Un assentament ha de tenir almenys 2 linies");
         }
-        if (request.description() == null || request.description().isBlank()) {
+        if (command.description() == null || command.description().isBlank()) {
             throw new JournalEntryValidationException("La descripcio es obligatoria");
         }
     }

@@ -39,6 +39,12 @@ class ArchitectureRulesTest {
             .should().resideInAPackage("..api..");
 
     @ArchTest
+    static final ArchRule application_layer_must_not_depend_on_api_dtos =
+        noClasses()
+            .that().resideInAPackage("..application..")
+            .should().dependOnClassesThat().resideInAPackage("..api..");
+
+    @ArchTest
     static final ArchRule field_injection_is_forbidden =
         noFields()
             .should().beAnnotatedWith(Autowired.class);

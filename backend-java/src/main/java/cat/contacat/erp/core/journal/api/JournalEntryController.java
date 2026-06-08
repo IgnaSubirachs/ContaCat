@@ -1,6 +1,8 @@
 package cat.contacat.erp.core.journal.api;
 
-import cat.contacat.erp.core.journal.JournalEntryService;
+import cat.contacat.erp.core.journal.application.JournalEntryApplicationService;
+import cat.contacat.erp.core.journal.application.JournalEntryCommand;
+import cat.contacat.erp.core.journal.application.JournalLineCommand;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,9 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/core/companies/{companyId}/journal-entries")
 public class JournalEntryController {
 
-    private final JournalEntryService service;
+    private final JournalEntryApplicationService service;
 
-    public JournalEntryController(JournalEntryService service) {
+    public JournalEntryController(JournalEntryApplicationService service) {
         this.service = service;
     }
 
@@ -30,12 +32,12 @@ public class JournalEntryController {
         @RequestParam(required = false) LocalDate startDate,
         @RequestParam(required = false) LocalDate endDate
     ) {
-        return service.list(companyId, startDate, endDate);
+        return service.list(companyId, startDate, endDate).stream().map(JournalEntryResponse::from).toList();
     }
 
     @GetMapping("/{entryId}")
     public JournalEntryResponse get(@PathVariable String companyId, @PathVariable String entryId) {
-        return service.get(companyId, entryId);
+        return JournalEntryResponse.from(service.get(companyId, entryId));
     }
 
     @PostMapping
@@ -43,11 +45,18 @@ public class JournalEntryController {
         @PathVariable String companyId,
         @Valid @RequestBody JournalEntryRequest request
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(companyId, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(JournalEntryResponse.from(service.create(companyId, toCommand(request))));
     }
 
     @PostMapping("/{entryId}/post")
     public JournalEntryResponse post(@PathVariable String companyId, @PathVariable String entryId) {
-        return service.post(companyId, entryId);
+        return JournalEntryResponse.from(service.post(companyId, entryId));
+    }
+
+    private JournalEntryCommand toCommand(JournalEntryRequest request) {
+        List<JournalLineCommand> lines = request.lines().stream()
+            .map(line -> new JournalLineCommand(line.accountCode(), line.debit(), line.credit(), line.description()))
+            .toList();
+        return new JournalEntryCommand(request.entryDate(), request.description(), request.attachmentPath(), lines);
     }
 }

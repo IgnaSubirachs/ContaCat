@@ -1,4 +1,4 @@
-package cat.contacat.erp.core.journal;
+package cat.contacat.erp.core.journal.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -7,13 +7,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import cat.contacat.erp.core.account.Account;
-import cat.contacat.erp.core.account.AccountService;
 import cat.contacat.erp.core.account.AccountType;
+import cat.contacat.erp.core.account.application.AccountApplicationService;
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyRepository;
-import cat.contacat.erp.core.journal.api.JournalEntryRequest;
-import cat.contacat.erp.core.journal.api.JournalEntryResponse;
-import cat.contacat.erp.core.journal.api.JournalLineRequest;
+import cat.contacat.erp.core.journal.JournalEntry;
+import cat.contacat.erp.core.journal.JournalEntryAlreadyPostedException;
+import cat.contacat.erp.core.journal.JournalEntryRepository;
+import cat.contacat.erp.core.journal.JournalEntryStatus;
+import cat.contacat.erp.core.journal.JournalEntryValidationException;
+import cat.contacat.erp.core.journal.JournalLine;
 import cat.contacat.erp.core.sequence.DocumentNumber;
 import cat.contacat.erp.core.sequence.DocumentSequenceService;
 import java.math.BigDecimal;
@@ -27,7 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class JournalEntryServiceTest {
+class JournalEntryApplicationServiceTest {
 
     @Mock
     private JournalEntryRepository repository;
@@ -36,13 +39,13 @@ class JournalEntryServiceTest {
     private CompanyRepository companyRepository;
 
     @Mock
-    private AccountService accountService;
+    private AccountApplicationService accountApplicationService;
 
     @Mock
     private DocumentSequenceService documentSequenceService;
 
     @InjectMocks
-    private JournalEntryService service;
+    private JournalEntryApplicationService service;
 
     @Test
     void createAllocatesSequenceAndPersistsBalancedEntry() {
@@ -51,34 +54,34 @@ class JournalEntryServiceTest {
         Account debitAccount = account("account-430", company, "430000", "Clients", AccountType.ASSET);
         Account creditAccount = account("account-700", company, "700000", "Vendes", AccountType.INCOME);
 
-        JournalEntryRequest request = new JournalEntryRequest(
+        JournalEntryCommand command = new JournalEntryCommand(
             LocalDate.of(2026, 6, 8),
             "Factura venda",
             null,
             List.of(
-                new JournalLineRequest("430000", new BigDecimal("121.00"), BigDecimal.ZERO, "Client"),
-                new JournalLineRequest("700000", BigDecimal.ZERO, new BigDecimal("121.00"), "Venda")
+                new JournalLineCommand("430000", new BigDecimal("121.00"), BigDecimal.ZERO, "Client"),
+                new JournalLineCommand("700000", BigDecimal.ZERO, new BigDecimal("121.00"), "Venda")
             )
         );
 
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
         when(documentSequenceService.allocateNext("company-1", "JOURNAL_ENTRY", "A", 2026))
             .thenReturn(new DocumentNumber("sequence-1", "company-1", "JOURNAL_ENTRY", "A", 2026, 5, "JE-2026-00005"));
-        when(accountService.findAccountByCode("company-1", "430000")).thenReturn(debitAccount);
-        when(accountService.findAccountByCode("company-1", "700000")).thenReturn(creditAccount);
+        when(accountApplicationService.findAccountByCode("company-1", "430000")).thenReturn(debitAccount);
+        when(accountApplicationService.findAccountByCode("company-1", "700000")).thenReturn(creditAccount);
         when(repository.save(any(JournalEntry.class))).thenAnswer(invocation -> {
             JournalEntry entry = invocation.getArgument(0);
             entry.setId("entry-1");
             return entry;
         });
 
-        JournalEntryResponse response = service.create("company-1", request);
+        JournalEntry entry = service.create("company-1", command);
 
-        assertThat(response.id()).isEqualTo("entry-1");
-        assertThat(response.entryNumber()).isEqualTo(5);
-        assertThat(response.formattedNumber()).isEqualTo("JE-2026-00005");
-        assertThat(response.status()).isEqualTo(JournalEntryStatus.DRAFT);
-        assertThat(response.lines()).hasSize(2);
+        assertThat(entry.getId()).isEqualTo("entry-1");
+        assertThat(entry.getEntryNumber()).isEqualTo(5);
+        assertThat(entry.getFormattedNumber()).isEqualTo("JE-2026-00005");
+        assertThat(entry.getStatus()).isEqualTo(JournalEntryStatus.DRAFT);
+        assertThat(entry.getLines()).hasSize(2);
     }
 
     @Test
@@ -88,23 +91,23 @@ class JournalEntryServiceTest {
         Account debitAccount = account("account-430", company, "430000", "Clients", AccountType.ASSET);
         Account creditAccount = account("account-700", company, "700000", "Vendes", AccountType.INCOME);
 
-        JournalEntryRequest request = new JournalEntryRequest(
+        JournalEntryCommand command = new JournalEntryCommand(
             LocalDate.of(2026, 6, 8),
             "Factura venda",
             null,
             List.of(
-                new JournalLineRequest("430000", new BigDecimal("100.00"), BigDecimal.ZERO, "Client"),
-                new JournalLineRequest("700000", BigDecimal.ZERO, new BigDecimal("121.00"), "Venda")
+                new JournalLineCommand("430000", new BigDecimal("100.00"), BigDecimal.ZERO, "Client"),
+                new JournalLineCommand("700000", BigDecimal.ZERO, new BigDecimal("121.00"), "Venda")
             )
         );
 
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
         when(documentSequenceService.allocateNext("company-1", "JOURNAL_ENTRY", "A", 2026))
             .thenReturn(new DocumentNumber("sequence-1", "company-1", "JOURNAL_ENTRY", "A", 2026, 5, "JE-2026-00005"));
-        when(accountService.findAccountByCode("company-1", "430000")).thenReturn(debitAccount);
-        when(accountService.findAccountByCode("company-1", "700000")).thenReturn(creditAccount);
+        when(accountApplicationService.findAccountByCode("company-1", "430000")).thenReturn(debitAccount);
+        when(accountApplicationService.findAccountByCode("company-1", "700000")).thenReturn(creditAccount);
 
-        assertThatThrownBy(() -> service.create("company-1", request))
+        assertThatThrownBy(() -> service.create("company-1", command))
             .isInstanceOf(JournalEntryValidationException.class)
             .hasMessageContaining("no esta quadrat");
     }
@@ -125,9 +128,9 @@ class JournalEntryServiceTest {
         when(repository.findById("entry-1")).thenReturn(Optional.of(entry));
         when(repository.save(entry)).thenReturn(entry);
 
-        JournalEntryResponse response = service.post("company-1", "entry-1");
+        JournalEntry response = service.post("company-1", "entry-1");
 
-        assertThat(response.status()).isEqualTo(JournalEntryStatus.POSTED);
+        assertThat(response.getStatus()).isEqualTo(JournalEntryStatus.POSTED);
         assertThat(entry.getPostedAt()).isNotNull();
         verify(repository).save(entry);
     }

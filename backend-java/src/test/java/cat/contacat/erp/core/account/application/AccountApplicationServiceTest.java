@@ -1,4 +1,4 @@
-package cat.contacat.erp.core.account;
+package cat.contacat.erp.core.account.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -6,8 +6,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import cat.contacat.erp.core.account.api.AccountRequest;
-import cat.contacat.erp.core.account.api.AccountResponse;
+import cat.contacat.erp.core.account.Account;
+import cat.contacat.erp.core.account.AccountAlreadyExistsException;
+import cat.contacat.erp.core.account.AccountRepository;
+import cat.contacat.erp.core.account.AccountType;
+import cat.contacat.erp.core.account.AccountValidationException;
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyRepository;
 import java.util.Optional;
@@ -18,7 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AccountServiceTest {
+class AccountApplicationServiceTest {
 
     @Mock
     private AccountRepository repository;
@@ -27,13 +30,13 @@ class AccountServiceTest {
     private CompanyRepository companyRepository;
 
     @InjectMocks
-    private AccountService service;
+    private AccountApplicationService service;
 
     @Test
     void createPersistsNormalizedAccount() {
         Company company = new Company();
         company.setId("company-1");
-        AccountRequest request = new AccountRequest("430000", " Clients ", AccountType.ASSET, 4, null, null);
+        AccountCommand command = new AccountCommand("430000", " Clients ", AccountType.ASSET, 4, null, null);
 
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
         when(repository.findByCompanyIdAndCode("company-1", "430000")).thenReturn(Optional.empty());
@@ -43,12 +46,12 @@ class AccountServiceTest {
             return account;
         });
 
-        AccountResponse response = service.create("company-1", request);
+        Account account = service.create("company-1", command);
 
-        assertThat(response.id()).isEqualTo("account-1");
-        assertThat(response.code()).isEqualTo("430000");
-        assertThat(response.name()).isEqualTo("Clients");
-        assertThat(response.accountType()).isEqualTo(AccountType.ASSET);
+        assertThat(account.getId()).isEqualTo("account-1");
+        assertThat(account.getCode()).isEqualTo("430000");
+        assertThat(account.getName()).isEqualTo("Clients");
+        assertThat(account.getAccountType()).isEqualTo(AccountType.ASSET);
     }
 
     @Test
@@ -63,13 +66,13 @@ class AccountServiceTest {
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
         when(repository.findByCompanyIdAndCode("company-1", "430000")).thenReturn(Optional.of(existing));
 
-        assertThatThrownBy(() -> service.create("company-1", new AccountRequest("430000", "Clients", AccountType.ASSET, 4, null, true)))
+        assertThatThrownBy(() -> service.create("company-1", new AccountCommand("430000", "Clients", AccountType.ASSET, 4, null, true)))
             .isInstanceOf(AccountAlreadyExistsException.class);
     }
 
     @Test
     void createFailsWhenGroupDoesNotMatchCode() {
-        assertThatThrownBy(() -> service.create("company-1", new AccountRequest("430000", "Clients", AccountType.ASSET, 5, null, true)))
+        assertThatThrownBy(() -> service.create("company-1", new AccountCommand("430000", "Clients", AccountType.ASSET, 5, null, true)))
             .isInstanceOf(AccountValidationException.class);
     }
 
