@@ -13,4 +13,12 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntry, Stri
         LocalDate startDate,
         LocalDate endDate
     );
+
+    List<JournalEntry> findAllByCompanyIdOrderByEntryDateAscEntryNumberAsc(String companyId);
+
+    List<JournalEntry> findAllByCompanyIdAndEntryDateBetweenOrderByEntryDateAscEntryNumberAsc(
+        String companyId,
+        LocalDate startDate,
+        LocalDate endDate
+    );
 }

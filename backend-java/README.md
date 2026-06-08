@@ -30,6 +30,8 @@ mvn validate -DskipTests
 mvn test
 ```
 
+Les proves d'integracio de persistencia fan servir Testcontainers amb MySQL real. Si Docker no esta disponible per a la JVM, aquestes proves es marquen com a `skipped` i la resta del suite continua.
+
 Regles d'arquitectura i qualitat:
 
 - Veure `docs/ARCHITECTURE.md`
@@ -123,6 +125,13 @@ Diari comptable:
 - `POST /api/core/companies/{companyId}/journal-entries`
 - `POST /api/core/companies/{companyId}/journal-entries/{entryId}/post`
 
+Informes comptables:
+
+- `GET /api/core/companies/{companyId}/accounting/reports/trial-balance`
+- `GET /api/core/companies/{companyId}/accounting/reports/ledger/{accountCode}`
+- `GET /api/core/companies/{companyId}/accounting/reports/balance-sheet`
+- `GET /api/core/companies/{companyId}/accounting/reports/profit-loss`
+
 La migracio `V2__seed_default_company_and_sequences.sql` crea una empresa demo i sequencies inicials per factures de venda, factures de compra i assentaments.
 
-El seguent pas es completar informes comptables (`trial balance`, llibre major, balanc de situacio i perdues i guanys) i integrar vendes/compres contra aquest nucli.
+El seguent pas es reforcar aquests informes amb exportacio i continuar la integracio de vendes/compres contra aquest nucli.
