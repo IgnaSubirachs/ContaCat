@@ -1,379 +1,354 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Form, UploadFile, File, Response
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
-from fastapi.templating import Jinja2Templates
-from datetime import date
+from __future__ import annotations
+
+from datetime import date, datetime
 from decimal import Decimal
+from types import SimpleNamespace
 import os
-import uuid
 import shutil
-import tempfile
+import uuid
 
-from app.domain.accounting.services import AccountingService
-from app.domain.accounts.entities import AccountType
-from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository
-from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
-from app.domain.accounting.reporting_service import ReportingService
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import HTMLResponse, RedirectResponse
+
 from app.domain.auth.dependencies import get_current_active_user
-
-# New dependencies for Reporting
-from app.domain.documents.services import DocumentService
-from app.domain.settings.services import SettingsService
-from app.infrastructure.persistence.settings.repository import SqlAlchemyCompanySettingsRepository
-from app.domain.accounting.export_utils import ReportExporter # Keep for Excel
-
-# Initialize templates
+from app.infrastructure.java_erp_client import JavaErpClient, JavaErpClientError
 from app.interface.api.templates import templates
 
-# Initialize services
-account_repo = SqlAlchemyAccountRepository()
-journal_repo = SqlAlchemyJournalRepository()
-accounting_service = AccountingService(account_repo, journal_repo)
-reporting_service = ReportingService(accounting_service)
 
-settings_repo = SqlAlchemyCompanySettingsRepository(None) # Session handled internally by repo if using factory, but repo expects session_factory usually
-# Wait, SqlAlchemyCompanySettingsRepository __init__?
-# Let's check dependencies injection. It likely needs generic session handling.
-# existing code used: stock_item_repo = SqlAlchemyStockItemRepository(SessionLocal)
-# But here we are instantiating globally? That's bad practice for Session.
-# However, the previous code for account_repo = SqlAlchemyAccountRepository() suggests it handles its own session or is using a global scope convention (which is risky).
-# Let's follow the pattern found in `sales_invoices.py`: use Depends(get_db) or instantiate with SessionLocal.
-# But `accounting.py` here has global instantiation on line 20: account_repo = SqlAlchemyAccountRepository().
-# I will stick to what's there but check if SqlAlchemyCompanySettingsRepository needs args.
-# Checking `app/infrastructure/persistence/settings/repository.py`... 
-# Assuming it works like account_repo for now.
-from app.infrastructure.db.base import SessionLocal
-settings_repo = SqlAlchemyCompanySettingsRepository(SessionLocal)
-settings_service = SettingsService(settings_repo)
-document_service = DocumentService()
+def get_java_erp_client() -> JavaErpClient:
+    return JavaErpClient()
 
 
 router = APIRouter(
     prefix="/accounting",
     tags=["accounting"],
-    dependencies=[Depends(get_current_active_user)]
+    dependencies=[Depends(get_current_active_user)],
 )
 
+
+@router.get("/", response_class=HTMLResponse)
+async def accounting_home(request: Request):
+    return templates.TemplateResponse("accounting/home.html", {"request": request})
+
+
 @router.get("/journal", response_class=HTMLResponse)
-async def journal_list(request: Request):
-    """Show journal entries list (Llibre Diari)."""
-    entries = accounting_service.list_journal_entries()
-    
+async def journal_list(request: Request, client: JavaErpClient = Depends(get_java_erp_client)):
+    try:
+        entries = [_to_journal_entry_view(entry) for entry in client.list_journal_entries()]
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     return templates.TemplateResponse(
         "accounting/journal.html",
-        {"request": request, "entries": entries}
+        {"request": request, "entries": entries},
     )
 
+
 @router.get("/journal/create", response_class=HTMLResponse)
-async def create_entry_form(request: Request):
-    """Show form to create new journal entry."""
+async def create_entry_form(request: Request, client: JavaErpClient = Depends(get_java_erp_client)):
     try:
-        accounts = accounting_service.list_accounts()
-        
-        # Convert accounts to dicts for template serialization
-        accounts_data = [
-            {
-                "code": acc.code,
-                "name": acc.name,
-                "type": acc.account_type.value if hasattr(acc.account_type, 'value') else str(acc.account_type),
-                "group": acc.group
-            }
-            for acc in accounts
+        accounts = [
+            {"code": account["code"], "name": account["name"], "type": account["accountType"], "group": account["group"]}
+            for account in client.list_accounts()
         ]
-        
-        return templates.TemplateResponse(
-            "accounting/journal/create.html",
-            {"request": request, "accounts": accounts_data}
-        )
-    except Exception as e:
-        # Log the error and return error page
-        print(f"Error loading journal create form: {e}")
-        raise HTTPException(status_code=500, detail=f"Error loading accounts: {str(e)}")
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    return templates.TemplateResponse(
+        "accounting/journal/create.html",
+        {"request": request, "accounts": accounts},
+    )
+
 
 @router.post("/journal/create")
 async def create_entry(
     request: Request,
     entry_date: date = Form(...),
     description: str = Form(...),
-    attachment: UploadFile = File(None)
+    attachment: UploadFile | None = File(None),
+    client: JavaErpClient = Depends(get_java_erp_client),
 ):
-    """Create a new journal entry."""
     try:
-        # Handle attachment
-        attachment_path = None
-        if attachment and attachment.filename:
-            # Create uploads dir if not exists
-            upload_dir = os.path.join("frontend", "static", "uploads", "accounting")
-            os.makedirs(upload_dir, exist_ok=True)
-            
-            # Generate unique filename
-            ext = os.path.splitext(attachment.filename)[1]
-            filename = f"{uuid.uuid4()}{ext}"
-            file_path = os.path.join(upload_dir, filename)
-            
-            # Save file
-            with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(attachment.file, buffer)
-            
-            attachment_path = f"/static/uploads/accounting/{filename}"
-
-        # Get form data for lines
         form_data = await request.form()
-        
-        # Parse lines
-        lines = []
-        i = 0
-        while True:
-            # Flexible parsing to handle account_code_{i} or account_{i}
-            account_code = form_data.get(f"account_code_{i}") or form_data.get(f"account_{i}")
-            if not account_code and i > 50: # Safety break if too many empty lines check
-                 break
-            if not account_code: 
-                # continue checking? Template generates sequential IDs, so if missing, maybe end of list
-                # But to be safe against holes, check a bit further or use a hidden field for count
-                if i > 20 and not form_data.get(f"account_code_{i+1}"): # Heuristic
-                    break
-                i += 1
-                continue
-
-            debit = Decimal(form_data.get(f"debit_{i}", "0") or "0")
-            credit = Decimal(form_data.get(f"credit_{i}", "0") or "0")
-            line_desc = form_data.get(f"description_{i}", "")
-            
-            if account_code:
-                lines.append((account_code, debit, credit, line_desc))
-            i += 1
-        
-        accounting_service.create_journal_entry(
-            entry_date=entry_date,
-            description=description,
-            lines=lines,
-            attachment_path=attachment_path
-        )
+        lines = _parse_journal_lines(form_data)
+        attachment_path = _store_attachment(attachment)
+        client.create_journal_entry(entry_date, description, lines, attachment_path)
         return RedirectResponse(url="/accounting/journal", status_code=303)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.post("/journal/{entry_id}/post")
-async def post_entry(entry_id: str):
-    """Post a journal entry."""
+async def post_entry(entry_id: str, client: JavaErpClient = Depends(get_java_erp_client)):
     try:
-        accounting_service.post_journal_entry(entry_id)
+        client.post_journal_entry(entry_id)
         return RedirectResponse(url="/accounting/journal", status_code=303)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
-# Reports
 @router.get("/ledger/{account_code}", response_class=HTMLResponse)
-async def account_ledger(request: Request, account_code: str):
-    """Show account ledger (Llibre Major)."""
-    account = accounting_service.get_account(account_code)
-    if not account:
-        raise HTTPException(status_code=404, detail="Compte no trobat")
-    
-    balance = accounting_service.get_account_balance(account_code)
-    entries = accounting_service.list_journal_entries()
-    
-    # Filter entries with this account
-    relevant_entries = []
-    for entry in entries:
-        for line in entry.lines:
-            if line.account_code == account_code:
-                relevant_entries.append(entry)
-                break
-    
-    return templates.TemplateResponse(
-        "accounting/ledger.html",
-        {
-            "request": request,
-            "account": account,
-            "balance": balance,
-            "entries": relevant_entries
-        }
-    )
+async def account_ledger(
+    request: Request,
+    account_code: str,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    try:
+        ledger = client.ledger(account_code, _parse_iso_date(start_date), _parse_iso_date(end_date))
+        return templates.TemplateResponse(
+            "accounting/ledger.html",
+            {"request": request, "ledger": _to_ledger_view(ledger)},
+        )
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.get("/reports/trial-balance", response_class=HTMLResponse)
-async def trial_balance(request: Request):
-    """Show trial balance (Balanç de Comprovació)."""
-    trial_balance = accounting_service.get_trial_balance()
-    
-    return templates.TemplateResponse(
-        "accounting/trial_balance.html",
-        {"request": request, "trial_balance": trial_balance}
-    )
+async def trial_balance(
+    request: Request,
+    end_date: str | None = None,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    try:
+        report = client.trial_balance(_parse_iso_date(end_date))
+        return templates.TemplateResponse(
+            "accounting/trial_balance.html",
+            {"request": request, "trial_balance": _to_trial_balance_view(report)},
+        )
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.get("/reports/balance-sheet", response_class=HTMLResponse)
-async def balance_sheet(request: Request, end_date: str = None):
-    """Show balance sheet (Balanç de Situació)."""
-    end_date_obj = None
-    if end_date:
-        try:
-            end_date_obj = date.fromisoformat(end_date)
-        except ValueError:
-            pass
-    
-    balance_sheet = reporting_service.get_balance_sheet_report(end_date_obj)
-    
-    return templates.TemplateResponse(
-        "accounting/balance_sheet.html",
-        {"request": request, "balance_sheet": balance_sheet}
-    )
+async def balance_sheet(
+    request: Request,
+    end_date: str | None = None,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    try:
+        report = client.balance_sheet(_parse_iso_date(end_date))
+        return templates.TemplateResponse(
+            "accounting/balance_sheet.html",
+            {"request": request, "balance_sheet": _to_balance_sheet_view(report)},
+        )
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.get("/reports/profit-loss", response_class=HTMLResponse)
-async def profit_loss(request: Request, start_date: str = None, end_date: str = None):
-    """Show profit and loss statement (Compte de Pèrdues i Guanys)."""
-    start_date_obj = None
-    end_date_obj = None
-    
-    if start_date:
-        try:
-            start_date_obj = date.fromisoformat(start_date)
-        except ValueError:
-            pass
-    
-    if end_date:
-        try:
-            end_date_obj = date.fromisoformat(end_date)
-        except ValueError:
-            pass
-    
-    profit_loss = reporting_service.get_profit_loss_report(start_date_obj, end_date_obj)
-    
-    return templates.TemplateResponse(
-        "accounting/profit_loss.html",
-        {"request": request, "profit_loss": profit_loss}
+async def profit_loss(
+    request: Request,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    try:
+        report = client.profit_loss(_parse_iso_date(start_date), _parse_iso_date(end_date))
+        return templates.TemplateResponse(
+            "accounting/profit_loss.html",
+            {"request": request, "profit_loss": _to_profit_loss_view(report)},
+        )
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+def _parse_iso_date(value: str | None) -> date | None:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def _parse_journal_lines(form_data) -> list[dict]:
+    lines: list[dict] = []
+    index = 0
+
+    while True:
+        account_code = form_data.get(f"account_code_{index}") or form_data.get(f"account_{index}")
+        debit_raw = form_data.get(f"debit_{index}")
+        credit_raw = form_data.get(f"credit_{index}")
+        description = form_data.get(f"description_{index}", "")
+
+        if account_code:
+            debit = Decimal(debit_raw or "0")
+            credit = Decimal(credit_raw or "0")
+            lines.append(
+                {
+                    "accountCode": account_code,
+                    "debit": str(debit),
+                    "credit": str(credit),
+                    "description": description,
+                }
+            )
+
+        if not account_code and debit_raw is None and credit_raw is None:
+            break
+
+        index += 1
+        if index > 200:
+            break
+
+    if len(lines) < 2:
+        raise JavaErpClientError("Cal informar almenys dues linies comptables.")
+
+    total_debit = sum(Decimal(line["debit"]) for line in lines)
+    total_credit = sum(Decimal(line["credit"]) for line in lines)
+    if total_debit != total_credit:
+        raise JavaErpClientError("El deure i l'haver han de quadrar abans de crear l'assentament.")
+
+    return lines
+
+
+def _store_attachment(attachment: UploadFile | None) -> str | None:
+    if attachment is None or not attachment.filename:
+        return None
+
+    upload_dir = os.path.join("frontend", "static", "uploads", "accounting")
+    os.makedirs(upload_dir, exist_ok=True)
+    extension = os.path.splitext(attachment.filename)[1]
+    filename = f"{uuid.uuid4()}{extension}"
+    file_path = os.path.join(upload_dir, filename)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(attachment.file, buffer)
+
+    return f"/static/uploads/accounting/{filename}"
+
+
+def _to_journal_entry_view(entry: dict) -> SimpleNamespace:
+    lines = [_to_journal_line_view(line) for line in entry["lines"]]
+    total_debit = sum(line.debit for line in lines)
+    total_credit = sum(line.credit for line in lines)
+    return SimpleNamespace(
+        id=entry["id"],
+        entry_number=entry["formattedNumber"],
+        entry_date=_parse_date_value(entry["entryDate"]),
+        description=entry["description"],
+        status=SimpleNamespace(value=entry["status"]),
+        lines=lines,
+        total_debit=total_debit,
+        total_credit=total_credit,
     )
 
 
-# Export endpoints
-@router.get("/reports/balance-sheet/export")
-async def export_balance_sheet(request: Request, format: str = "pdf", end_date: str = None):
-    """Export balance sheet to PDF or Excel."""
-    end_date_obj = None
-    if end_date:
-        try:
-            end_date_obj = date.fromisoformat(end_date)
-        except ValueError:
-            pass
-    
-    balance_sheet = reporting_service.get_balance_sheet_report(end_date_obj)
-    
-    if format == "pdf":
-        # Get settings for logo/header
-        settings = settings_service.get_settings()
-        
-        # Render HTML template for PDF
-        html_content = templates.TemplateResponse(
-            "accounting/reports/balance_sheet_pdf.html",
-            {
-                "request": request,
-                "balance_sheet": balance_sheet,
-                "settings": settings
-            }
-        ).body.decode("utf-8")
-        
-        # Convert to PDF
-        pdf_bytes = document_service.generate_pdf(html_content)
-        
-        filename = f"balanc_situacio_{date.today().isoformat()}.pdf"
-        return Response(
-            content=pdf_bytes,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename={filename}"}
+def _to_journal_line_view(line: dict) -> SimpleNamespace:
+    return SimpleNamespace(
+        account_code=line["accountCode"],
+        account_name=line["accountName"],
+        description=line["description"] or "",
+        debit=_to_decimal(line["debit"]),
+        credit=_to_decimal(line["credit"]),
+    )
+
+
+def _to_trial_balance_view(report: dict) -> list[SimpleNamespace]:
+    return [
+        SimpleNamespace(
+            code=line["accountCode"],
+            name=line["accountName"],
+            type=line["accountType"],
+            balance=_to_decimal(line["balance"]),
         )
-    
-    else:  # excel (fallback to existing ReportExporter)
-        try:
-            # Create temporary file
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
-            ReportExporter.export_balance_sheet_to_excel(balance_sheet, temp_file.name)
-            
-            filename = f"balanc_situacio_{date.today().isoformat()}.xlsx"
-            return FileResponse(
-                temp_file.name,
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                filename=filename
+        for line in report["lines"]
+    ]
+
+
+def _to_ledger_view(report: dict) -> SimpleNamespace:
+    return SimpleNamespace(
+        account_code=report["accountCode"],
+        account_name=report["accountName"],
+        start_date=_parse_date_value(report["startDate"]),
+        end_date=_parse_date_value(report["endDate"]),
+        final_balance=_to_decimal(report["finalBalance"]),
+        lines=[
+            SimpleNamespace(
+                entry_id=line["entryId"],
+                entry_number=line["formattedNumber"],
+                entry_date=_parse_date_value(line["entryDate"]),
+                entry_description=line["entryDescription"],
+                line_description=line["lineDescription"] or "",
+                debit=_to_decimal(line["debit"]),
+                credit=_to_decimal(line["credit"]),
+                running_balance=_to_decimal(line["runningBalance"]),
             )
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error generant Excel: {str(e)}")
+            for line in report["lines"]
+        ],
+    )
 
 
-@router.get("/reports/profit-loss/export")
-async def export_profit_loss(request: Request, format: str = "pdf", start_date: str = None, end_date: str = None):
-    """Export profit & loss statement to PDF or Excel."""
-    start_date_obj = None
-    end_date_obj = None
-    
-    if start_date:
-        try:
-            start_date_obj = date.fromisoformat(start_date)
-        except ValueError:
-            pass
-    if end_date:
-        try:
-            start_date_obj = date.fromisoformat(end_date) # BUG: Fixed copy paste error? No the variable is correct but value assignment was wrong?
-            # Wait, verify line 243 of existing code: try: end_date_obj = date.fromisoformat(end_date)
-            # Above logic was: if end_date: try: end_date_obj... 
-            # I must ensure I don't introduce bugs.
-            end_date_obj = date.fromisoformat(end_date)
-        except ValueError:
-            pass
-    
-    profit_loss = reporting_service.get_profit_loss_report(start_date_obj, end_date_obj)
-    
-    if format == "pdf":
-        settings = settings_service.get_settings()
-        
-        html_content = templates.TemplateResponse(
-            "accounting/reports/profit_loss_pdf.html",
-            {
-                "request": request,
-                "profit_loss": profit_loss,
-                "settings": settings
-            }
-        ).body.decode("utf-8")
-        
-        pdf_bytes = document_service.generate_pdf(html_content)
-        
-        filename = f"compte_pyg_{date.today().isoformat()}.pdf"
-        return Response(
-            content=pdf_bytes,
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename={filename}"}
+def _to_balance_sheet_view(report: dict) -> SimpleNamespace:
+    actiu_total = _to_decimal(report["totalAssets"])
+    passiu_total = _to_decimal(report["totalEquityAndLiabilities"])
+    return SimpleNamespace(
+        end_date=_parse_date_value(report["endDate"]),
+        actiu=SimpleNamespace(
+            no_corrent=_to_balance_section(report["nonCurrentAssets"]),
+            corrent=_to_balance_section(report["currentAssets"]),
+            total=actiu_total,
+        ),
+        patrimoni_net_i_passiu=SimpleNamespace(
+            patrimoni_net=_to_balance_section(report["equity"]),
+            passiu_no_corrent=_to_balance_section(report["nonCurrentLiabilities"]),
+            passiu_corrent=_to_balance_section(report["currentLiabilities"]),
+            total=passiu_total,
+        ),
+    )
+
+
+def _to_balance_section(section: dict) -> SimpleNamespace:
+    groups: dict[str, SimpleNamespace] = {}
+    for group in section["groups"]:
+        groups[group["name"]] = SimpleNamespace(
+            total=_to_decimal(group["total"]),
+            accounts=[
+                SimpleNamespace(
+                    code=line["code"],
+                    name=line["name"],
+                    balance=_to_decimal(line["balance"]),
+                )
+                for line in group["accounts"]
+            ],
         )
-    
-    else: # excel
-         try:
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
-            ReportExporter.export_profit_loss_to_excel(profit_loss, temp_file.name)
-            
-            filename = f"compte_pyg_{date.today().isoformat()}.xlsx"
-            return FileResponse(
-                temp_file.name,
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                filename=filename
-            )
-         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error generant Excel: {str(e)}")
+    return SimpleNamespace(total=_to_decimal(section["total"]), groups=groups)
 
 
-# JSON API
-@router.get("/api/accounts")
-async def api_list_accounts():
-    """API endpoint to list accounts."""
-    accounts = accounting_service.list_accounts()
-    return {
-        "accounts": [
-            {
-                "code": a.code,
-                "name": a.name,
-                "type": a.account_type.value,
-                "group": a.group
-            }
-            for a in accounts
-        ]
-    }
+def _to_profit_loss_view(report: dict) -> SimpleNamespace:
+    groups: dict[str, SimpleNamespace] = {}
+    for group in report["groups"]:
+        groups[group["name"]] = SimpleNamespace(
+            total=_to_decimal(group["total"]),
+            account_lines=[
+                SimpleNamespace(
+                    code=line["code"],
+                    name=line["name"],
+                    amount=_to_decimal(line["amount"]),
+                )
+                for line in group["lines"]
+            ],
+        )
+
+    return SimpleNamespace(
+        start_date=_parse_date_value(report["startDate"]),
+        end_date=_parse_date_value(report["endDate"]),
+        groups=groups,
+        resultat_explotacio=_to_decimal(report["operatingResult"]),
+        resultat_financer=_to_decimal(report["financialResult"]),
+        resultat_abans_impostos=_to_decimal(report["resultBeforeTax"]),
+        resultat_exercici=_to_decimal(report["resultForYear"]),
+    )
+
+
+def _parse_date_value(value: str | None) -> date | None:
+    if not value:
+        return None
+    return datetime.fromisoformat(value).date() if "T" in value else date.fromisoformat(value)
+
+
+def _to_decimal(value: Decimal | int | float | str) -> Decimal:
+    if isinstance(value, Decimal):
+        return value
+    return Decimal(str(value))

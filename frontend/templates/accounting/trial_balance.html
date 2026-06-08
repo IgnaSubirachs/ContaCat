@@ -1,77 +1,79 @@
-<!DOCTYPE html>
-<html lang="ca">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balanç de Comprovació - ERP Català</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-7">
+        <h1><i class="fas fa-clipboard-check me-2"></i>Balanç de Comprovació</h1>
+        <p class="text-muted mb-0">Saldos per compte a data de tancament</p>
+    </div>
+    <div class="col-md-5 text-end">
+        <form method="get" action="/accounting/reports/trial-balance" class="d-inline-flex align-items-center gap-2">
+            <label for="end_date" class="form-label mb-0 small text-muted">Fins a</label>
+            <input type="date" id="end_date" name="end_date" class="form-control form-control-sm" style="width: auto;">
+            <button type="submit" class="btn btn-sm btn-primary">
+                <i class="fas fa-filter me-1"></i> Filtrar
+            </button>
+        </form>
+    </div>
+</div>
 
-<body>
-    <nav>
-        <div style="font-weight: 700; font-size: 1.2rem;">ERP Català</div>
-        <div>
-            <a href="/">Inici</a>
-            <a href="/accounting">Comptabilitat</a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h1>Balanç de Comprovació</h1>
-            <div>
-                <a href="/accounting/journal" class="btn" style="margin-right: 1rem;">Llibre Diari</a>
-                <a href="/accounts/" class="btn">Pla Comptable</a>
-            </div>
-        </div>
-
-        <div class="card">
-            {% if trial_balance %}
-            <table>
-                <thead>
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        {% if trial_balance %}
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-light">
                     <tr>
-                        <th>Codi</th>
-                        <th>Compte</th>
-                        <th>Tipus</th>
-                        <th style="text-align: right;">Saldo Deutor</th>
-                        <th style="text-align: right;">Saldo Creditor</th>
+                        <th class="ps-4" style="width: 15%;">Codi</th>
+                        <th style="width: 45%;">Compte</th>
+                        <th style="width: 15%;">Tipus</th>
+                        <th class="text-end" style="width: 12%;">Deutor</th>
+                        <th class="text-end pe-4" style="width: 13%;">Creditor</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% set ns = namespace(total_debit=0, total_credit=0) %}
-                    {% for code, data in trial_balance.items() %}
+                    {% for line in trial_balance %}
                     <tr>
-                        <td><strong><a href="/accounting/ledger/{{ code }}"
-                                    style="text-decoration: none; color: var(--accent-color);">{{ code }}</a></strong>
+                        <td class="ps-4 font-monospace fw-bold">
+                            <a href="/accounting/ledger/{{ line.code }}" class="text-decoration-none">{{ line.code }}</a>
                         </td>
-                        <td>{{ data.name }}</td>
-                        <td>{{ data.type }}</td>
-                        <td class="amount text-success">
-                            {% if data.balance > 0 %}
-                            {{ "%.2f"|format(data.balance) }} €
-                            {% set ns.total_debit = ns.total_debit + data.balance %}
+                        <td>{{ line.name }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ line.type }}</span></td>
+                        <td class="text-end font-monospace">
+                            {% if line.balance > 0 %}
+                            {{ "%.2f"|format(line.balance) }} €
+                            {% set ns.total_debit = ns.total_debit + line.balance %}
+                            {% else %}
+                            -
                             {% endif %}
                         </td>
-                        <td class="amount text-danger">
-                            {% if data.balance < 0 %} {{ "%.2f" |format(data.balance|abs) }} € {% set
-                                ns.total_credit=ns.total_credit + data.balance|abs %} {% endif %} </td>
+                        <td class="text-end pe-4 font-monospace">
+                            {% if line.balance < 0 %}
+                            {{ "%.2f"|format(line.balance|abs) }} €
+                            {% set ns.total_credit = ns.total_credit + line.balance|abs %}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
-                    <tr class="total-row">
-                        <td colspan="3" style="text-align: right; padding-right: 1rem;">Totals:</td>
-                        <td class="amount text-success">{{ "%.2f"|format(ns.total_debit) }} €</td>
-                        <td class="amount text-danger">{{ "%.2f"|format(ns.total_credit) }} €</td>
-                    </tr>
                 </tbody>
+                <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td colspan="3" class="text-end">Totals</td>
+                        <td class="text-end font-monospace">{{ "%.2f"|format(ns.total_debit) }} €</td>
+                        <td class="text-end pe-4 font-monospace">{{ "%.2f"|format(ns.total_credit) }} €</td>
+                    </tr>
+                </tfoot>
             </table>
-            {% else %}
-            <p style="text-align: center; color: var(--text-secondary); padding: 2rem;">
-                No hi ha dades per mostrar.
-            </p>
-            {% endif %}
         </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted"><i class="fas fa-scale-balanced fa-3x"></i></div>
+            <h4 class="text-muted">No hi ha dades per mostrar</h4>
+        </div>
+        {% endif %}
     </div>
-</body>
-
-</html>
+</div>
+{% endblock %}

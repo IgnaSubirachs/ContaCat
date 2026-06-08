@@ -31,16 +31,6 @@
             <button type="submit" class="btn btn-sm btn-primary">
                 <i class="fas fa-filter"></i>
             </button>
-            <div class="btn-group btn-group-sm ms-2">
-                <a href="/accounting/reports/profit-loss/export?format=pdf{% if profit_loss.start_date %}&start_date={{ profit_loss.start_date.isoformat() }}{% endif %}{% if profit_loss.end_date %}&end_date={{ profit_loss.end_date.isoformat() }}{% endif %}"
-                    class="btn btn-outline-danger">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </a>
-                <a href="/accounting/reports/profit-loss/export?format=excel{% if profit_loss.start_date %}&start_date={{ profit_loss.start_date.isoformat() }}{% endif %}{% if profit_loss.end_date %}&end_date={{ profit_loss.end_date.isoformat() }}{% endif %}"
-                    class="btn btn-outline-success">
-                    <i class="fas fa-file-excel"></i> Excel
-                </a>
-            </div>
         </form>
     </div>
 </div>

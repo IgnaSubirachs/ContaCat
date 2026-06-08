@@ -17,19 +17,19 @@ El modul `backend-java` ja incorpora:
 
 - Spring Boot 3.5.x.
 - JPA/Hibernate amb Flyway.
-- Model core: empreses, magatzems, productes, impostos i sequencies documentals.
-- CRUD inicial d'empreses.
-- Servei transaccional per reservar numeros documentals.
-- Seed inicial d'una empresa demo i sequencies per a factures de venda, factures de compra i assentaments.
+- Model core: empreses, magatzems, productes, impostos, partners, comptes i assentaments.
+- Informes comptables: balanc de comprovacio, llibre major, balanc de situacio i perdues i guanys.
+- Tests unitaris, d'arquitectura i integracio MySQL amb Testcontainers quan Docker es disponible.
 
 Endpoints principals:
 
 - `GET /api/core/companies`
 - `GET /api/core/companies/{id}`
-- `POST /api/core/companies`
-- `PUT /api/core/companies/{id}`
-- `DELETE /api/core/companies/{id}`
-- `POST /api/core/sequences/next`
+- `GET /api/core/companies/{companyId}/accounts`
+- `GET /api/core/companies/{companyId}/journal-entries`
+- `GET /api/core/companies/{companyId}/accounting/reports/trial-balance`
+- `GET /api/core/companies/{companyId}/accounting/reports/balance-sheet`
+- `GET /api/core/companies/{companyId}/accounting/reports/profit-loss`
 
 ## Requisits
 
@@ -63,13 +63,32 @@ $env:DB_PASSWORD='password'
 mvn -f backend-java\pom.xml spring-boot:run
 ```
 
+## Primera UI visible sobre el backend Java
+
+La capa FastAPI ja pot renderitzar comptabilitat llegint del backend Spring Boot. Configura aquestes variables abans d'arrencar la UI Python:
+
+```powershell
+$env:JAVA_ERP_BASE_URL='http://localhost:8080'
+# Opcional: fixa una empresa concreta del backend Java
+# $env:JAVA_ERP_COMPANY_ID='...'
+uvicorn app.interface.api.main:app --reload
+```
+
+Amb aquesta configuracio ja es poden veure des de la UI existent:
+
+- `/accounts/`
+- `/accounting/`
+- `/accounting/journal`
+- `/accounting/reports/trial-balance`
+- `/accounting/reports/balance-sheet`
+- `/accounting/reports/profit-loss`
+
 ## Proxims passos
 
-1. Crear endpoints core per productes, magatzems i impostos.
-2. Migrar clients/proveidors i documents comercials.
-3. Migrar comptabilitat: pla comptable, assentaments, diari i balanços.
-4. Afegir autenticacio i permisos al backend Java.
-5. Fer que el frontend consumeixi progressivament l'API Spring Boot.
+1. Connectar partners, productes i impostos del frontend al backend Java.
+2. Connectar vendes i compres contra el nucli comptable Java.
+3. Afegir autenticacio i permisos al backend Java.
+4. Substituir progressivament els dominis Python antics per adaptadors al backend Spring Boot.
 
 ## Notes de migracio
 
