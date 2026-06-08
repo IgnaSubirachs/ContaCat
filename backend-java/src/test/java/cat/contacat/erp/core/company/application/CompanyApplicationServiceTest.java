@@ -1,4 +1,4 @@
-package cat.contacat.erp.core.company;
+package cat.contacat.erp.core.company.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -6,8 +6,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import cat.contacat.erp.core.company.api.CompanyRequest;
-import cat.contacat.erp.core.company.api.CompanyResponse;
+import cat.contacat.erp.core.company.Company;
+import cat.contacat.erp.core.company.CompanyAlreadyExistsException;
+import cat.contacat.erp.core.company.CompanyRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,17 +17,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class CompanyServiceTest {
+class CompanyApplicationServiceTest {
 
     @Mock
     private CompanyRepository repository;
 
     @InjectMocks
-    private CompanyService service;
+    private CompanyApplicationService service;
 
     @Test
     void createNormalizesDefaultsAndPersistsCompany() {
-        CompanyRequest request = new CompanyRequest(" ContaCat ", " ContaCat SL ", " b12345678 ", null, null, null);
+        CompanyCommand command = new CompanyCommand(" ContaCat ", " ContaCat SL ", " b12345678 ", null, null, null);
 
         when(repository.findByTaxId("B12345678")).thenReturn(Optional.empty());
         when(repository.save(any(Company.class))).thenAnswer(invocation -> {
@@ -35,15 +36,15 @@ class CompanyServiceTest {
             return company;
         });
 
-        CompanyResponse response = service.create(request);
+        Company company = service.create(command);
 
-        assertThat(response.id()).isEqualTo("company-1");
-        assertThat(response.name()).isEqualTo("ContaCat");
-        assertThat(response.legalName()).isEqualTo("ContaCat SL");
-        assertThat(response.taxId()).isEqualTo("B12345678");
-        assertThat(response.country()).isEqualTo("ES");
-        assertThat(response.currency()).isEqualTo("EUR");
-        assertThat(response.active()).isTrue();
+        assertThat(company.getId()).isEqualTo("company-1");
+        assertThat(company.getName()).isEqualTo("ContaCat");
+        assertThat(company.getLegalName()).isEqualTo("ContaCat SL");
+        assertThat(company.getTaxId()).isEqualTo("B12345678");
+        assertThat(company.getCountry()).isEqualTo("ES");
+        assertThat(company.getCurrency()).isEqualTo("EUR");
+        assertThat(company.isActive()).isTrue();
     }
 
     @Test
@@ -52,10 +53,10 @@ class CompanyServiceTest {
         existing.setId("existing-company");
         existing.setTaxId("B12345678");
 
-        CompanyRequest request = new CompanyRequest("ContaCat", "ContaCat SL", "B12345678", "ES", "EUR", true);
+        CompanyCommand command = new CompanyCommand("ContaCat", "ContaCat SL", "B12345678", "ES", "EUR", true);
         when(repository.findByTaxId("B12345678")).thenReturn(Optional.of(existing));
 
-        assertThatThrownBy(() -> service.create(request))
+        assertThatThrownBy(() -> service.create(command))
             .isInstanceOf(CompanyAlreadyExistsException.class);
     }
 
@@ -67,19 +68,19 @@ class CompanyServiceTest {
         company.setLegalName("Old SL");
         company.setTaxId("B11111111");
 
-        CompanyRequest request = new CompanyRequest("New", "New SL", "b22222222", "pt", "eur", false);
+        CompanyCommand command = new CompanyCommand("New", "New SL", "b22222222", "pt", "eur", false);
         when(repository.findById("company-1")).thenReturn(Optional.of(company));
         when(repository.findByTaxId("B22222222")).thenReturn(Optional.empty());
         when(repository.save(company)).thenReturn(company);
 
-        CompanyResponse response = service.update("company-1", request);
+        Company response = service.update("company-1", command);
 
-        assertThat(response.name()).isEqualTo("New");
-        assertThat(response.legalName()).isEqualTo("New SL");
-        assertThat(response.taxId()).isEqualTo("B22222222");
-        assertThat(response.country()).isEqualTo("PT");
-        assertThat(response.currency()).isEqualTo("EUR");
-        assertThat(response.active()).isFalse();
+        assertThat(response.getName()).isEqualTo("New");
+        assertThat(response.getLegalName()).isEqualTo("New SL");
+        assertThat(response.getTaxId()).isEqualTo("B22222222");
+        assertThat(response.getCountry()).isEqualTo("PT");
+        assertThat(response.getCurrency()).isEqualTo("EUR");
+        assertThat(response.isActive()).isFalse();
     }
 
     @Test

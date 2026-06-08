@@ -1,8 +1,7 @@
 package cat.contacat.erp.core.company.api;
 
-import cat.contacat.erp.core.company.CompanyAlreadyExistsException;
-import cat.contacat.erp.core.company.CompanyNotFoundException;
-import cat.contacat.erp.core.company.CompanyService;
+import cat.contacat.erp.core.company.application.CompanyApplicationService;
+import cat.contacat.erp.core.company.application.CompanyCommand;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -20,35 +19,46 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/core/companies")
 public class CompanyController {
 
-    private final CompanyService service;
+    private final CompanyApplicationService service;
 
-    public CompanyController(CompanyService service) {
+    public CompanyController(CompanyApplicationService service) {
         this.service = service;
     }
 
     @GetMapping
     public List<CompanyResponse> list() {
-        return service.list();
+        return service.list().stream().map(CompanyResponse::from).toList();
     }
 
     @GetMapping("/{id}")
     public CompanyResponse get(@PathVariable String id) {
-        return service.get(id);
+        return CompanyResponse.from(service.get(id));
     }
 
     @PostMapping
     public ResponseEntity<CompanyResponse> create(@Valid @RequestBody CompanyRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(CompanyResponse.from(service.create(toCommand(request))));
     }
 
     @PutMapping("/{id}")
     public CompanyResponse update(@PathVariable String id, @Valid @RequestBody CompanyRequest request) {
-        return service.update(id, request);
+        return CompanyResponse.from(service.update(id, toCommand(request)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deactivate(@PathVariable String id) {
         service.deactivate(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private CompanyCommand toCommand(CompanyRequest request) {
+        return new CompanyCommand(
+            request.name(),
+            request.legalName(),
+            request.taxId(),
+            request.country(),
+            request.currency(),
+            request.active()
+        );
     }
 }
