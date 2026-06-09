@@ -96,7 +96,9 @@ celerybeat.pid
 
 # Environments
 .env
-.venv
+.env.*
+!.env.example
+.venv/
 env/
 venv/
 ENV/
@@ -142,11 +144,25 @@ cython_debug/
 # PyCharm
 .idea/
 
+# Java / Maven / Eclipse
+**/target/
+*.class
+hs_err_pid*
+replay_pid*
+.classpath
+.project
+.settings/
+
 # Windows
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+*.stackdump
 
 # ERP Specific
 *.exe
-scripts/
+frontend/static/uploads/
+storage/
+*.db-journal
+*.db-wal
+*.db-shm
