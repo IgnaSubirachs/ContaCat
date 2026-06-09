@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional
+from datetime import date
 import uuid
 
 from app.domain.validators.nif_cif_validator import DocumentValidator
@@ -35,6 +36,31 @@ class Partner:
     iban: str = ""
     payment_method: str = "TRANSFER"  # TRANSFER, CASH, CARD, CHECK, DIRECT_DEBIT
     payment_days: int = 30  # Payment term in days
+
+    # Extended commercial profile
+    trade_name: str = ""
+    contact_person: str = ""
+    mobile: str = ""
+    website: str = ""
+    customer_code: str = ""
+    supplier_code: str = ""
+    relationship_status: str = "ACTIVE"  # PROSPECT, ACTIVE, INACTIVE, BLOCKED
+    relationship_since: Optional[date] = None
+    sales_representative: str = ""
+    price_list: str = ""
+    default_discount: float = 0.0
+    credit_limit: float = 0.0
+    payment_day: int = 0
+    customer_account: str = ""
+    supplier_account: str = ""
+
+    # Extended banking, contracts and accounting notes
+    bank_name: str = ""
+    bank_account_holder: str = ""
+    swift_bic: str = ""
+    contract_summary: str = ""
+    accrual_notes: str = ""
+    internal_notes: str = ""
     
     id: Optional[str] = None
     
@@ -76,6 +102,18 @@ class Partner:
         # Validate payment days
         if self.payment_days < 0:
             raise ValueError("Els dies de pagament no poden ser negatius")
+
+        if self.payment_day < 0 or self.payment_day > 31:
+            raise ValueError("El dia de pagament ha d'estar entre 0 i 31")
+
+        if self.default_discount < 0 or self.default_discount > 100:
+            raise ValueError("El descompte ha d'estar entre 0 i 100")
+
+        if self.credit_limit < 0:
+            raise ValueError("El límit de crèdit no pot ser negatiu")
+
+        if self.swift_bic and len(self.swift_bic.replace(" ", "")) not in (8, 11):
+            raise ValueError("El codi SWIFT/BIC ha de tenir 8 o 11 caràcters")
     
     @property
     def full_address(self) -> str:

@@ -31,7 +31,7 @@
                 <tbody>
                     {% for partner in partners %}
                     <tr>
-                        <td class="fw-bold">{{ partner.name }}</td>
+                        <td class="fw-bold"><a href="/partners/view/{{ partner.id }}" class="text-decoration-none">{{ partner.name }}</a>{% if partner.trade_name %}<div class="small text-muted">{{ partner.trade_name }}</div>{% endif %}</td>
                         <td class="font-monospace">{{ partner.tax_id }}</td>
                         <td>
                             {% if partner.email %}
@@ -50,6 +50,10 @@
                             {% endif %}
                         </td>
                         <td>
+                            <a href="/partners/view/{{ partner.id }}" class="btn btn-sm btn-outline-secondary"
+                                title="Veure">
+                                <i class="fas fa-eye"></i>
+                            </a>
                             <a href="/partners/edit/{{ partner.id }}" class="btn btn-sm btn-outline-primary"
                                 title="Editar">
                                 <i class="fas fa-pencil-alt"></i>

@@ -33,6 +33,16 @@ def init_db():
     from app.infrastructure.persistence.auth.repositories import UserModel  # noqa: F401
     from app.infrastructure.persistence.fiscal.models import FiscalYearModel  # noqa: F401
     from app.infrastructure.persistence.treasury.models import BankAccountModel  # noqa: F401
+    from app.infrastructure.persistence.banking.models import BankStatementModel, BankStatementLineModel  # noqa: F401
+    from app.infrastructure.persistence.budgets.models import BudgetModel, BudgetLineModel  # noqa: F401
+    from app.infrastructure.persistence.finance.models import LoanModel, AmortizationEntryModel  # noqa: F401
+    from app.infrastructure.persistence.purchases.models import (  # noqa: F401
+        PurchaseOrderModel,
+        PurchaseOrderLineModel,
+        PurchaseInvoiceModel,
+        PurchaseInvoiceLineModel,
+    )
+    from app.infrastructure.persistence.settings.models import CompanySettingsModel  # noqa: F401
     from app.infrastructure.persistence.core.models import (  # noqa: F401
         CompanyModel,
         DocumentSequenceModel,

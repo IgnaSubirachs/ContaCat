@@ -32,6 +32,7 @@ class PartnerService:
         iban: str = "",
         payment_method: str = "TRANSFER",
         payment_days: int = 30,
+        **extended_fields,
     ) -> Partner:
         """Create a new partner."""
         # Check if tax_id already exists
@@ -61,6 +62,7 @@ class PartnerService:
             iban=iban,
             payment_method=payment_method,
             payment_days=payment_days,
+            **extended_fields,
         )
         partner.validate()
         
@@ -108,6 +110,7 @@ class PartnerService:
         iban: str = "",
         payment_method: str = "TRANSFER",
         payment_days: int = 30,
+        **extended_fields,
     ) -> Partner:
         """Update an existing partner."""
         partner = self._repository.find_by_id(partner_id)
@@ -133,6 +136,9 @@ class PartnerService:
         partner.iban = iban
         partner.payment_method = payment_method
         partner.payment_days = payment_days
+        for field_name, value in extended_fields.items():
+            if hasattr(partner, field_name):
+                setattr(partner, field_name, value)
         
         partner.validate()
         self._repository.update(partner)

@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean, Integer
+from sqlalchemy import String, Boolean, Integer, Float, Date, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.db.base import Base
@@ -35,6 +35,28 @@ class PartnerModel(Base):
     iban: Mapped[str] = mapped_column(String(34), default="")
     payment_method: Mapped[str] = mapped_column(String(50), default="TRANSFER")
     payment_days: Mapped[int] = mapped_column(Integer, default=30)
+
+    trade_name: Mapped[str] = mapped_column(String(200), default="")
+    contact_person: Mapped[str] = mapped_column(String(150), default="")
+    mobile: Mapped[str] = mapped_column(String(20), default="")
+    website: Mapped[str] = mapped_column(String(255), default="")
+    customer_code: Mapped[str] = mapped_column(String(50), default="")
+    supplier_code: Mapped[str] = mapped_column(String(50), default="")
+    relationship_status: Mapped[str] = mapped_column(String(20), default="ACTIVE")
+    relationship_since: Mapped[Date | None] = mapped_column(Date, nullable=True)
+    sales_representative: Mapped[str] = mapped_column(String(150), default="")
+    price_list: Mapped[str] = mapped_column(String(100), default="")
+    default_discount: Mapped[float] = mapped_column(Float, default=0)
+    credit_limit: Mapped[float] = mapped_column(Float, default=0)
+    payment_day: Mapped[int] = mapped_column(Integer, default=0)
+    customer_account: Mapped[str] = mapped_column(String(20), default="")
+    supplier_account: Mapped[str] = mapped_column(String(20), default="")
+    bank_name: Mapped[str] = mapped_column(String(150), default="")
+    bank_account_holder: Mapped[str] = mapped_column(String(200), default="")
+    swift_bic: Mapped[str] = mapped_column(String(11), default="")
+    contract_summary: Mapped[str] = mapped_column(Text, default="")
+    accrual_notes: Mapped[str] = mapped_column(Text, default="")
+    internal_notes: Mapped[str] = mapped_column(Text, default="")
 
     def __repr__(self) -> str:
         return f"<PartnerModel {self.tax_id} - {self.name}>"

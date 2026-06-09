@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="mb-1">{{ partner.name }}</h1>
+        <div class="text-muted">{{ partner.trade_name or partner.tax_id }}</div>
+        <div class="mt-2">
+            {% if partner.is_customer %}<span class="badge bg-primary">Client</span>{% endif %}
+            {% if partner.is_supplier %}<span class="badge bg-warning text-dark">Proveïdor</span>{% endif %}
+            <span class="badge bg-secondary">{{ partner.relationship_status }}</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/partners/" class="btn btn-outline-secondary">Tornar</a>
+        <a href="/partners/edit/{{ partner.id }}" class="btn btn-primary"><i class="fas fa-pencil-alt me-1"></i>Editar</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100"><div class="card-header fw-bold">Identificació i contacte</div><div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-4">NIF / CIF</dt><dd class="col-8 font-monospace">{{ partner.tax_id }}</dd>
+                <dt class="col-4">Contacte</dt><dd class="col-8">{{ partner.contact_person or '-' }}</dd>
+                <dt class="col-4">Email</dt><dd class="col-8">{{ partner.email or '-' }}</dd>
+                <dt class="col-4">Telèfons</dt><dd class="col-8">{{ partner.phone or '-' }}{% if partner.mobile %} / {{ partner.mobile }}{% endif %}</dd>
+                <dt class="col-4">Web</dt><dd class="col-8">{{ partner.website or '-' }}</dd>
+                <dt class="col-4">Adreça</dt><dd class="col-8">{{ partner.full_address or '-' }}</dd>
+            </dl>
+        </div></div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100"><div class="card-header fw-bold">Fiscalitat i relació</div><div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-5">Règim IVA</dt><dd class="col-7">{{ partner.vat_regime }}</dd>
+                <dt class="col-5">NIF intracomunitari</dt><dd class="col-7">{{ partner.eu_vat_number or '-' }}</dd>
+                <dt class="col-5">Codis intern</dt><dd class="col-7">{{ partner.customer_code or '-' }} / {{ partner.supplier_code or '-' }}</dd>
+                <dt class="col-5">Relació des de</dt><dd class="col-7">{{ partner.relationship_since or '-' }}</dd>
+                <dt class="col-5">Comercial</dt><dd class="col-7">{{ partner.sales_representative or '-' }}</dd>
+                <dt class="col-5">Tarifa / descompte</dt><dd class="col-7">{{ partner.price_list or '-' }} / {{ partner.default_discount }}%</dd>
+            </dl>
+        </div></div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100"><div class="card-header fw-bold">Banca i pagament</div><div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-5">IBAN</dt><dd class="col-7 font-monospace">{{ partner.formatted_iban or '-' }}</dd>
+                <dt class="col-5">SWIFT / BIC</dt><dd class="col-7 font-monospace">{{ partner.swift_bic or '-' }}</dd>
+                <dt class="col-5">Banc / titular</dt><dd class="col-7">{{ partner.bank_name or '-' }} / {{ partner.bank_account_holder or '-' }}</dd>
+                <dt class="col-5">Pagament</dt><dd class="col-7">{{ partner.payment_method }}, {{ partner.payment_days }} dies{% if partner.payment_day %}, dia {{ partner.payment_day }}{% endif %}</dd>
+                <dt class="col-5">Límit de crèdit</dt><dd class="col-7">{{ "%.2f"|format(partner.credit_limit) }} €</dd>
+                <dt class="col-5">Comptes</dt><dd class="col-7">{{ partner.customer_account or '-' }} / {{ partner.supplier_account or '-' }}</dd>
+            </dl>
+        </div></div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100"><div class="card-header fw-bold">Contractes i periodificacions</div><div class="card-body">
+            <h6>Contractes i acords</h6><p class="text-pre-wrap">{{ partner.contract_summary or 'Sense informació registrada.' }}</p>
+            <h6 class="mt-4">Criteris de periodificació</h6><p class="text-pre-wrap">{{ partner.accrual_notes or 'Sense informació registrada.' }}</p>
+        </div></div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm"><div class="card-header fw-bold">Notes internes</div><div class="card-body"><p class="mb-0 text-pre-wrap">{{ partner.internal_notes or 'Sense notes.' }}</p></div></div>
+    </div>
+</div>
+{% endblock %}

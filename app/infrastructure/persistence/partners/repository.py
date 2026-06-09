@@ -92,6 +92,8 @@ class SqlAlchemyPartnerRepository(PartnerRepository):
             model.iban = partner.iban
             model.payment_method = partner.payment_method
             model.payment_days = partner.payment_days
+            for field_name in self._extended_fields():
+                setattr(model, field_name, getattr(partner, field_name))
             
             session.commit()
         finally:
@@ -136,6 +138,7 @@ class SqlAlchemyPartnerRepository(PartnerRepository):
             iban=model.iban,
             payment_method=model.payment_method,
             payment_days=model.payment_days,
+            **{field: getattr(model, field) for field in self._extended_fields()},
         )
     
     def _entity_to_model(self, partner: Partner) -> PartnerModel:
@@ -162,4 +165,17 @@ class SqlAlchemyPartnerRepository(PartnerRepository):
             iban=partner.iban,
             payment_method=partner.payment_method,
             payment_days=partner.payment_days,
+            **{field: getattr(partner, field) for field in self._extended_fields()},
+        )
+
+    @staticmethod
+    def _extended_fields() -> tuple[str, ...]:
+        return (
+            "trade_name", "contact_person", "mobile", "website",
+            "customer_code", "supplier_code", "relationship_status",
+            "relationship_since", "sales_representative", "price_list",
+            "default_discount", "credit_limit", "payment_day",
+            "customer_account", "supplier_account", "bank_name",
+            "bank_account_holder", "swift_bic", "contract_summary",
+            "accrual_notes", "internal_notes",
         )

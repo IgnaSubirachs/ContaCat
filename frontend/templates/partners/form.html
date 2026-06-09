@@ -1,0 +1,82 @@
+{% set p = partner if partner is defined else none %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-1"><i class="fas fa-address-card me-2"></i>{{ form_title }}</h1>
+        <p class="text-muted mb-0">Fitxa fiscal, comercial, bancària i comptable del tercer</p>
+    </div>
+    <a href="/partners/" class="btn btn-outline-secondary">Tornar</a>
+</div>
+
+<form method="post" action="{{ form_action }}">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold">Identificació i contacte</div>
+        <div class="card-body row g-3">
+            <div class="col-md-6"><label class="form-label">Raó social *</label><input class="form-control" name="name" required value="{{ p.name if p else '' }}"></div>
+            <div class="col-md-6"><label class="form-label">Nom comercial</label><input class="form-control" name="trade_name" value="{{ p.trade_name if p else '' }}"></div>
+            {% if not p %}<div class="col-md-4"><label class="form-label">NIF / CIF *</label><input class="form-control" name="tax_id" required></div>{% endif %}
+            <div class="col-md-4"><label class="form-label">Tipus document</label><select class="form-select" name="document_type">{% for value in ['NIF','CIF','NIE','PASSPORT','INTRA_EU'] %}<option value="{{ value }}" {% if p and p.document_type == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></div>
+            <div class="col-md-4"><label class="form-label">Persona de contacte</label><input class="form-control" name="contact_person" value="{{ p.contact_person if p else '' }}"></div>
+            <div class="col-md-4"><label class="form-label">Email *</label><input type="email" class="form-control" name="email" required value="{{ p.email if p else '' }}"></div>
+            <div class="col-md-4"><label class="form-label">Telèfon *</label><input class="form-control" name="phone" required value="{{ p.phone if p else '' }}"></div>
+            <div class="col-md-4"><label class="form-label">Mòbil</label><input class="form-control" name="mobile" value="{{ p.mobile if p else '' }}"></div>
+            <div class="col-md-6"><label class="form-label">Web</label><input class="form-control" name="website" value="{{ p.website if p else '' }}"></div>
+            <div class="col-md-6 d-flex align-items-end gap-4 pb-2">
+                <div class="form-check"><input class="form-check-input" type="checkbox" name="is_customer" id="is_customer" {% if p and p.is_customer %}checked{% endif %}><label class="form-check-label" for="is_customer">Client</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" name="is_supplier" id="is_supplier" {% if p and p.is_supplier %}checked{% endif %}><label class="form-check-label" for="is_supplier">Proveïdor</label></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold">Fiscalitat i adreça</div>
+        <div class="card-body row g-3">
+            <div class="col-md-6"><label class="form-label">Adreça</label><input class="form-control" name="address_street" value="{{ p.address_street if p else '' }}"></div>
+            <div class="col-md-2"><label class="form-label">Número</label><input class="form-control" name="address_number" value="{{ p.address_number if p else '' }}"></div>
+            <div class="col-md-4"><label class="form-label">Pis / porta</label><input class="form-control" name="address_floor" value="{{ p.address_floor if p else '' }}"></div>
+            <div class="col-md-3"><label class="form-label">Codi postal</label><input class="form-control" name="postal_code" value="{{ p.postal_code if p else '' }}"></div>
+            <div class="col-md-3"><label class="form-label">Població</label><input class="form-control" name="city" value="{{ p.city if p else '' }}"></div>
+            <div class="col-md-3"><label class="form-label">Província</label><input class="form-control" name="province" value="{{ p.province if p else '' }}"></div>
+            <div class="col-md-3"><label class="form-label">País</label><input class="form-control" name="country" value="{{ p.country if p else 'Espanya' }}"></div>
+            <div class="col-md-4"><label class="form-label">Règim IVA</label><select class="form-select" name="vat_regime">{% for value in ['GENERAL','REDUCED','SUPER_REDUCED','EXEMPT','REVERSE_CHARGE','EQUIVALENCE'] %}<option value="{{ value }}" {% if p and p.vat_regime == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></div>
+            <div class="col-md-4"><label class="form-label">NIF intracomunitari</label><input class="form-control" name="eu_vat_number" value="{{ p.eu_vat_number if p else '' }}"></div>
+            <div class="col-md-4 d-flex align-items-end pb-2"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_intra_eu" id="is_intra_eu" {% if p and p.is_intra_eu %}checked{% endif %}><label class="form-check-label" for="is_intra_eu">Operador intracomunitari</label></div></div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold">Relació comercial i comptabilitat</div>
+        <div class="card-body row g-3">
+            <div class="col-md-3"><label class="form-label">Codi client</label><input class="form-control" name="customer_code" value="{{ p.customer_code if p else '' }}"></div>
+            <div class="col-md-3"><label class="form-label">Codi proveïdor</label><input class="form-control" name="supplier_code" value="{{ p.supplier_code if p else '' }}"></div>
+            <div class="col-md-3"><label class="form-label">Estat relació</label><select class="form-select" name="relationship_status">{% for value in ['PROSPECT','ACTIVE','INACTIVE','BLOCKED'] %}<option value="{{ value }}" {% if (p and p.relationship_status == value) or (not p and value == 'ACTIVE') %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></div>
+            <div class="col-md-3"><label class="form-label">Relació des de</label><input type="date" class="form-control" name="relationship_since" value="{{ p.relationship_since.isoformat() if p and p.relationship_since else '' }}"></div>
+            <div class="col-md-4"><label class="form-label">Comercial responsable</label><input class="form-control" name="sales_representative" value="{{ p.sales_representative if p else '' }}"></div>
+            <div class="col-md-4"><label class="form-label">Tarifa</label><input class="form-control" name="price_list" value="{{ p.price_list if p else '' }}"></div>
+            <div class="col-md-2"><label class="form-label">Descompte %</label><input type="number" min="0" max="100" step="0.01" class="form-control" name="default_discount" value="{{ p.default_discount if p else 0 }}"></div>
+            <div class="col-md-2"><label class="form-label">Límit crèdit</label><input type="number" min="0" step="0.01" class="form-control" name="credit_limit" value="{{ p.credit_limit if p else 0 }}"></div>
+            <div class="col-md-3"><label class="form-label">Compte client</label><input class="form-control" name="customer_account" value="{{ p.customer_account if p else '' }}"></div>
+            <div class="col-md-3"><label class="form-label">Compte proveïdor</label><input class="form-control" name="supplier_account" value="{{ p.supplier_account if p else '' }}"></div>
+            <div class="col-md-3"><label class="form-label">Forma de pagament</label><select class="form-select" name="payment_method">{% for value in ['TRANSFER','DIRECT_DEBIT','CASH','CARD','CHECK'] %}<option value="{{ value }}" {% if p and p.payment_method == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select></div>
+            <div class="col-md-2"><label class="form-label">Termini (dies)</label><input type="number" min="0" class="form-control" name="payment_days" value="{{ p.payment_days if p else 30 }}"></div>
+            <div class="col-md-1"><label class="form-label">Dia</label><input type="number" min="0" max="31" class="form-control" name="payment_day" value="{{ p.payment_day if p else 0 }}"></div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold">Banca, contractes i periodificacions</div>
+        <div class="card-body row g-3">
+            <div class="col-md-4"><label class="form-label">Entitat bancària</label><input class="form-control" name="bank_name" value="{{ p.bank_name if p else '' }}"></div>
+            <div class="col-md-4"><label class="form-label">Titular del compte</label><input class="form-control" name="bank_account_holder" value="{{ p.bank_account_holder if p else '' }}"></div>
+            <div class="col-md-4"><label class="form-label">SWIFT / BIC</label><input class="form-control text-uppercase" name="swift_bic" maxlength="11" value="{{ p.swift_bic if p else '' }}"></div>
+            <div class="col-12"><label class="form-label">IBAN</label><input class="form-control font-monospace" name="iban" value="{{ p.iban if p else '' }}"></div>
+            <div class="col-md-6"><label class="form-label">Contractes i acords</label><textarea class="form-control" name="contract_summary" rows="5">{{ p.contract_summary if p else '' }}</textarea></div>
+            <div class="col-md-6"><label class="form-label">Criteris de periodificació</label><textarea class="form-control" name="accrual_notes" rows="5">{{ p.accrual_notes if p else '' }}</textarea></div>
+            <div class="col-12"><label class="form-label">Notes internes</label><textarea class="form-control" name="internal_notes" rows="4">{{ p.internal_notes if p else '' }}</textarea></div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mb-5">
+        <a href="/partners/" class="btn btn-outline-secondary">Cancel·lar</a>
+        <button class="btn btn-primary px-4" type="submit">{{ submit_label }}</button>
+    </div>
+</form>
