@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+import json
 import socket
 from urllib.parse import urlparse
+from urllib.request import urlopen
 
 from sqlalchemy import text
 
@@ -53,9 +55,20 @@ def _check_java_backend() -> tuple[bool, str]:
     parsed = urlparse(JAVA_ERP_BASE_URL)
     host = parsed.hostname or "localhost"
     port = parsed.port or (443 if parsed.scheme == "https" else 80)
+
     try:
         with socket.create_connection((host, port), timeout=0.35):
-            return True, "Backend comptable disponible"
+            pass
     except OSError:
-        pass
-    return False, "Backend Java aturat; diari i informes comptables no estan disponibles"
+        return False, "Backend Java aturat; diari i informes comptables no estan disponibles"
+
+    health_url = f"{JAVA_ERP_BASE_URL.rstrip('/')}/actuator/health"
+    try:
+        with urlopen(health_url, timeout=0.75) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        if payload.get("status") == "UP":
+            return True, "Backend comptable disponible"
+    except Exception:
+        return False, "Backend Java respon per port pero no esta operatiu"
+
+    return False, "Backend Java disponible pero amb estat no saludable"

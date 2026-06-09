@@ -97,6 +97,7 @@ class PartnerService:
         is_supplier: bool,
         is_customer: bool,
         # Fiscal data
+        document_type: str = "NIF",
         address_street: str = "",
         address_number: str = "",
         address_floor: str = "",
@@ -123,6 +124,7 @@ class PartnerService:
         partner.phone = phone
         partner.is_supplier = is_supplier
         partner.is_customer = is_customer
+        partner.document_type = document_type
         partner.address_street = address_street
         partner.address_number = address_number
         partner.address_floor = address_floor

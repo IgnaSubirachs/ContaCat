@@ -93,6 +93,13 @@ Treball pendent:
 5. Connectar les pantalles `/partners/` exclusivament al backend Java.
 6. Fer proves de paritat i retirar la persistencia Python de partners.
 
+### Regla especifica mentre partners no estigui migrat a Java
+
+- No s'afegeixen nous camps funcionals de partners nomes al model Python.
+- Si cal una millora urgent de UI, es permet nomes a nivell de presentacio.
+- Qualsevol ampliacio de dades de partners ha de neixer a `backend-java` i
+  arribar a FastAPI a traves de l'adaptador.
+
 Despres de partners, l'ordre recomanat es:
 
 1. Comptabilitat i pla comptable, completant la integracio ja iniciada.
