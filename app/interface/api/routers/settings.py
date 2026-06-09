@@ -6,10 +6,14 @@ from app.infrastructure.db.base import SessionLocal
 from app.domain.settings.services import SettingsService
 from app.domain.settings.entities import CompanySettings
 from app.infrastructure.persistence.settings.repository import SqlAlchemyCompanySettingsRepository
-from app.domain.auth.dependencies import get_current_user_or_redirect
+from app.domain.auth.dependencies import get_current_user_or_redirect, get_current_active_user
 from app.domain.auth.entities import User
 
-router = APIRouter(prefix="/settings", tags=["settings"])
+router = APIRouter(
+    prefix="/settings",
+    tags=["settings"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 def get_settings_service():
     repo = SqlAlchemyCompanySettingsRepository(SessionLocal)

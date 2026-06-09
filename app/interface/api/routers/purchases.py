@@ -11,6 +11,7 @@ from app.domain.auth.dependencies import get_current_active_user
 
 from app.domain.purchases.entities import PurchaseOrderLine, PurchaseInvoiceLine
 from app.domain.purchases.services import PurchaseOrderService, PurchaseInvoiceService
+from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
 
 router = APIRouter(
     prefix="/purchases",

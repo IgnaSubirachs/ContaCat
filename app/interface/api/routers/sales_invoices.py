@@ -16,9 +16,14 @@ from app.infrastructure.persistence.sales.repository import (
 from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
 from app.infrastructure.persistence.accounts.repository import SqlAlchemyAccountRepository
 from app.infrastructure.persistence.accounting.repository import SqlAlchemyJournalRepository
+from app.domain.auth.dependencies import get_current_active_user
 
 
-router = APIRouter(prefix="/sales/invoices", tags=["sales_invoices"])
+router = APIRouter(
+    prefix="/sales/invoices",
+    tags=["sales_invoices"],
+    dependencies=[Depends(get_current_active_user)],
+)
 from app.interface.api.templates import templates
 
 

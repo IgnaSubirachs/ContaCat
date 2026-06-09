@@ -43,7 +43,8 @@ class DashboardService:
             # If not, let's assume all lines are pending if not linked to JE? 
             # I'll check model later. For now, assume a query.
             # Let's count all lines in DB for now as "Transactions".
-            pending_conciliation = session.query(func.count(BankStatementLineModel.id)).scalar() or 0
+            pending_conciliation = session.query(func.count(BankStatementLineModel.id))\
+                .filter(BankStatementLineModel.status != "MATCHED").scalar() or 0
             
             # 3. Cash Balance (Accounts 57%)
             # Sum of Debits - Credits for accounts starting with 57

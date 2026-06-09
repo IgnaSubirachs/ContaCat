@@ -12,6 +12,36 @@ Migrar ContaCat cap a un backend Java/Spring Boot sense perdre el coneixement fu
 4. Migrar modul a modul amb tests de paritat.
 5. Desactivar endpoints Python quan el modul Java equivalent estigui validat.
 
+## Regla de desenvolupament a partir d'ara
+
+No s'afegeix nova logica de negoci nomes a Python.
+
+Cada millora funcional s'implementa com un tall vertical:
+
+1. Definir el comportament professional, les regles de negoci i el contracte REST.
+2. Implementar domini, servei d'aplicacio, migracio Flyway i API a Java.
+3. Cobrir regles i regressions amb tests Java.
+4. Connectar la UI FastAPI a l'API Java mitjancant un adaptador.
+5. Fer proves de paritat i del flux complet.
+6. Retirar la persistencia i logica Python substituides.
+
+Python pot continuar rebent millores transversals de presentacio, navegacio,
+seguretat de la UI i adaptadors, pero no ha de convertir-se en el nou sistema
+de registre dels moduls que s'estan migrant.
+
+## Criteri de finalitzacio d'un modul
+
+Un modul no es considera migrat nomes per tenir endpoints Java. Ha de complir:
+
+- Esquema gestionat exclusivament amb Flyway.
+- Totes les dades segregades per `company_id`.
+- Regles de negoci cobertes per tests unitaris.
+- Persistencia i migracions critiques cobertes per tests d'integracio.
+- UI llegint i escrivint exclusivament contra l'API Java.
+- Errors funcionals traduïts a respostes REST estables.
+- Endpoint Python antic desactivat o reduit a adaptador sense logica.
+- Documentacio del contracte i proves de paritat completades.
+
 ## Ordre recomanat
 
 1. Core ERP: empreses, productes, impostos, magatzems, sequencies.
@@ -48,3 +78,26 @@ Ja hi ha implementat el nucli `core` seguent:
 - Assentaments comptables i llibre diari base
 
 Encara no substitueix cap funcionalitat Python en produccio, pero ja defineix una base consistent per continuar amb informes comptables, vendes i compres.
+
+## Proper tall vertical: Partners
+
+Partners sera el patro de migracio completa abans d'obrir mes moduls.
+
+Treball pendent:
+
+1. Ampliar el model Java amb dades comercials, bancaries i comptables.
+2. Modelar contactes, contractes i periodificacions com a registres relacionats,
+   no com a text lliure permanent.
+3. Afegir migracio Flyway i tests de regles de negoci.
+4. Ampliar `JavaErpClient` amb CRUD de partners.
+5. Connectar les pantalles `/partners/` exclusivament al backend Java.
+6. Fer proves de paritat i retirar la persistencia Python de partners.
+
+Despres de partners, l'ordre recomanat es:
+
+1. Comptabilitat i pla comptable, completant la integracio ja iniciada.
+2. Vendes, de pressupost a factura publicada.
+3. Compres, de comanda a factura i assentament.
+4. Inventari.
+5. Banca i tresoreria.
+6. Fiscalitat i recursos humans.

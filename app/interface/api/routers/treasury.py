@@ -4,8 +4,9 @@ from app.interface.api.templates import templates
 from app.infrastructure.persistence.treasury.repository import SqlAlchemyTreasuryRepository
 from app.infrastructure.persistence.sales.repository import SqlAlchemySalesInvoiceRepository
 from app.domain.treasury.services import TreasuryService
+from app.domain.auth.dependencies import get_current_active_user
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_active_user)])
 
 def get_treasury_service():
     from app.infrastructure.db.base import SessionLocal
@@ -30,9 +31,15 @@ def get_treasury_service():
 async def cash_flow_forecast(request: Request, days: int = 30):
     service = get_treasury_service()
     forecast = service.get_cash_flow_forecast(days)
+    dashboard = {
+        "forecast": forecast,
+        "risk": service.calculate_liquidity_risk(forecast),
+        "top_receivables": forecast["receivables"][:5],
+        "recurring_expenses": forecast["recurring_expenses"],
+    }
     return templates.TemplateResponse(
-        "treasury/cash_flow.html",
-        {"request": request, "forecast": forecast, "days": days}
+        "treasury/forecast.html",
+        {"request": request, "dashboard": dashboard, "days": days}
     )
 
 @router.get("/treasury/accounts", response_class=HTMLResponse)

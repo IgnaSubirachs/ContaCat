@@ -79,21 +79,21 @@
         </div>
     </div>
 
-    <!-- AI Insights -->
+    <!-- System status -->
     <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100 py-2 bg-corporate text-white">
+        <a href="/system/status" class="card border-0 shadow-sm h-100 py-2 text-white text-decoration-none {% if system_status.overall == 'operational' %}bg-success{% else %}bg-warning{% endif %}">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Estat Sistema</div>
-                        <div class="h6 mb-0 font-weight-bold">Tot Actualitzat</div>
+                        <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Estat del sistema</div>
+                        <div class="h6 mb-0 font-weight-bold">{{ system_status.operational_count }}/{{ system_status.total_count }} mòduls operatius</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-check-circle fa-2x text-white-50"></i>
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 

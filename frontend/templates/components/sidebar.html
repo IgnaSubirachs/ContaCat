@@ -137,6 +137,10 @@
                 class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'users' in request.url.path %}active{% endif %}">
                 <i class="fas fa-user-shield me-2"></i>Usuaris
             </a>
+            <a href="/system/status"
+                class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'system/status' in request.url.path %}active{% endif %}">
+                <i class="fas fa-heartbeat me-2"></i>Estat del sistema
+            </a>
             <a href="/ai/"
                 class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if '/ai' in request.url.path %}active{% endif %}">
                 <i class="fas fa-robot me-2"></i>Assistent IA

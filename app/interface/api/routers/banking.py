@@ -6,7 +6,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.infrastructure.db.database import get_db
-from app.domain.auth.dependencies import get_current_user
+from app.domain.auth.dependencies import get_current_user, get_current_active_user
 from app.domain.auth.entities import User
 from app.domain.banking.services import BankingService
 from app.infrastructure.persistence.banking.repository import SqlAlchemyBankStatementRepository
@@ -17,6 +17,7 @@ router = APIRouter(
     prefix="/banking",
     tags=["banking"],
     responses={404: {"description": "Not found"}},
+    dependencies=[Depends(get_current_active_user)],
 )
 
 def get_banking_service(db: Session = Depends(get_db)) -> BankingService:

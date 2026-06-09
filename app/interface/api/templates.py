@@ -1,5 +1,6 @@
 from fastapi.templating import Jinja2Templates
 import os
+from datetime import date
 
 # Determine path to frontend/templates
 # This file is deep in app/interface/api/templates.py
@@ -17,3 +18,4 @@ project_root = os.path.abspath(os.path.join(current_dir, "../../../"))
 templates_dir = os.path.join(project_root, "frontend/templates")
 
 templates = Jinja2Templates(directory=templates_dir, auto_reload=True)
+templates.env.globals["current_year"] = date.today().year

@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from typing import Optional
 import os
 
@@ -9,6 +9,7 @@ from app.interface.api.routers import partners, accounting, accounts, quotes, sa
 from app.domain.auth.dependencies import get_current_user_or_redirect, can_access_module
 from app.domain.auth.entities import User
 from app.interface.api.templates import templates
+from app.domain.system_status import get_system_status
 
 # Initialize App
 app = FastAPI(title="ContaCAT", description="ERP Modular amb DDD", version="2.0.0")
@@ -20,6 +21,28 @@ static_dir = os.path.join(project_root, "frontend/static")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+
+@app.exception_handler(HTTPException)
+async def professional_http_error(request: Request, exc: HTTPException):
+    accepts_html = "text/html" in request.headers.get("accept", "")
+    if exc.status_code == 401 and accepts_html:
+        return RedirectResponse(url="/auth/login-page", status_code=302)
+    if accepts_html and exc.status_code in (403, 502, 503):
+        return templates.TemplateResponse(
+            "system/service_error.html",
+            {
+                "request": request,
+                "status_code": exc.status_code,
+                "detail": str(exc.detail),
+            },
+            status_code=exc.status_code,
+        )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+        headers=exc.headers,
+    )
 
 # Include routers
 app.include_router(auth.router)
@@ -99,6 +122,7 @@ async def home(
     dashboard_service = DashboardService(SessionLocal)
     kpis = dashboard_service.get_kpis()
     trend = dashboard_service.get_sales_trend()
+    system_status = get_system_status()
     
     return templates.TemplateResponse("index.html", {
         "request": request,
@@ -106,10 +130,28 @@ async def home(
         "grouped_modules": grouped_modules,
         "kpis": kpis,
         "trend_labels": trend["labels"],
-        "trend_data": trend["data"]
+        "trend_data": trend["data"],
+        "system_status": system_status,
     })
+
+@app.get("/system/status", response_class=HTMLResponse)
+async def system_status_page(
+    request: Request,
+    current_user: Optional[User] = Depends(get_current_user_or_redirect),
+):
+    if current_user is None:
+        return RedirectResponse(url="/auth/login-page", status_code=302)
+    return templates.TemplateResponse(
+        "system/status.html",
+        {"request": request, "user": current_user, "system_status": get_system_status()},
+    )
 
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"}
+    status = get_system_status()
+    return {
+        "status": status["overall"],
+        "database": "up" if status["database_ok"] else "down",
+        "accounting_backend": "up" if status["java_ok"] else "down",
+    }

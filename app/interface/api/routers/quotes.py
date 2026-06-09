@@ -12,9 +12,14 @@ from app.domain.sales.entities import QuoteStatus
 from app.infrastructure.persistence.sales.repository import SqlAlchemyQuoteRepository
 from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
 from app.interface.api.templates import templates
+from app.domain.auth.dependencies import get_current_active_user
 
 
-router = APIRouter(prefix="/quotes", tags=["quotes"])
+router = APIRouter(
+    prefix="/quotes",
+    tags=["quotes"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 
 def get_quote_service():

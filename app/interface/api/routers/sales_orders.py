@@ -12,9 +12,14 @@ from app.domain.sales.entities import OrderStatus
 from app.infrastructure.persistence.sales.repository import SqlAlchemySalesOrderRepository, SqlAlchemyQuoteRepository
 from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
 from app.interface.api.templates import templates
+from app.domain.auth.dependencies import get_current_active_user
 
 
-router = APIRouter(prefix="/sales/orders", tags=["sales_orders"])
+router = APIRouter(
+    prefix="/sales/orders",
+    tags=["sales_orders"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 
 def get_order_service():

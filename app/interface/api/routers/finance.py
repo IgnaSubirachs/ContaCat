@@ -6,7 +6,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.infrastructure.db.database import get_db
-from app.domain.auth.dependencies import get_current_user
+from app.domain.auth.dependencies import get_current_user, get_current_active_user
 from app.domain.auth.entities import User
 from app.domain.finance.services import FinanceService
 from app.infrastructure.persistence.finance.repository import SqlAlchemyLoanRepository
@@ -19,6 +19,7 @@ router = APIRouter(
     prefix="/finance",
     tags=["finance"],
     responses={404: {"description": "Not found"}},
+    dependencies=[Depends(get_current_active_user)],
 )
 
 def get_finance_service(db: Session = Depends(get_db)) -> FinanceService:
