@@ -12,6 +12,8 @@ import cat.contacat.erp.core.partner.Partner;
 import cat.contacat.erp.core.partner.PartnerAlreadyExistsException;
 import cat.contacat.erp.core.partner.PartnerRepository;
 import cat.contacat.erp.core.partner.PartnerValidationException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -42,6 +44,27 @@ class PartnerApplicationServiceTest {
             " b12345678 ",
             "FACTURES@CLIENT.CAT",
             " 931000000 ",
+            " Client Demo Comercial ",
+            " Marta Serra ",
+            " 600111222 ",
+            " https://client.cat ",
+            " C-100 ",
+            " S-100 ",
+            "active",
+            LocalDate.of(2026, 1, 1),
+            " Carla Clos ",
+            " Premium ",
+            new BigDecimal("5.50"),
+            new BigDecimal("12000.00"),
+            15,
+            " 430000 ",
+            " 400000 ",
+            " CaixaBank ",
+            " Client Demo SL ",
+            " bbaresmmxxx ",
+            " Contracte anual ",
+            " Periodificacio mensual ",
+            " Nota interna ",
             false,
             true,
             null,
@@ -73,8 +96,14 @@ class PartnerApplicationServiceTest {
         assertThat(partner.getId()).isEqualTo("partner-1");
         assertThat(partner.getTaxId()).isEqualTo("B12345678");
         assertThat(partner.getEmail()).isEqualTo("factures@client.cat");
-        assertThat(partner.isCustomer()).isTrue();
-        assertThat(partner.isSupplier()).isFalse();
+        assertThat(partner.getTradeName()).isEqualTo("Client Demo Comercial");
+        assertThat(partner.getRelationshipStatus()).isEqualTo("ACTIVE");
+        assertThat(partner.getDefaultDiscount()).isEqualByComparingTo("5.50");
+        assertThat(partner.getCreditLimit()).isEqualByComparingTo("12000.00");
+        assertThat(partner.getPaymentDay()).isEqualTo(15);
+        assertThat(partner.getCustomerAccount()).isEqualTo("430000");
+        assertThat(partner.getSupplierAccount()).isEqualTo("400000");
+        assertThat(partner.getSwiftBic()).isEqualTo("BBARESMMXXX");
         assertThat(partner.getCountry()).isEqualTo("Espanya");
         assertThat(partner.getIban()).isEqualTo("ES9121000418450200051332");
         assertThat(partner.getPaymentMethod()).isEqualTo("TRANSFER");
@@ -105,17 +134,70 @@ class PartnerApplicationServiceTest {
         Company company = new Company();
         company.setId("company-1");
 
-        PartnerCommand command = new PartnerCommand(
-            "Partner", "B12345678", "mail@test.cat", "931000000",
-            false, false, null, null, null, null, null, null, null, null, null,
-            false, null, null, null, 30, true
-        );
+        PartnerCommand command = commandWithRoles(false, false);
 
         when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
 
         assertThatThrownBy(() -> service.create("company-1", command))
             .isInstanceOf(PartnerValidationException.class)
             .hasMessageContaining("client");
+    }
+
+    @Test
+    void createFailsWhenPaymentDayIsOutOfRange() {
+        Company company = new Company();
+        company.setId("company-1");
+
+        PartnerCommand command = new PartnerCommand(
+            validCommand().name(),
+            validCommand().taxId(),
+            validCommand().email(),
+            validCommand().phone(),
+            validCommand().tradeName(),
+            validCommand().contactPerson(),
+            validCommand().mobile(),
+            validCommand().website(),
+            validCommand().customerCode(),
+            validCommand().supplierCode(),
+            validCommand().relationshipStatus(),
+            validCommand().relationshipSince(),
+            validCommand().salesRepresentative(),
+            validCommand().priceList(),
+            validCommand().defaultDiscount(),
+            validCommand().creditLimit(),
+            35,
+            validCommand().customerAccount(),
+            validCommand().supplierAccount(),
+            validCommand().bankName(),
+            validCommand().bankAccountHolder(),
+            validCommand().swiftBic(),
+            validCommand().contractSummary(),
+            validCommand().accrualNotes(),
+            validCommand().internalNotes(),
+            validCommand().isSupplier(),
+            validCommand().isCustomer(),
+            validCommand().documentType(),
+            validCommand().addressStreet(),
+            validCommand().addressNumber(),
+            validCommand().addressFloor(),
+            validCommand().postalCode(),
+            validCommand().city(),
+            validCommand().province(),
+            validCommand().country(),
+            validCommand().vatRegime(),
+            validCommand().isIntraEu(),
+            validCommand().euVatNumber(),
+            validCommand().iban(),
+            validCommand().paymentMethod(),
+            validCommand().paymentDays(),
+            validCommand().active()
+        );
+
+        when(companyRepository.findById("company-1")).thenReturn(Optional.of(company));
+
+        assertThatThrownBy(() -> service.create("company-1", command))
+            .isInstanceOf(PartnerValidationException.class)
+            .hasMessageContaining("dia de pagament");
     }
 
     @Test
@@ -162,9 +244,95 @@ class PartnerApplicationServiceTest {
 
     private PartnerCommand validCommand() {
         return new PartnerCommand(
-            "Partner", "B12345678", "mail@test.cat", "931000000",
-            true, false, null, null, null, null, null, null, null, null, null,
-            false, null, null, null, 30, true
+            "Partner",
+            "B12345678",
+            "mail@test.cat",
+            "931000000",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "ACTIVE",
+            null,
+            "",
+            "",
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            0,
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            true,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            null,
+            null,
+            30,
+            true
+        );
+    }
+
+    private PartnerCommand commandWithRoles(boolean isSupplier, boolean isCustomer) {
+        return new PartnerCommand(
+            "Partner",
+            "B12345678",
+            "mail@test.cat",
+            "931000000",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "ACTIVE",
+            null,
+            "",
+            "",
+            BigDecimal.ZERO,
+            BigDecimal.ZERO,
+            0,
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            isSupplier,
+            isCustomer,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            null,
+            null,
+            30,
+            true
         );
     }
 }

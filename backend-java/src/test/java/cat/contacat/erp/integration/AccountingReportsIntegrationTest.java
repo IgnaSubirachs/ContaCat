@@ -15,6 +15,8 @@ import cat.contacat.erp.core.company.application.CompanyCommand;
 import cat.contacat.erp.core.journal.application.JournalEntryApplicationService;
 import cat.contacat.erp.core.journal.application.JournalEntryCommand;
 import cat.contacat.erp.core.journal.application.JournalLineCommand;
+import cat.contacat.erp.core.sequence.DocumentSequence;
+import cat.contacat.erp.core.sequence.DocumentSequenceRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -40,11 +42,15 @@ class AccountingReportsIntegrationTest extends AbstractMySqlIntegrationTest {
     @Autowired
     private AccountingReportApplicationService reportService;
 
+    @Autowired
+    private DocumentSequenceRepository documentSequenceRepository;
+
     private String companyId;
 
     @BeforeEach
     void setUpCompanyAndAccounts() {
         companyId = companyService.create(new CompanyCommand("ERP Reports", "ERP Reports SL", "B55555555", "ES", "EUR", true)).getId();
+        seedJournalEntrySequence(companyId, 2026);
 
         accountService.create(companyId, new AccountCommand("100000", "Capital social", AccountType.EQUITY, 1, null, true));
         accountService.create(companyId, new AccountCommand("430000", "Clients", AccountType.ASSET, 4, null, true));
@@ -94,5 +100,18 @@ class AccountingReportsIntegrationTest extends AbstractMySqlIntegrationTest {
         assertThat(profitLoss.operatingResult()).isEqualByComparingTo("100.00");
         assertThat(profitLoss.resultForYear()).isEqualByComparingTo("100.00");
         assertThat(profitLoss.groups()).anyMatch(group -> group.name().equals("1. Import net de la xifra de negocis"));
+    }
+
+    private void seedJournalEntrySequence(String companyId, int fiscalYear) {
+        DocumentSequence sequence = new DocumentSequence();
+        sequence.setCompany(companyService.get(companyId));
+        sequence.setDocumentType("JOURNAL_ENTRY");
+        sequence.setSeries("A");
+        sequence.setFiscalYear(fiscalYear);
+        sequence.setPrefix("JE-" + fiscalYear + "-");
+        sequence.setNextNumber(1);
+        sequence.setPadding(5);
+        sequence.setActive(true);
+        documentSequenceRepository.save(sequence);
     }
 }

@@ -1,10 +1,34 @@
 package cat.contacat.erp.core.partner.application;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 public record PartnerCommand(
     String name,
     String taxId,
     String email,
     String phone,
+    String tradeName,
+    String contactPerson,
+    String mobile,
+    String website,
+    String customerCode,
+    String supplierCode,
+    String relationshipStatus,
+    LocalDate relationshipSince,
+    String salesRepresentative,
+    String priceList,
+    BigDecimal defaultDiscount,
+    BigDecimal creditLimit,
+    Integer paymentDay,
+    String customerAccount,
+    String supplierAccount,
+    String bankName,
+    String bankAccountHolder,
+    String swiftBic,
+    String contractSummary,
+    String accrualNotes,
+    String internalNotes,
     Boolean isSupplier,
     Boolean isCustomer,
     String documentType,

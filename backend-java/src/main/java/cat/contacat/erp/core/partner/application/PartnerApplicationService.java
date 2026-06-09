@@ -8,6 +8,7 @@ import cat.contacat.erp.core.partner.PartnerAlreadyExistsException;
 import cat.contacat.erp.core.partner.PartnerNotFoundException;
 import cat.contacat.erp.core.partner.PartnerRepository;
 import cat.contacat.erp.core.partner.PartnerValidationException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -109,6 +110,22 @@ public class PartnerApplicationService {
         if (paymentDays < 0) {
             throw new PartnerValidationException("Els dies de pagament no poden ser negatius");
         }
+        int paymentDay = command.paymentDay() == null ? 0 : command.paymentDay();
+        if (paymentDay < 0 || paymentDay > 31) {
+            throw new PartnerValidationException("El dia de pagament ha d'estar entre 0 i 31");
+        }
+        BigDecimal defaultDiscount = command.defaultDiscount() == null ? BigDecimal.ZERO : command.defaultDiscount();
+        if (defaultDiscount.compareTo(BigDecimal.ZERO) < 0 || defaultDiscount.compareTo(new BigDecimal("100.00")) > 0) {
+            throw new PartnerValidationException("El descompte ha d'estar entre 0 i 100");
+        }
+        BigDecimal creditLimit = command.creditLimit() == null ? BigDecimal.ZERO : command.creditLimit();
+        if (creditLimit.compareTo(BigDecimal.ZERO) < 0) {
+            throw new PartnerValidationException("El limit de credit no pot ser negatiu");
+        }
+        String swiftBic = normalizeUpperBlankToEmpty(command.swiftBic());
+        if (!swiftBic.isEmpty() && swiftBic.length() != 8 && swiftBic.length() != 11) {
+            throw new PartnerValidationException("El codi SWIFT/BIC ha de tenir 8 o 11 caracters");
+        }
     }
 
     private void apply(Partner partner, PartnerCommand command, String normalizedTaxId) {
@@ -116,6 +133,27 @@ public class PartnerApplicationService {
         partner.setTaxId(normalizedTaxId);
         partner.setEmail(command.email().trim().toLowerCase(Locale.ROOT));
         partner.setPhone(command.phone().trim());
+        partner.setTradeName(normalizeBlankToEmpty(command.tradeName()));
+        partner.setContactPerson(normalizeBlankToEmpty(command.contactPerson()));
+        partner.setMobile(normalizeBlankToEmpty(command.mobile()));
+        partner.setWebsite(normalizeBlankToEmpty(command.website()));
+        partner.setCustomerCode(normalizeBlankToEmpty(command.customerCode()));
+        partner.setSupplierCode(normalizeBlankToEmpty(command.supplierCode()));
+        partner.setRelationshipStatus(normalizeUpperOrDefault(command.relationshipStatus(), "ACTIVE"));
+        partner.setRelationshipSince(command.relationshipSince());
+        partner.setSalesRepresentative(normalizeBlankToEmpty(command.salesRepresentative()));
+        partner.setPriceList(normalizeBlankToEmpty(command.priceList()));
+        partner.setDefaultDiscount(command.defaultDiscount() == null ? BigDecimal.ZERO : command.defaultDiscount());
+        partner.setCreditLimit(command.creditLimit() == null ? BigDecimal.ZERO : command.creditLimit());
+        partner.setPaymentDay(command.paymentDay() == null ? 0 : command.paymentDay());
+        partner.setCustomerAccount(normalizeUpperBlankToEmpty(command.customerAccount()));
+        partner.setSupplierAccount(normalizeUpperBlankToEmpty(command.supplierAccount()));
+        partner.setBankName(normalizeBlankToEmpty(command.bankName()));
+        partner.setBankAccountHolder(normalizeBlankToEmpty(command.bankAccountHolder()));
+        partner.setSwiftBic(normalizeUpperBlankToEmpty(command.swiftBic()));
+        partner.setContractSummary(normalizeBlankToEmpty(command.contractSummary()));
+        partner.setAccrualNotes(normalizeBlankToEmpty(command.accrualNotes()));
+        partner.setInternalNotes(normalizeBlankToEmpty(command.internalNotes()));
         partner.setCustomer(Boolean.TRUE.equals(command.isCustomer()));
         partner.setSupplier(Boolean.TRUE.equals(command.isSupplier()));
         partner.setDocumentType(normalizeUpperOrDefault(command.documentType(), "NIF"));
