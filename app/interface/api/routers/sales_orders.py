@@ -1,19 +1,14 @@
-from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from fastapi import Request, Form
-from typing import List, Optional
 from datetime import date
 from decimal import Decimal
+from types import SimpleNamespace
+from typing import Optional
 
-from app.infrastructure.db.base import SessionLocal
-from app.domain.sales.services import SalesOrderService
-from app.domain.sales.entities import OrderStatus
-from app.infrastructure.persistence.sales.repository import SqlAlchemySalesOrderRepository, SqlAlchemyQuoteRepository
-from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
-from app.interface.api.templates import templates
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+
 from app.domain.auth.dependencies import get_current_active_user
-
+from app.infrastructure.java_erp_client import JavaErpClient, JavaErpClientError
+from app.interface.api.templates import templates
 
 router = APIRouter(
     prefix="/sales/orders",
@@ -22,99 +17,129 @@ router = APIRouter(
 )
 
 
-def get_order_service():
-    """Dependency to get SalesOrderService instance."""
-    # Pass SessionLocal factory directly
-    order_repo = SqlAlchemySalesOrderRepository(SessionLocal)
-    quote_repo = SqlAlchemyQuoteRepository(SessionLocal)
-    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
-    return SalesOrderService(order_repo, quote_repo, partner_repo)
+def get_java_erp_client() -> JavaErpClient:
+    return JavaErpClient()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def list_orders(request: Request, status: Optional[str] = None):
-    """List all sales orders."""
-    service = get_order_service()
-    
-    if status:
-        try:
-            status_enum = OrderStatus[status.upper()]
-            orders = service.list_orders(status=status_enum)
-        except KeyError:
-            orders = service.list_orders()
-    else:
-        orders = service.list_orders()
-    
+async def list_orders(
+    request: Request,
+    status: Optional[str] = None,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    try:
+        orders = [_to_order_view(order) for order in client.list_sales_orders(status.upper() if status else None)]
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     return templates.TemplateResponse("sales/orders/list.html", {
         "request": request,
         "orders": orders,
-        "current_status": status
+        "current_status": status,
     })
 
 
 @router.get("/{order_id}", response_class=HTMLResponse)
-async def view_order(request: Request, order_id: str):
-    """View order details."""
-    service = get_order_service()
-    order = service.get_order(order_id)
-    
-    if not order:
-        raise HTTPException(status_code=404, detail="Comanda no trobada")
-    
-    # Get partner details
-    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
-    partner = partner_repo.find_by_id(order.partner_id)
-    
+async def view_order(
+    request: Request,
+    order_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    try:
+        order = _to_order_view(client.get_sales_order(order_id))
+        partner = _to_partner_view(client.get_partner(order.partner_id))
+    except JavaErpClientError as exc:
+        status_code = 404 if "No s'ha trobat" in str(exc) else 502
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+
     return templates.TemplateResponse("sales/orders/view.html", {
         "request": request,
         "order": order,
-        "partner": partner
+        "partner": partner,
     })
 
 
 @router.post("/{order_id}/confirm")
-async def confirm_order(order_id: str):
-    """Confirm a sales order."""
-    service = get_order_service()
-    
+async def confirm_order(
+    order_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
     try:
-        order = service.confirm_order(order_id)
-        return RedirectResponse(url=f"/sales/orders/{order.id}", status_code=303)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        client.confirm_sales_order(order_id)
+        return RedirectResponse(url=f"/sales/orders/{order_id}", status_code=303)
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/{order_id}/deliver")
-async def deliver_order(order_id: str):
-    """Mark order as delivered."""
-    service = get_order_service()
-    
+async def deliver_order(
+    order_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
     try:
-        order = service.deliver_order(order_id)
-        return RedirectResponse(url=f"/sales/orders/{order.id}", status_code=303)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        client.deliver_sales_order(order_id)
+        return RedirectResponse(url=f"/sales/orders/{order_id}", status_code=303)
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/{order_id}/cancel")
-async def cancel_order(order_id: str):
-    """Cancel a sales order."""
-    service = get_order_service()
-    
+async def cancel_order(
+    order_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
     try:
-        order = service.cancel_order(order_id)
-        return RedirectResponse(url=f"/sales/orders/{order.id}", status_code=303)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        client.cancel_sales_order(order_id)
+        return RedirectResponse(url=f"/sales/orders/{order_id}", status_code=303)
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/from-quote/{quote_id}")
-async def create_from_quote(quote_id: str):
-    """Create order from quote."""
-    service = get_order_service()
-    
+async def create_from_quote(
+    quote_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
     try:
-        order = service.create_from_quote(quote_id)
-        return RedirectResponse(url=f"/sales/orders/{order.id}", status_code=303)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        created = client.create_sales_order_from_quote(quote_id, date.today())
+        return RedirectResponse(url=f"/sales/orders/{created['id']}", status_code=303)
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def _to_order_view(payload: dict) -> SimpleNamespace:
+    lines = [
+        SimpleNamespace(
+            product_code=line["productCode"],
+            description=line["description"],
+            quantity=Decimal(str(line["quantity"])),
+            unit_price=Decimal(str(line["unitPrice"])),
+            total=Decimal(str(line["total"])),
+        )
+        for line in payload.get("lines", [])
+    ]
+    return SimpleNamespace(
+        id=payload["id"],
+        order_number=payload["orderNumber"],
+        order_date=date.fromisoformat(payload["orderDate"]),
+        partner_id=payload["partnerId"],
+        partner_name=payload.get("partnerName", payload["partnerId"]),
+        status=SimpleNamespace(value=payload["status"]),
+        delivery_date=date.fromisoformat(payload["deliveryDate"]) if payload.get("deliveryDate") else None,
+        delivery_address=payload.get("deliveryAddress") or "",
+        subtotal=Decimal(str(payload["subtotal"])),
+        total_tax=Decimal(str(payload["totalTax"])),
+        total=Decimal(str(payload["total"])),
+        lines=lines,
+        quote_id=payload.get("quoteId"),
+        quote_number=payload.get("quoteNumber"),
+        notes=payload.get("notes") or "",
+    )
+
+
+def _to_partner_view(payload: dict) -> SimpleNamespace:
+    return SimpleNamespace(
+        id=payload["id"],
+        name=payload["name"],
+        tax_id=payload["taxId"],
+    )

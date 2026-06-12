@@ -133,6 +133,26 @@ class JavaErpClient:
     def delete_quote(self, quote_id: str) -> Any:
         return self._delete(f"/api/sales/companies/{self.resolve_company_id()}/quotes/{quote_id}")
 
+    def list_sales_orders(self, status: str | None = None) -> list[dict[str, Any]]:
+        params = {"status": status} if status is not None else None
+        return self._get(f"/api/sales/companies/{self.resolve_company_id()}/orders", params=params)
+
+    def get_sales_order(self, order_id: str) -> dict[str, Any]:
+        return self._get(f"/api/sales/companies/{self.resolve_company_id()}/orders/{order_id}")
+
+    def create_sales_order_from_quote(self, quote_id: str, order_date: date | None = None) -> dict[str, Any]:
+        payload = None if order_date is None else {"orderDate": order_date.isoformat()}
+        return self._post(f"/api/sales/companies/{self.resolve_company_id()}/orders/from-quote/{quote_id}", payload)
+
+    def confirm_sales_order(self, order_id: str) -> dict[str, Any]:
+        return self._post(f"/api/sales/companies/{self.resolve_company_id()}/orders/{order_id}/confirm", None)
+
+    def deliver_sales_order(self, order_id: str) -> dict[str, Any]:
+        return self._post(f"/api/sales/companies/{self.resolve_company_id()}/orders/{order_id}/deliver", None)
+
+    def cancel_sales_order(self, order_id: str) -> dict[str, Any]:
+        return self._post(f"/api/sales/companies/{self.resolve_company_id()}/orders/{order_id}/cancel", None)
+
     def list_journal_entries(
         self,
         start_date: date | None = None,
