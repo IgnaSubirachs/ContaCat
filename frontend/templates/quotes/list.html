@@ -3,8 +3,8 @@
 {% block content %}
 <div class="row mb-4">
     <div class="col-md-8">
-        <h1><i class="fas fa-file-contract me-2"></i>Pressupostos (Quotes)</h1>
-        <p class="text-muted">Gestió d'ofertes comercials</p>
+        <h1><i class="fas fa-file-contract me-2"></i>Pressupostos</h1>
+        <p class="text-muted">Gestio d'ofertes comercials</p>
     </div>
     <div class="col-md-4 text-end">
         <a href="/quotes/create" class="btn btn-primary">
@@ -17,14 +17,10 @@
     <div class="card-body">
         <div class="d-flex gap-2">
             <a href="/quotes/" class="btn btn-outline-secondary {% if not current_status %}active{% endif %}">Tots</a>
-            <a href="/quotes/?status=draft"
-                class="btn btn-outline-secondary {% if current_status == 'draft' %}active{% endif %}">Esborranys</a>
-            <a href="/quotes/?status=sent"
-                class="btn btn-outline-secondary {% if current_status == 'sent' %}active{% endif %}">Enviats</a>
-            <a href="/quotes/?status=accepted"
-                class="btn btn-outline-secondary {% if current_status == 'accepted' %}active{% endif %}">Acceptats</a>
-            <a href="/quotes/?status=rejected"
-                class="btn btn-outline-secondary {% if current_status == 'rejected' %}active{% endif %}">Rebutjats</a>
+            <a href="/quotes/?status=draft" class="btn btn-outline-secondary {% if current_status == 'draft' %}active{% endif %}">Esborranys</a>
+            <a href="/quotes/?status=sent" class="btn btn-outline-secondary {% if current_status == 'sent' %}active{% endif %}">Enviats</a>
+            <a href="/quotes/?status=accepted" class="btn btn-outline-secondary {% if current_status == 'accepted' %}active{% endif %}">Acceptats</a>
+            <a href="/quotes/?status=rejected" class="btn btn-outline-secondary {% if current_status == 'rejected' %}active{% endif %}">Rebutjats</a>
         </div>
     </div>
 </div>
@@ -36,9 +32,9 @@
             <table class="table table-hover align-middle table-compact">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 15%;">Número</th>
+                        <th style="width: 15%;">Numero</th>
                         <th style="width: 15%;">Data</th>
-                        <th style="width: 15%;">Vàlid fins</th>
+                        <th style="width: 15%;">Valid fins</th>
                         <th style="width: 25%;">Client</th>
                         <th class="text-end" style="width: 15%;">Total</th>
                         <th style="width: 10%;">Estat</th>
@@ -52,14 +48,8 @@
                             <a href="/quotes/{{ quote.id }}" class="text-decoration-none">{{ quote.quote_number }}</a>
                         </td>
                         <td>{{ quote.quote_date.strftime('%d/%m/%Y') }}</td>
-                        <td>
-                            {% if quote.valid_until %}
-                            {{ quote.valid_until.strftime('%d/%m/%Y') }}
-                            {% else %}
-                            <span class="text-muted">-</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ quote.partner_id[:8] }}...</td>
+                        <td>{{ quote.valid_until.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ quote.partner_name }}</td>
                         <td class="text-end fw-bold">{{ "%.2f"|format(quote.total) }} €</td>
                         <td>
                             {% if quote.status.value == 'DRAFT' %}
@@ -75,8 +65,7 @@
                             {% endif %}
                         </td>
                         <td class="text-end">
-                            <a href="/quotes/{{ quote.id }}" class="btn btn-sm btn-outline-primary"
-                                title="Veure detall">
+                            <a href="/quotes/{{ quote.id }}" class="btn btn-sm btn-outline-primary" title="Veure detall">
                                 <i class="fas fa-eye"></i>
                             </a>
                         </td>

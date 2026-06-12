@@ -77,6 +77,62 @@ class JavaErpClient:
         }
         return self._post(self._company_path("/accounts"), payload)
 
+    def list_partners(self, role: str | None = None) -> list[dict[str, Any]]:
+        params = {"role": role} if role is not None else None
+        return self._get(self._company_path("/partners"), params=params)
+
+    def get_partner(self, partner_id: str) -> dict[str, Any]:
+        return self._get(self._company_path(f"/partners/{partner_id}"))
+
+    def list_quotes(
+        self,
+        status: str | None = None,
+        start_date: date | None = None,
+        end_date: date | None = None,
+    ) -> list[dict[str, Any]]:
+        params: dict[str, str] = {}
+        if status is not None:
+            params["status"] = status
+        if start_date is not None:
+            params["startDate"] = start_date.isoformat()
+        if end_date is not None:
+            params["endDate"] = end_date.isoformat()
+        return self._get(f"/api/sales/companies/{self.resolve_company_id()}/quotes", params=params or None)
+
+    def get_quote(self, quote_id: str) -> dict[str, Any]:
+        return self._get(f"/api/sales/companies/{self.resolve_company_id()}/quotes/{quote_id}")
+
+    def create_quote(
+        self,
+        partner_id: str,
+        quote_date: date,
+        valid_until: date,
+        lines: list[dict[str, Any]],
+        notes: str = "",
+        series: str = "A",
+    ) -> dict[str, Any]:
+        payload = {
+            "partnerId": partner_id,
+            "series": series,
+            "quoteDate": quote_date.isoformat(),
+            "validUntil": valid_until.isoformat(),
+            "notes": notes,
+            "lines": lines,
+        }
+        return self._post(f"/api/sales/companies/{self.resolve_company_id()}/quotes", payload)
+
+    def send_quote(self, quote_id: str) -> dict[str, Any]:
+        return self._post(f"/api/sales/companies/{self.resolve_company_id()}/quotes/{quote_id}/send", None)
+
+    def accept_quote(self, quote_id: str) -> dict[str, Any]:
+        return self._post(f"/api/sales/companies/{self.resolve_company_id()}/quotes/{quote_id}/accept", None)
+
+    def reject_quote(self, quote_id: str) -> dict[str, Any]:
+        return self._post(f"/api/sales/companies/{self.resolve_company_id()}/quotes/{quote_id}/reject", None)
+
+    def delete_quote(self, quote_id: str) -> Any:
+        return self._delete(f"/api/sales/companies/{self.resolve_company_id()}/quotes/{quote_id}")
+
     def list_journal_entries(
         self,
         start_date: date | None = None,
@@ -151,6 +207,9 @@ class JavaErpClient:
 
     def _put(self, path: str, payload: dict[str, Any] | None) -> Any:
         return self._request_json("PUT", path, payload=payload)
+
+    def _delete(self, path: str) -> Any:
+        return self._request_json("DELETE", path)
 
     def _request_json(
         self,

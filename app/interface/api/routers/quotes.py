@@ -1,19 +1,14 @@
-from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from fastapi import Request, Form
-from typing import List, Optional
 from datetime import date, timedelta
 from decimal import Decimal
+from types import SimpleNamespace
+from typing import Optional
 
-from app.infrastructure.db.base import SessionLocal
-from app.domain.sales.services import QuoteService
-from app.domain.sales.entities import QuoteStatus
-from app.infrastructure.persistence.sales.repository import SqlAlchemyQuoteRepository
-from app.infrastructure.persistence.partners.repository import SqlAlchemyPartnerRepository
-from app.interface.api.templates import templates
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+
 from app.domain.auth.dependencies import get_current_active_user
-
+from app.infrastructure.java_erp_client import JavaErpClient, JavaErpClientError
+from app.interface.api.templates import templates
 
 router = APIRouter(
     prefix="/quotes",
@@ -22,46 +17,42 @@ router = APIRouter(
 )
 
 
-def get_quote_service():
-    """Dependency to get QuoteService instance."""
-    # Pass SessionLocal factory directly
-    quote_repo = SqlAlchemyQuoteRepository(SessionLocal)
-    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
-    return QuoteService(quote_repo, partner_repo)
+def get_java_erp_client() -> JavaErpClient:
+    return JavaErpClient()
 
 
 @router.get("/", response_class=HTMLResponse)
-async def list_quotes(request: Request, status: Optional[str] = None):
-    """List all quotes."""
-    service = get_quote_service()
-    
-    if status:
-        try:
-            status_enum = QuoteStatus[status.upper()]
-            quotes = service.list_quotes(status=status_enum)
-        except KeyError:
-            quotes = service.list_quotes()
-    else:
-        quotes = service.list_quotes()
-    
+async def list_quotes(
+    request: Request,
+    status: Optional[str] = None,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    try:
+        quotes = [_to_quote_view(quote) for quote in client.list_quotes(status=status.upper() if status else None)]
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     return templates.TemplateResponse("quotes/list.html", {
         "request": request,
         "quotes": quotes,
-        "current_status": status
+        "current_status": status,
     })
 
 
 @router.get("/create", response_class=HTMLResponse)
-async def create_quote_form(request: Request):
-    """Show create quote form."""
-    # Get partners for dropdown
-    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
-    partners = partner_repo.list_all()
-    customers = [p for p in partners if p.is_customer]
-    
+async def create_quote_form(
+    request: Request,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    try:
+        customers = [_to_partner_view(partner) for partner in client.list_partners("CUSTOMER")]
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     return templates.TemplateResponse("quotes/create.html", {
         "request": request,
-        "customers": customers
+        "customers": customers,
+        "today": date.today().isoformat(),
     })
 
 
@@ -71,125 +62,165 @@ async def create_quote(
     quote_date: str = Form(...),
     valid_days: int = Form(30),
     notes: str = Form(""),
-    # Lines will be handled via JavaScript/JSON in real implementation
-    # For now, we'll accept a simple format
+    product_code: str = Form(...),
+    description: str = Form(...),
+    quantity: Decimal = Form(...),
+    unit_price: Decimal = Form(...),
+    discount_percent: Decimal = Form(0),
+    tax_rate: Decimal = Form(21),
+    client: JavaErpClient = Depends(get_java_erp_client),
 ):
-    """Create a new quote."""
-    service = get_quote_service()
-    
     try:
         quote_date_obj = date.fromisoformat(quote_date)
-        
-        # For now, create with empty lines (will be added via edit)
-        quote = service.create_quote(
+        created = client.create_quote(
             partner_id=partner_id,
             quote_date=quote_date_obj,
-            valid_days=valid_days,
-            lines=[],
-            notes=notes
+            valid_until=quote_date_obj + timedelta(days=valid_days),
+            lines=[{
+                "productCode": product_code,
+                "description": description,
+                "quantity": str(quantity),
+                "unitPrice": str(unit_price),
+                "discountPercent": str(discount_percent),
+                "taxRate": str(tax_rate),
+            }],
+            notes=notes,
         )
-        
-        return RedirectResponse(url=f"/quotes/{quote.id}", status_code=303)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return RedirectResponse(url=f"/quotes/{created['id']}", status_code=303)
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/{quote_id}", response_class=HTMLResponse)
-async def view_quote(request: Request, quote_id: str):
-    """View quote details."""
-    service = get_quote_service()
-    quote = service.get_quote(quote_id)
-    
-    if not quote:
-        raise HTTPException(status_code=404, detail="Pressupost no trobat")
-    
-    # Get partner details
-    # Get partner details
-    partner_repo = SqlAlchemyPartnerRepository(SessionLocal)
-    partner = partner_repo.find_by_id(quote.partner_id)
-    
+async def view_quote(
+    request: Request,
+    quote_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    try:
+        quote = _to_quote_view(client.get_quote(quote_id))
+        partner = _to_partner_view(client.get_partner(quote.partner_id))
+    except JavaErpClientError as exc:
+        status_code = 404 if "No s'ha trobat" in str(exc) else 502
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+
     return templates.TemplateResponse("quotes/view.html", {
         "request": request,
         "quote": quote,
-        "partner": partner
+        "partner": partner,
     })
 
 
 @router.post("/{quote_id}/send")
-async def send_quote(quote_id: str):
-    """Send a quote."""
-    service = get_quote_service()
-    
+async def send_quote(
+    quote_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
     try:
-        quote = service.send_quote(quote_id)
-        return RedirectResponse(url=f"/quotes/{quote.id}", status_code=303)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        client.send_quote(quote_id)
+        return RedirectResponse(url=f"/quotes/{quote_id}", status_code=303)
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/{quote_id}/accept")
-async def accept_quote(quote_id: str):
-    """Accept a quote."""
-    service = get_quote_service()
-    
+async def accept_quote(
+    quote_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
     try:
-        quote = service.accept_quote(quote_id)
-        return RedirectResponse(url=f"/quotes/{quote.id}", status_code=303)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        client.accept_quote(quote_id)
+        return RedirectResponse(url=f"/quotes/{quote_id}", status_code=303)
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/{quote_id}/reject")
-async def reject_quote(quote_id: str):
-    """Reject a quote."""
-    service = get_quote_service()
-    
+async def reject_quote(
+    quote_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
     try:
-        quote = service.reject_quote(quote_id)
-        return RedirectResponse(url=f"/quotes/{quote.id}", status_code=303)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        client.reject_quote(quote_id)
+        return RedirectResponse(url=f"/quotes/{quote_id}", status_code=303)
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/{quote_id}/delete")
-async def delete_quote(quote_id: str):
-    """Delete a quote."""
-    service = get_quote_service()
-    
+async def delete_quote(
+    quote_id: str,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
     try:
-        service.delete_quote(quote_id)
+        client.delete_quote(quote_id)
         return RedirectResponse(url="/quotes/", status_code=303)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except JavaErpClientError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-# API endpoints (JSON)
 @router.get("/api/list")
-async def api_list_quotes(status: Optional[str] = None):
-    """API endpoint to list quotes as JSON."""
-    service = get_quote_service()
-    
-    if status:
-        try:
-            status_enum = QuoteStatus[status.upper()]
-            quotes = service.list_quotes(status=status_enum)
-        except KeyError:
-            quotes = service.list_quotes()
-    else:
-        quotes = service.list_quotes()
-    
+async def api_list_quotes(
+    status: Optional[str] = None,
+    client: JavaErpClient = Depends(get_java_erp_client),
+):
+    quotes = client.list_quotes(status=status.upper() if status else None)
     return {
         "quotes": [
             {
-                "id": q.id,
-                "quote_number": q.quote_number,
-                "quote_date": q.quote_date.isoformat(),
-                "valid_until": q.valid_until.isoformat(),
-                "partner_id": q.partner_id,
-                "status": q.status.value,
-                "total": float(q.total),
-                "is_expired": q.is_expired
+                "id": quote["id"],
+                "quote_number": quote["quoteNumber"],
+                "quote_date": quote["quoteDate"],
+                "valid_until": quote["validUntil"],
+                "partner_id": quote["partnerId"],
+                "status": quote["status"],
+                "total": float(quote["total"]),
+                "is_expired": False,
             }
-            for q in quotes
+            for quote in quotes
         ]
     }
+
+
+def _to_quote_view(payload: dict) -> SimpleNamespace:
+    lines = [
+        SimpleNamespace(
+            product_code=line["productCode"],
+            description=line["description"],
+            quantity=Decimal(str(line["quantity"])),
+            unit_price=Decimal(str(line["unitPrice"])),
+            discount_percent=Decimal(str(line["discountPercent"])),
+            tax_rate=Decimal(str(line["taxRate"])),
+            total=Decimal(str(line["total"])),
+        )
+        for line in payload.get("lines", [])
+    ]
+    return SimpleNamespace(
+        id=payload["id"],
+        quote_number=payload["quoteNumber"],
+        quote_date=date.fromisoformat(payload["quoteDate"]),
+        valid_until=date.fromisoformat(payload["validUntil"]),
+        partner_id=payload["partnerId"],
+        partner_name=payload.get("partnerName", payload["partnerId"]),
+        status=SimpleNamespace(value=payload["status"]),
+        subtotal=Decimal(str(payload["subtotal"])),
+        total_tax=Decimal(str(payload["totalTax"])),
+        total=Decimal(str(payload["total"])),
+        notes=payload.get("notes") or "",
+        lines=lines,
+    )
+
+
+def _to_partner_view(payload: dict) -> SimpleNamespace:
+    return SimpleNamespace(
+        id=payload["id"],
+        name=payload["name"],
+        tax_id=payload["taxId"],
+        full_address=", ".join(filter(None, [
+            payload.get("addressStreet"),
+            payload.get("addressNumber"),
+            payload.get("postalCode"),
+            payload.get("city"),
+            payload.get("province"),
+        ])),
+    )

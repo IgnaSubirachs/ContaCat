@@ -10,7 +10,7 @@
 
 <body>
     <div class="container">
-        <h1>📋 Nou Pressupost</h1>
+        <h1>Nou Pressupost</h1>
 
         <form action="/quotes/create" method="post">
             <div class="form-group">
@@ -40,11 +40,45 @@
                 <textarea name="notes" id="notes" rows="3"></textarea>
             </div>
 
-            <p class="help-text">Nota: Les línies es poden afegir després de crear el pressupost.</p>
+            <h3>Primera linia</h3>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="product_code">Codi producte *</label>
+                    <input type="text" name="product_code" id="product_code" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Descripcio *</label>
+                    <input type="text" name="description" id="description" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantity">Quantitat *</label>
+                    <input type="number" step="0.001" min="0.001" name="quantity" id="quantity" value="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="unit_price">Preu unitari *</label>
+                    <input type="number" step="0.01" min="0" name="unit_price" id="unit_price" value="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="discount_percent">Desc. %</label>
+                    <input type="number" step="0.01" min="0" max="100" name="discount_percent" id="discount_percent" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="tax_rate">IVA %</label>
+                    <input type="number" step="0.01" min="0" name="tax_rate" id="tax_rate" value="21">
+                </div>
+            </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Crear Pressupost</button>
-                <a href="/quotes/" class="btn btn-secondary">Cancel·lar</a>
+                <a href="/quotes/" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </div>
