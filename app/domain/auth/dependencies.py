@@ -118,20 +118,31 @@ def require_role(*allowed_roles: UserRole):
 MODULE_PERMISSIONS = {
     "partners": [UserRole.ADMIN, UserRole.MANAGER, UserRole.USER, UserRole.READ_ONLY],
     "employees": [UserRole.ADMIN, UserRole.MANAGER, UserRole.READ_ONLY],
+    "payrolls": [UserRole.ADMIN, UserRole.MANAGER, UserRole.READ_ONLY],
     "accounts": [UserRole.ADMIN, UserRole.MANAGER, UserRole.READ_ONLY],
     "accounting": [UserRole.ADMIN, UserRole.MANAGER, UserRole.READ_ONLY],
+    "treasury": [UserRole.ADMIN, UserRole.MANAGER, UserRole.READ_ONLY],
+    "banking": [UserRole.ADMIN, UserRole.MANAGER, UserRole.READ_ONLY],
     "fiscal": [UserRole.ADMIN, UserRole.MANAGER],
+    "budgets": [UserRole.ADMIN, UserRole.MANAGER, UserRole.READ_ONLY],
     "assets": [UserRole.ADMIN, UserRole.MANAGER, UserRole.READ_ONLY],
     "quotes": [UserRole.ADMIN, UserRole.MANAGER, UserRole.USER, UserRole.READ_ONLY],
     "sales_orders": [UserRole.ADMIN, UserRole.MANAGER, UserRole.USER, UserRole.READ_ONLY],
     "sales_invoices": [UserRole.ADMIN, UserRole.MANAGER, UserRole.USER, UserRole.READ_ONLY],
+    "purchases": [UserRole.ADMIN, UserRole.MANAGER, UserRole.USER, UserRole.READ_ONLY],
     "inventory": [UserRole.ADMIN, UserRole.MANAGER, UserRole.USER, UserRole.READ_ONLY],
     "analytics": [UserRole.ADMIN, UserRole.MANAGER, UserRole.READ_ONLY],
     "users": [UserRole.ADMIN],
+    "settings": [UserRole.ADMIN],
+    "ai": [UserRole.ADMIN, UserRole.MANAGER],
 }
 
 
-def can_access_module(user: User, module: str) -> bool:
+def can_access_module(user: User, module: str, enabled_modules: set[str] | None = None) -> bool:
     """Check if user can access a specific module."""
     allowed_roles = MODULE_PERMISSIONS.get(module, [])
-    return user.role in allowed_roles
+    if user.role not in allowed_roles:
+        return False
+    if enabled_modules is not None and module not in enabled_modules:
+        return False
+    return True

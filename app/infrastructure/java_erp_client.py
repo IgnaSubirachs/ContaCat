@@ -23,6 +23,29 @@ class JavaErpClient:
     def list_companies(self) -> list[dict[str, Any]]:
         return self._get("/api/core/companies")
 
+    def list_module_catalog(self) -> list[dict[str, Any]]:
+        return self._get("/api/admin/modules/catalog")
+
+    def list_company_module_licenses(self, company_id: str | None = None) -> list[dict[str, Any]]:
+        resolved_company_id = company_id or self.resolve_company_id()
+        return self._get(f"/api/admin/companies/{resolved_company_id}/module-licenses")
+
+    def update_company_module_license(
+        self,
+        module_key: str,
+        enabled: bool,
+        company_id: str | None = None,
+        starts_at: date | None = None,
+        expires_at: date | None = None,
+    ) -> dict[str, Any]:
+        resolved_company_id = company_id or self.resolve_company_id()
+        payload: dict[str, Any] = {
+            "enabled": enabled,
+            "startsAt": starts_at.isoformat() if starts_at is not None else None,
+            "expiresAt": expires_at.isoformat() if expires_at is not None else None,
+        }
+        return self._put(f"/api/admin/companies/{resolved_company_id}/module-licenses/{module_key}", payload)
+
     def resolve_company_id(self) -> str:
         if self.configured_company_id:
             return self.configured_company_id
@@ -125,6 +148,9 @@ class JavaErpClient:
 
     def _post(self, path: str, payload: dict[str, Any] | None) -> Any:
         return self._request_json("POST", path, payload=payload)
+
+    def _put(self, path: str, payload: dict[str, Any] | None) -> Any:
+        return self._request_json("PUT", path, payload=payload)
 
     def _request_json(
         self,

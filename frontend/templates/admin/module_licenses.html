@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumb-container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Inici</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Llicencies de moduls</li>
+        </ol>
+    </nav>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">Llicencies de moduls</h1>
+        <p class="text-muted mb-0">Activa o desactiva funcionalitat per empresa sense tocar configuracio manual.</p>
+    </div>
+</div>
+
+{% if error_message %}
+<div class="alert alert-warning" role="alert">
+    {{ error_message }}
+</div>
+{% endif %}
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" action="/admin/module-licenses/" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label for="company_id" class="form-label">Empresa</label>
+                <select class="form-select" id="company_id" name="company_id" onchange="this.form.submit()">
+                    {% for company in companies %}
+                    <option value="{{ company.id }}" {% if company.id == selected_company_id %}selected{% endif %}>
+                        {{ company.name }} ({{ company.taxId }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if selected_company_id and grouped_modules %}
+    {% for category, modules in grouped_modules.items() %}
+    <div class="mb-4">
+        <div class="d-flex align-items-center mb-3">
+            <h5 class="mb-0">{{ category }}</h5>
+            <div class="flex-grow-1 ms-3 border-bottom"></div>
+        </div>
+        <div class="row">
+            {% for module in modules %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="card-title mb-1">{{ module.displayName }}</h6>
+                                <div class="small text-muted">{{ module.moduleKey }}</div>
+                            </div>
+                            <span class="badge {% if module.activeNow %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if module.activeNow %}Actiu{% else %}Inactiu{% endif %}
+                            </span>
+                        </div>
+
+                        <form method="post" action="/admin/module-licenses/update">
+                            <input type="hidden" name="company_id" value="{{ selected_company_id }}">
+                            <input type="hidden" name="module_key" value="{{ module.moduleKey }}">
+
+                            <div class="mb-3">
+                                <label class="form-label">Estat</label>
+                                <select class="form-select" name="enabled">
+                                    <option value="true" {% if module.enabled %}selected{% endif %}>Habilitat</option>
+                                    <option value="false" {% if not module.enabled %}selected{% endif %}>Deshabilitat</option>
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Inici</label>
+                                    <input class="form-control" type="date" name="starts_at" value="{{ module.startsAt or '' }}">
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="form-label">Fi</label>
+                                    <input class="form-control" type="date" name="expires_at" value="{{ module.expiresAt or '' }}">
+                                </div>
+                            </div>
+
+                            <div class="small text-muted mb-3">
+                                Per defecte: {% if module.defaultEnabled %}habilitat{% else %}deshabilitat{% endif %}
+                            </div>
+
+                            <button type="submit" class="btn btn-corporate w-100">Desar llicencia</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% elif selected_company_id %}
+<div class="alert alert-info">No hi ha moduls disponibles per mostrar.</div>
+{% endif %}
+{% endblock %}

@@ -133,6 +133,12 @@
                 class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'settings' in request.url.path %}active{% endif %}">
                 <i class="fas fa-cog me-2"></i>Configuració
             </a>
+            {% if user and user.role.value == 'ADMIN' %}
+            <a href="/admin/module-licenses/"
+                class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'module-licenses' in request.url.path %}active{% endif %}">
+                <i class="fas fa-toggle-on me-2"></i>Llicències
+            </a>
+            {% endif %}
             <a href="/auth/users-page"
                 class="list-group-item list-group-item-action bg-transparent second-text fw-bold {% if 'users' in request.url.path %}active{% endif %}">
                 <i class="fas fa-user-shield me-2"></i>Usuaris

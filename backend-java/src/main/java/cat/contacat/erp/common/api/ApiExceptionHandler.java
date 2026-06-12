@@ -8,6 +8,7 @@ import cat.contacat.erp.core.account.AccountValidationException;
 import cat.contacat.erp.core.journal.JournalEntryAlreadyPostedException;
 import cat.contacat.erp.core.journal.JournalEntryNotFoundException;
 import cat.contacat.erp.core.journal.JournalEntryValidationException;
+import cat.contacat.erp.core.licensing.ModuleLicenseValidationException;
 import cat.contacat.erp.core.partner.PartnerAlreadyExistsException;
 import cat.contacat.erp.core.partner.PartnerNotFoundException;
 import cat.contacat.erp.core.partner.PartnerValidationException;
@@ -64,7 +65,8 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler({
         AccountValidationException.class,
-        JournalEntryValidationException.class
+        JournalEntryValidationException.class,
+        ModuleLicenseValidationException.class
     })
     public ResponseEntity<Map<String, String>> handleBusinessValidation(RuntimeException exception) {
         return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));

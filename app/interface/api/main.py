@@ -5,11 +5,12 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from typing import Optional
 import os
 
-from app.interface.api.routers import partners, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, treasury, budgets, finance, banking, ai, hr, purchases
+from app.interface.api.routers import partners, accounting, accounts, quotes, sales_orders, sales_invoices, auth, assets, inventory, fiscal, analytics, treasury, budgets, finance, banking, ai, hr, purchases, module_licenses
 from app.domain.auth.dependencies import get_current_user_or_redirect, can_access_module
 from app.domain.auth.entities import User
 from app.interface.api.templates import templates
 from app.domain.system_status import get_system_status
+from app.infrastructure.java_erp_client import JavaErpClient, JavaErpClientError
 
 # Initialize App
 app = FastAPI(title="ContaCAT", description="ERP Modular amb DDD", version="2.0.0")
@@ -65,6 +66,7 @@ app.include_router(ai.router)
 from app.interface.api.routers import settings
 app.include_router(settings.router)
 app.include_router(purchases.router)
+app.include_router(module_licenses.router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -107,9 +109,19 @@ async def home(
         {"id": "users", "name": "Usuaris", "desc": "Accés al sistema", "url": "/auth/users-page", "icon": "fa-user-shield", "category": "Administració"},
     ]
     
+    enabled_modules = None
+    try:
+        enabled_modules = {
+            module["moduleKey"]
+            for module in JavaErpClient().list_company_module_licenses()
+            if module.get("activeNow")
+        }
+    except JavaErpClientError:
+        enabled_modules = None
+
     # Filter by permission and group
     for module in all_modules:
-        if can_access_module(current_user, module["id"]):
+        if can_access_module(current_user, module["id"], enabled_modules):
             cat = module["category"]
             if cat not in grouped_modules:
                 grouped_modules[cat] = []
