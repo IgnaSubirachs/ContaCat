@@ -1,0 +1,47 @@
+<div class="erp-shell" [class.erp-shell--menu-open]="menuOpen()">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/" (click)="menuOpen.set(false)">
+      <span class="brand__mark">C</span>
+      <span><strong>ContaCAT</strong><small>Business Suite</small></span>
+    </a>
+
+    <nav>
+      <p class="nav-label">Visio general</p>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="menuOpen.set(false)">
+        <span>01</span> Tauler executiu
+      </a>
+
+      <p class="nav-label">Operacions</p>
+      <a routerLink="/vendes/pressupostos" routerLinkActive="active" (click)="menuOpen.set(false)">
+        <span>02</span> Pressupostos
+      </a>
+      <a routerLink="/vendes/comandes" routerLinkActive="active" (click)="menuOpen.set(false)">
+        <span>03</span> Comandes de venda
+      </a>
+    </nav>
+
+    <div class="sidebar__footer">
+      <span class="live-dot"></span>
+      <span><strong>Spring Boot</strong><small>API empresarial</small></span>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <button class="menu-button" type="button" aria-label="Obrir menu" (click)="menuOpen.set(!menuOpen())">Menu</button>
+      <label class="company-selector">
+        <span>Empresa activa</span>
+        <select [value]="companyContext.selectedId() ?? ''" (change)="companyContext.select($any($event.target).value)">
+          @for (company of companyContext.companies(); track company.id) {
+            <option [value]="company.id">{{ company.name }}</option>
+          }
+        </select>
+      </label>
+      <div class="operator"><span>AD</span><div><strong>Administrador</strong><small>Control global</small></div></div>
+    </header>
+
+    <main>
+      <router-outlet />
+    </main>
+  </div>
+</div>

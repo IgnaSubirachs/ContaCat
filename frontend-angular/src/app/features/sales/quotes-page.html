@@ -1,0 +1,18 @@
+<header class="page-header">
+  <div><p class="eyebrow">Vendes</p><h1 class="page-title">Pressupostos</h1><p class="page-lead">Seguiment comercial des de la proposta fins a l acceptacio del client.</p></div>
+  <button class="primary-action" type="button" disabled>Nou pressupost</button>
+</header>
+
+<section class="card table-card">
+  <div class="table-toolbar"><strong>{{ documents().length }} documents</strong><button type="button" (click)="load()">Actualitzar</button></div>
+  @if (loading()) {
+    <div class="state-panel">Carregant pressupostos...</div>
+  } @else if (error()) {
+    <div class="state-panel">{{ error() }}</div>
+  } @else {
+    <div class="table-scroll"><table><thead><tr><th>Document</th><th>Client</th><th>Data</th><th>Validesa</th><th>Estat</th><th class="numeric">Total</th></tr></thead>
+    <tbody>@for (quote of documents(); track quote.id) {
+      <tr><td><strong>{{ quote.quoteNumber }}</strong></td><td>{{ quote.partnerName }}</td><td>{{ quote.quoteDate | date:'dd/MM/yyyy' }}</td><td>{{ quote.validUntil | date:'dd/MM/yyyy' }}</td><td><span class="status status--{{ quote.status | lowercase }}">{{ quote.status }}</span></td><td class="numeric"><strong>{{ quote.total | currency:'EUR' }}</strong></td></tr>
+    } @empty { <tr><td colspan="6" class="empty">No hi ha pressupostos disponibles.</td></tr> }</tbody></table></div>
+  }
+</section>

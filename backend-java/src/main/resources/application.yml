@@ -21,3 +21,7 @@ management:
     web:
       exposure:
         include: health,info
+
+contacat:
+  web:
+    allowed-origins: ${WEB_ALLOWED_ORIGINS:http://localhost:4200}

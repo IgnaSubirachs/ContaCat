@@ -1,0 +1,36 @@
+<section class="hero">
+  <div>
+    <p class="eyebrow">Direccio empresarial</p>
+    <h1 class="page-title">El negoci,<br><em>sota control.</em></h1>
+    <p class="page-lead">Visio operativa de vendes sobre el nou nucli Spring Boot. Cada indicador es calcula amb dades reals de l empresa activa.</p>
+  </div>
+  <div class="hero__stamp"><strong>{{ companyContext.selected()?.name ?? 'ContaCAT' }}</strong><span>Espai de treball actiu</span></div>
+</section>
+
+@if (error()) {
+  <div class="card state-panel">{{ error() }}</div>
+} @else {
+  <section class="metrics">
+    <article class="metric metric--primary"><span>Pipeline pressupostat</span><strong>{{ pipeline() | currency:'EUR':'symbol':'1.2-2' }}</strong><small>{{ quotes().length }} oportunitats comercials</small></article>
+    <article class="metric"><span>Comandes obertes</span><strong>{{ confirmedOrders() }}</strong><small>Pendents de lliurament</small></article>
+    <article class="metric"><span>Comandes totals</span><strong>{{ orders().length }}</strong><small>Traçabilitat completa</small></article>
+  </section>
+
+  <section class="focus-grid">
+    <article class="card focus-card">
+      <p class="eyebrow">Prioritat comercial</p>
+      <h2>Pressupostos recents</h2>
+      @for (quote of quotes().slice(0, 4); track quote.id) {
+        <div class="document-row"><div><strong>{{ quote.quoteNumber }}</strong><span>{{ quote.partnerName }}</span></div><b>{{ quote.total | currency:'EUR' }}</b></div>
+      } @empty {
+        <p class="empty">Encara no hi ha pressupostos.</p>
+      }
+    </article>
+    <article class="card focus-card focus-card--dark">
+      <p class="eyebrow">Arquitectura</p>
+      <h2>Transicio controlada</h2>
+      <p>Angular assumeix la presentacio mentre Spring Boot concentra regles, dades i processos. FastAPI continua operatiu fins que cada modul superi les proves de paritat.</p>
+      <div class="architecture"><span>Angular 21</span><i></i><span>Spring Boot</span><i></i><span>MySQL</span></div>
+    </article>
+  </section>
+}

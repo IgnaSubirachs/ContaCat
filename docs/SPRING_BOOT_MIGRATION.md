@@ -29,6 +29,20 @@ Python pot continuar rebent millores transversals de presentacio, navegacio,
 seguretat de la UI i adaptadors, pero no ha de convertir-se en el nou sistema
 de registre dels moduls que s'estan migrant.
 
+## Migracio del frontend
+
+El nou frontend viu a `frontend-angular/` i es connecta directament als
+contractes REST de Spring Boot. La UI FastAPI es mantindra nomes com a pont
+temporal fins que cada pantalla Angular tingui paritat funcional i proves.
+
+Regles:
+
+- Cap logica de negoci dins components Angular.
+- Models, context d'empresa i clients HTTP viuen a `src/app/core`.
+- Les pantalles s'organitzen per domini funcional a `src/app/features`.
+- Cada pantalla Angular nova ha de consumir exclusivament endpoints Java.
+- Una ruta FastAPI nomes es retira quan el flux Angular equivalent esta validat.
+
 ## Criteri de finalitzacio d'un modul
 
 Un modul no es considera migrat nomes per tenir endpoints Java. Ha de complir:

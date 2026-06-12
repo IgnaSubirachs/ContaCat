@@ -9,6 +9,7 @@ El projecte conserva una base Python/FastAPI existent, pero la direccio tecnica 
 - `app/`: aplicacio Python/FastAPI existent.
 - `migrations/`: migracions SQL de la base Python.
 - `backend-java/`: nou backend Spring Boot.
+- `frontend-angular/`: nou frontend Angular connectat directament a Spring Boot.
 - `docs/SPRING_BOOT_MIGRATION.md`: pla de migracio cap a Java.
 
 ## Backend Java
@@ -82,6 +83,22 @@ Amb aquesta configuracio ja es poden veure des de la UI existent:
 - `/accounting/reports/trial-balance`
 - `/accounting/reports/balance-sheet`
 - `/accounting/reports/profit-loss`
+
+## Nou frontend Angular
+
+Angular conviu temporalment amb la UI FastAPI mentre es migren els fluxos
+verticals. Ja inclou el shell ERP, tauler comercial, pressupostos i comandes.
+
+Amb Spring Boot executant-se a `http://localhost:8080`:
+
+```powershell
+cd frontend-angular
+npm start
+```
+
+Obre `http://localhost:4200`. El proxy de desenvolupament envia `/api` al
+backend Java. Per desplegaments en dominis diferents, configura
+`WEB_ALLOWED_ORIGINS` al backend.
 
 ## Proxims passos
 

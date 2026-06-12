@@ -1,0 +1,18 @@
+<header class="page-header">
+  <div><p class="eyebrow">Vendes</p><h1 class="page-title">Comandes</h1><p class="page-lead">Control de compromisos de venda, lliuraments i origen comercial.</p></div>
+  <button class="primary-action" type="button" disabled>Nova comanda</button>
+</header>
+
+<section class="card table-card">
+  <div class="table-toolbar"><strong>{{ documents().length }} documents</strong><button type="button" (click)="load()">Actualitzar</button></div>
+  @if (loading()) {
+    <div class="state-panel">Carregant comandes...</div>
+  } @else if (error()) {
+    <div class="state-panel">{{ error() }}</div>
+  } @else {
+    <div class="table-scroll"><table><thead><tr><th>Comanda</th><th>Client</th><th>Data</th><th>Origen</th><th>Estat</th><th class="numeric">Total</th></tr></thead>
+    <tbody>@for (order of documents(); track order.id) {
+      <tr><td><strong>{{ order.orderNumber }}</strong></td><td>{{ order.partnerName }}</td><td>{{ order.orderDate | date:'dd/MM/yyyy' }}</td><td>{{ order.quoteNumber ?? 'Entrada directa' }}</td><td><span class="status status--{{ order.status | lowercase }}">{{ order.status }}</span></td><td class="numeric"><strong>{{ order.total | currency:'EUR' }}</strong></td></tr>
+    } @empty { <tr><td colspan="6" class="empty">No hi ha comandes disponibles.</td></tr> }</tbody></table></div>
+  }
+</section>
