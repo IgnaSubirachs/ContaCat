@@ -20,4 +20,20 @@ export class ErpApi {
     const params = status ? new HttpParams().set('status', status) : undefined;
     return this.http.get<SalesOrder[]>(`/api/sales/companies/${companyId}/orders`, { params });
   }
+
+  getOrder(companyId: string, orderId: string) {
+    return this.http.get<SalesOrder>(`/api/sales/companies/${companyId}/orders/${orderId}`);
+  }
+
+  confirmOrder(companyId: string, orderId: string) {
+    return this.http.post<SalesOrder>(`/api/sales/companies/${companyId}/orders/${orderId}/confirm`, null);
+  }
+
+  deliverOrder(companyId: string, orderId: string) {
+    return this.http.post<SalesOrder>(`/api/sales/companies/${companyId}/orders/${orderId}/deliver`, null);
+  }
+
+  cancelOrder(companyId: string, orderId: string) {
+    return this.http.post<SalesOrder>(`/api/sales/companies/${companyId}/orders/${orderId}/cancel`, null);
+  }
 }

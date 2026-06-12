@@ -1,0 +1,61 @@
+<a class="back-link" routerLink="/vendes/comandes">← Tornar a comandes</a>
+
+@if (loading()) {
+  <div class="card state-panel">Carregant la comanda...</div>
+} @else if (order(); as currentOrder) {
+  <header class="detail-header">
+    <div>
+      <p class="eyebrow">Vendes · Comanda de client</p>
+      <h1 class="page-title">{{ currentOrder.orderNumber }}</h1>
+      <p class="page-lead">{{ currentOrder.partnerName }} · {{ currentOrder.orderDate | date:'dd/MM/yyyy' }}</p>
+    </div>
+    <div class="actions">
+      <span class="status status--{{ currentOrder.status | lowercase }}">{{ currentOrder.status }}</span>
+      @if (currentOrder.status === 'DRAFT') {
+        <button type="button" [disabled]="actionRunning()" (click)="runAction('confirm')">Confirmar comanda</button>
+      }
+      @if (currentOrder.status === 'CONFIRMED') {
+        <button type="button" [disabled]="actionRunning()" (click)="runAction('deliver')">Marcar com a lliurada</button>
+        <button class="button--danger" type="button" [disabled]="actionRunning()" (click)="runAction('cancel')">Cancel·lar</button>
+      }
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  <section class="detail-grid">
+    <article class="card lines-card">
+      <div class="card-heading"><div><p class="eyebrow">Contingut</p><h2>Línies de comanda</h2></div><span>{{ currentOrder.lines.length }} línies</span></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Codi</th><th>Descripció</th><th class="numeric">Quantitat</th><th class="numeric">Preu</th></tr></thead>
+          <tbody>
+            @for (line of currentOrder.lines; track line.lineOrder) {
+              <tr><td><strong>{{ line.productCode }}</strong></td><td>{{ line.description }}</td><td class="numeric">{{ line.quantity }}</td><td class="numeric">{{ line.unitPrice | currency:'EUR' }}</td></tr>
+            } @empty {
+              <tr><td colspan="4" class="empty">Aquesta comanda no té línies.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <aside>
+      <article class="card summary-card">
+        <p class="eyebrow">Import</p>
+        <div><span>Base imposable</span><strong>{{ currentOrder.subtotal | currency:'EUR' }}</strong></div>
+        <div><span>Impostos</span><strong>{{ currentOrder.totalTax | currency:'EUR' }}</strong></div>
+        <div class="summary-total"><span>Total comanda</span><strong>{{ currentOrder.total | currency:'EUR' }}</strong></div>
+      </article>
+      <article class="card origin-card">
+        <p class="eyebrow">Traçabilitat</p>
+        <h2>{{ currentOrder.quoteNumber ?? 'Entrada directa' }}</h2>
+        <p>{{ currentOrder.quoteNumber ? 'Creada a partir d’un pressupost acceptat.' : 'Comanda creada directament.' }}</p>
+      </article>
+    </aside>
+  </section>
+} @else if (error()) {
+  <div class="card state-panel">{{ error() }}</div>
+}

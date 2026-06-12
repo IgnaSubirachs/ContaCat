@@ -18,7 +18,7 @@ create table quotes (
     constraint uq_quotes_company_number unique (company_id, quote_number),
     constraint uq_quotes_company_sequence unique (company_id, series, fiscal_year, sequence_number),
     constraint chk_quotes_dates check (valid_until >= quote_date)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create index ix_quotes_company_date on quotes (company_id, quote_date);
 create index ix_quotes_company_status on quotes (company_id, status);
@@ -37,7 +37,7 @@ create table quote_lines (
     constraint pk_quote_lines primary key (id),
     constraint fk_quote_lines_quote foreign key (quote_id) references quotes (id),
     constraint uq_quote_lines_order unique (quote_id, line_order)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create index ix_quote_lines_quote on quote_lines (quote_id);
 

@@ -1,5 +1,6 @@
 import { CurrencyPipe, DatePipe, LowerCasePipe } from '@angular/common';
 import { Component, effect, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { ErpApi } from '../../core/erp-api';
@@ -8,7 +9,7 @@ import { DocumentList } from './document-list';
 
 @Component({
   selector: 'app-orders-page',
-  imports: [CurrencyPipe, DatePipe, LowerCasePipe],
+  imports: [CurrencyPipe, DatePipe, LowerCasePipe, RouterLink],
   templateUrl: './orders-page.html',
   styleUrl: './table-page.scss'
 })

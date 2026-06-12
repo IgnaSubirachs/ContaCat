@@ -75,6 +75,16 @@ tbody tr:hover {
   background: rgba(215, 235, 227, 0.25);
 }
 
+.document-link {
+  color: var(--brand);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.document-link:hover {
+  text-decoration: underline;
+}
+
 .numeric {
   text-align: right;
 }

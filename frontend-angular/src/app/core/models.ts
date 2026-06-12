@@ -9,13 +9,15 @@ export interface Company {
 }
 
 export interface CommercialDocumentLine {
-  id: string;
+  lineOrder: number;
   productCode: string;
   description: string;
   quantity: number;
   unitPrice: number;
   discountPercent: number;
   taxRate: number;
+  subtotal: number;
+  taxAmount: number;
   total: number;
 }
 

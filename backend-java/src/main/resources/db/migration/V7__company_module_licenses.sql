@@ -11,7 +11,7 @@ create table company_module_licenses (
     constraint fk_company_module_licenses_company foreign key (company_id) references companies (id),
     constraint uq_company_module_licenses_scope unique (company_id, module_key),
     constraint chk_company_module_license_dates check (expires_at is null or starts_at is null or expires_at >= starts_at)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create index ix_company_module_licenses_company on company_module_licenses (company_id);
 create index ix_company_module_licenses_module on company_module_licenses (module_key);

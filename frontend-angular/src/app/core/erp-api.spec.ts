@@ -33,4 +33,13 @@ describe('ErpApi', () => {
     expect(request.request.method).toBe('GET');
     request.flush([]);
   });
+
+  it('confirms an order through its business action endpoint', () => {
+    api.confirmOrder('company-1', 'order-1').subscribe();
+
+    const request = http.expectOne('/api/sales/companies/company-1/orders/order-1/confirm');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toBeNull();
+    request.flush({ id: 'order-1', status: 'CONFIRMED' });
+  });
 });

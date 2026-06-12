@@ -166,3 +166,4 @@ storage/
 *.db-journal
 *.db-wal
 *.db-shm
+.codex-run/

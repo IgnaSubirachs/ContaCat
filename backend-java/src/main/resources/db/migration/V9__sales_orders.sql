@@ -20,7 +20,7 @@ create table sales_orders (
     constraint fk_sales_orders_quote foreign key (quote_id) references quotes (id),
     constraint uq_sales_orders_company_number unique (company_id, order_number),
     constraint uq_sales_orders_company_sequence unique (company_id, series, fiscal_year, sequence_number)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create index ix_sales_orders_company_date on sales_orders (company_id, order_date);
 create index ix_sales_orders_company_status on sales_orders (company_id, status);
@@ -39,7 +39,7 @@ create table sales_order_lines (
     constraint pk_sales_order_lines primary key (id),
     constraint fk_sales_order_lines_order foreign key (sales_order_id) references sales_orders (id),
     constraint uq_sales_order_lines_order unique (sales_order_id, line_order)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 create index ix_sales_order_lines_order on sales_order_lines (sales_order_id);
 
