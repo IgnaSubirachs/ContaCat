@@ -1,11 +1,9 @@
 <div id="cat-assistant-container">
-    <!-- Chat Bubble -->
     <div id="cat-bubble" class="cat-bubble">
-        <span id="cat-message">Hola! Sóc el teu assistent. Comencem? 😺</span>
+        <span id="cat-message">Tinc a punt el nou shell. Seguim transformant l'ERP.</span>
         <div class="cat-bubble-arrow"></div>
     </div>
 
-    <!-- Cat Avatar -->
     <a href="/ai" class="cat-avatar-wrapper" style="text-decoration: none;">
         <img src="/static/img/cat_assistant.png" alt="Cat Assistant" class="cat-avatar-img">
     </a>
@@ -14,25 +12,25 @@
 <style>
     #cat-assistant-container {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
+        bottom: 24px;
+        right: 28px;
         z-index: 9999;
         display: flex;
         flex-direction: column;
         align-items: flex-end;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
     }
 
     .cat-avatar-wrapper {
-        width: 80px;
-        height: 80px;
+        width: 72px;
+        height: 72px;
         border-radius: 50%;
         overflow: hidden;
-        border: 4px solid #fff;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        border: 3px solid rgba(255, 248, 239, 0.96);
+        box-shadow: 0 18px 34px rgba(23, 50, 77, 0.2);
         cursor: pointer;
-        background: white;
-        transition: transform 0.2s;
+        background: linear-gradient(145deg, #fff9ef, #f2e6d2);
+        transition: transform 0.2s ease;
     }
 
     .cat-avatar-wrapper:hover {
@@ -46,21 +44,21 @@
     }
 
     .cat-bubble {
-        background: white;
+        background: rgba(255, 252, 247, 0.97);
         padding: 15px 20px;
-        border-radius: 20px 20px 0 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border-radius: 20px 20px 4px 20px;
+        box-shadow: 0 18px 34px rgba(23, 50, 77, 0.14);
+        border: 1px solid rgba(23, 50, 77, 0.08);
         margin-bottom: 15px;
-        max-width: 250px;
+        max-width: 280px;
         position: relative;
         opacity: 0;
         transform: translateY(20px);
         transition: all 0.3s ease;
         pointer-events: none;
-        /* Initially hidden */
         font-size: 0.95rem;
-        line-height: 1.4;
-        color: #333;
+        line-height: 1.45;
+        color: #17324d;
     }
 
     .cat-bubble.visible {
@@ -76,8 +74,8 @@
         width: 0;
         height: 0;
         border-left: 10px solid transparent;
-        border-right: 0px solid transparent;
-        border-top: 10px solid white;
+        border-right: 0 solid transparent;
+        border-top: 10px solid rgba(255, 252, 247, 0.97);
     }
 </style>
 
@@ -87,13 +85,8 @@
     function catSay(message, duration = 5000) {
         const bubble = document.getElementById('cat-bubble');
         const msgSpan = document.getElementById('cat-message');
-
         msgSpan.innerHTML = message;
         bubble.classList.add('visible');
-
-        // Play a soft sound? (Optional)
-        // const audio = new Audio('/static/sounds/meow.mp3'); audio.play();
-
         clearTimeout(bubbleTimeout);
         if (duration > 0) {
             bubbleTimeout = setTimeout(() => {
@@ -102,13 +95,7 @@
         }
     }
 
-    function toggleCatBubble() {
-        const bubble = document.getElementById('cat-bubble');
-        bubble.classList.toggle('visible');
-    }
-
-    // Initial greeting
     setTimeout(() => {
-        catSay("Miau! Estic aquí per ajudar-te amb la comptabilitat. 📊", 4000);
-    }, 1000);
+        catSay("El front nou ja esta posat. Ara podem polir vendes, compres i comptabilitat amb cara de producte.", 4800);
+    }, 1200);
 </script>

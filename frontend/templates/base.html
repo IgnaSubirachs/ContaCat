@@ -4,66 +4,57 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ContaCAT - ERP Professional</title>
-
-    <!-- Bootstrap 5 CSS -->
+    <title>ContaCAT ERP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
     <link href="/static/css/styles.css" rel="stylesheet">
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-
     <div class="d-flex" id="wrapper">
-        <!-- Sidebar -->
         {% include 'components/sidebar.html' %}
 
-        <!-- Page Content -->
         <div id="page-content-wrapper">
-            <!-- Topbar -->
             {% include 'components/topbar.html' %}
-
-            <!-- Breadcrumbs -->
             {% block breadcrumbs %}{% endblock %}
 
-            <!-- Main Content -->
-            <div class="container-fluid px-4">
+            <main class="container-fluid">
                 {% block content %}{% endblock %}
-            </div>
+            </main>
 
-            <!-- Footer -->
-            <footer class="text-center text-muted py-4 mt-auto">
-                <small>&copy; 2025 ContaCAT | Ignasi Subirachs | v2.0 Professional</small>
+            <footer class="footer-shell text-center">
+                <small>ContaCAT ERP · arquitectura modular · Spring Boot migration in progress</small>
             </footer>
         </div>
     </div>
 
-    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
     {% block scripts %}{% endblock %}
-
-    <!-- Sidebar Toggle Script -->
     <script>
-        var el = document.getElementById("wrapper");
-        var toggleButton = document.getElementById("sidebarToggle");
-
-        toggleButton.onclick = function () {
-            el.classList.toggle("toggled");
-            // Simple logic to hide/show sidebar - CSS handles transitions
-            var sidebar = document.getElementById("sidebar-wrapper");
-            if (sidebar.style.marginLeft === "-260px") {
-                sidebar.style.marginLeft = "0";
-            } else {
-                sidebar.style.marginLeft = "-260px";
-            }
-        };
+        const wrapper = document.getElementById("wrapper");
+        const toggleButton = document.getElementById("sidebarToggle");
+        if (toggleButton) {
+            toggleButton.addEventListener("click", () => {
+                if (window.innerWidth < 992) {
+                    wrapper.classList.toggle("sidebar-open");
+                } else {
+                    const sidebar = document.getElementById("sidebar-wrapper");
+                    const page = document.getElementById("page-content-wrapper");
+                    const topbar = document.querySelector(".topbar");
+                    const collapsed = sidebar.style.width === "92px";
+                    sidebar.style.width = collapsed ? "" : "92px";
+                    page.style.marginLeft = collapsed ? "" : "92px";
+                    if (topbar) {
+                        topbar.style.left = collapsed ? "" : "92px";
+                    }
+                }
+            });
+        }
     </script>
-    <!-- Cat Assistant -->
     {% include 'components/cat_assistant.html' %}
 </body>
 

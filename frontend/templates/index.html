@@ -5,222 +5,181 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Inici</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Panell de Control</li>
+            <li class="breadcrumb-item active" aria-current="page">Panell executiu</li>
         </ol>
     </nav>
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<section class="page-header">
     <div>
-        <h1 class="h3 mb-0 text-gray-800">Panell de Control</h1>
-        <p class="text-muted mb-0">Visió general de l'estat de l'empresa</p>
+        <div class="eyebrow">Control center</div>
+        <h1>Panell executiu</h1>
+        <p class="mb-0">Visio operativa, financera i comercial d'una ERP que ha de semblar producte, no prototip.</p>
     </div>
-</div>
+    <div class="d-flex gap-2 flex-wrap justify-content-md-end">
+        <a href="/quotes/create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Nou pressupost</a>
+        <a href="/accounting/journal" class="btn btn-secondary"><i class="fas fa-book-open me-2"></i>Obrir diari</a>
+    </div>
+</section>
 
-<!-- Key Metrics Row -->
-<div class="row mb-5">
-    <!-- Sales Card -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-corporate text-uppercase mb-1">Vendes (Mes)</div>
-                        <div class="h4 mb-0 font-weight-bold text-dark">{{ "%.2f"|format(kpis.sales_mtd) }} &euro;</div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3">
-                            <i class="fas fa-chart-line fa-lg"></i>
-                        </div>
-                    </div>
+<section class="row g-4 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card metric-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="eyebrow">Vendes</div>
+                    <div class="fs-3 fw-bold text-dark">{{ "%.2f"|format(kpis.sales_mtd) }} €</div>
+                    <p class="mb-0 small text-muted">Facturacio acumulada del mes en curs.</p>
                 </div>
+                <div class="metric-icon"><i class="fas fa-arrow-trend-up"></i></div>
             </div>
         </div>
     </div>
-
-    <!-- Cash Balance -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tresoreria Actual</div>
-                        <div class="h4 mb-0 font-weight-bold text-dark">{{ "%.2f"|format(kpis.cash_balance) }} &euro;
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="bg-success bg-opacity-10 text-success rounded-circle p-3">
-                            <i class="fas fa-euro-sign fa-lg"></i>
-                        </div>
-                    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card metric-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="eyebrow">Tresoreria</div>
+                    <div class="fs-3 fw-bold text-dark">{{ "%.2f"|format(kpis.cash_balance) }} €</div>
+                    <p class="mb-0 small text-muted">Posicio agregada de caixa i bancs.</p>
                 </div>
+                <div class="metric-icon"><i class="fas fa-vault"></i></div>
             </div>
         </div>
     </div>
-
-    <!-- Pending Tasks -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pendent Conciliar</div>
-                        <div class="h4 mb-0 font-weight-bold text-dark">{{ kpis.pending_conciliation }} mov.</div>
-                    </div>
-                    <div class="col-auto">
-                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3">
-                            <i class="fas fa-clipboard-check fa-lg"></i>
-                        </div>
-                    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card metric-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="eyebrow">Conciliacio</div>
+                    <div class="fs-3 fw-bold text-dark">{{ kpis.pending_conciliation }}</div>
+                    <p class="mb-0 small text-muted">Moviments pendents de casar.</p>
                 </div>
+                <div class="metric-icon"><i class="fas fa-link"></i></div>
             </div>
         </div>
     </div>
-
-    <!-- System status -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <a href="/system/status" class="card border-0 shadow-sm h-100 py-2 text-white text-decoration-none {% if system_status.overall == 'operational' %}bg-success{% else %}bg-warning{% endif %}">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-white-50 text-uppercase mb-1">Estat del sistema</div>
-                        <div class="h6 mb-0 font-weight-bold">{{ system_status.operational_count }}/{{ system_status.total_count }} mòduls operatius</div>
+    <div class="col-xl-3 col-md-6">
+        <a href="/system/status" class="text-decoration-none">
+            <div class="card metric-card metric-alert h-100">
+                <div class="card-body d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="eyebrow text-white">Salut de plataforma</div>
+                        <div class="fs-4 fw-bold">{{ system_status.operational_count }}/{{ system_status.total_count }}</div>
+                        <p class="mb-0 small text-white-50">Moduls operatius en el teu stack actual.</p>
                     </div>
-                    <div class="col-auto">
-                        <i class="fas fa-check-circle fa-2x text-white-50"></i>
-                    </div>
+                    <div class="metric-icon"><i class="fas fa-heart-pulse"></i></div>
                 </div>
             </div>
         </a>
     </div>
-</div>
+</section>
 
-<!-- Chart Row -->
-<div class="row mb-5">
-    <div class="col-xl-12 col-lg-12">
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Evolució Vendes (Últims 6 mesos)</h6>
+<section class="row g-4 mb-5">
+    <div class="col-xl-8">
+        <div class="card chart-shell h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Evolucio de vendes</span>
+                <small class="text-muted">Ultims 6 mesos</small>
             </div>
             <div class="card-body">
-                <div class="chart-area" style="height: 300px;">
+                <div style="height: 320px;">
                     <canvas id="salesChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Shortcuts Grid -->
-{% for category, modules in grouped_modules.items() %}
-<div class="mb-5">
-    <div class="d-flex align-items-center mb-3">
-        <h5 class="text-gray-800 font-weight-bold mb-0">{{ category }}</h5>
-        <div class="flex-grow-1 ms-3 border-bottom"></div>
+    <div class="col-xl-4">
+        <div class="card h-100">
+            <div class="card-header">Lectura executiva</div>
+            <div class="card-body d-flex flex-column gap-3">
+                <div class="p-3 rounded-4" style="background: rgba(23, 50, 77, 0.05);">
+                    <div class="eyebrow">Prioritat comercial</div>
+                    <div class="fw-bold">Tanca pressupostos pendents i empeny el flux fins a factura.</div>
+                </div>
+                <div class="p-3 rounded-4" style="background: rgba(198, 123, 45, 0.10);">
+                    <div class="eyebrow" style="color: var(--shell-amber);">Prioritat financera</div>
+                    <div class="fw-bold">Redueix moviments no conciliats i vigila la tresoreria de curt termini.</div>
+                </div>
+                <div class="p-3 rounded-4" style="background: rgba(15, 118, 110, 0.08);">
+                    <div class="eyebrow" style="color: var(--shell-emerald);">Prioritat tecnològica</div>
+                    <div class="fw-bold">El nucli Java ja governa comptabilitat, pressupostos i comandes.</div>
+                </div>
+            </div>
+        </div>
     </div>
+</section>
 
-    <div class="row">
+{% for category, modules in grouped_modules.items() %}
+<section class="module-grid-section">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div>
+            <div class="eyebrow">{{ loop.index }} / {{ grouped_modules|length }}</div>
+            <h4 class="mb-0 section-title">{{ category }}</h4>
+        </div>
+    </div>
+    <div class="row g-4">
         {% for module in modules %}
-        <div class="col-lg-3 col-md-6 mb-4">
-            <a href="{{ module.url }}" class="text-decoration-none card-link">
-                <div class="card border-0 shadow-sm h-100 hover-lift transition-all">
-                    <div class="card-body text-center p-4">
-                        <div class="mb-3 text-corporate">
-                            <i class="fas {{ module.icon }} fa-2x"></i>
-                        </div>
-                        <h6 class="card-title text-dark font-weight-bold mb-2">{{ module.name }}</h6>
-                        <p class="card-text text-muted small mb-0">{{ module.desc }}</p>
+        <div class="col-xl-3 col-md-6">
+            <a href="{{ module.url }}" class="text-decoration-none">
+                <div class="module-launcher p-4">
+                    <div class="module-mark mb-4">
+                        <i class="fas {{ module.icon }} fa-lg"></i>
                     </div>
+                    <h5 class="mb-2 text-dark">{{ module.name }}</h5>
+                    <p class="mb-0 text-muted small">{{ module.desc }}</p>
                 </div>
             </a>
         </div>
         {% endfor %}
     </div>
-</div>
+</section>
 {% endfor %}
-
-<style>
-    .hover-lift {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .hover-lift:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .1) !important;
-    }
-</style>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Chart.js implementation
     const ctx = document.getElementById('salesChart').getContext('2d');
-    const salesChart = new Chart(ctx, {
+    new Chart(ctx, {
         type: 'line',
         data: {
             labels: {{ trend_labels | safe }},
-    datasets: [{
-        label: 'Vendes (€)',
-        data: {{ trend_data | safe }},
-        borderColor: '#4e73df',
-        backgroundColor: 'rgba(78, 115, 223, 0.05)',
-        pointRadius: 3,
-        pointBackgroundColor: '#4e73df',
-        pointBorderColor: '#4e73df',
-        pointHoverRadius: 3,
-        pointHoverBackgroundColor: '#4e73df',
-        pointHoverBorderColor: '#4e73df',
-        pointHitRadius: 10,
-        pointBorderWidth: 2,
-        tension: 0.3,
-        fill: true
+            datasets: [{
+                label: 'Vendes (€)',
+                data: {{ trend_data | safe }},
+                borderColor: '#17324d',
+                backgroundColor: 'rgba(198, 123, 45, 0.12)',
+                pointBackgroundColor: '#c67b2d',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                tension: 0.35,
+                fill: true
             }]
         },
-    options: {
-        maintainAspectRatio: false,
-            layout: {
-            padding: {
-                left: 10,
-                    right: 25,
-                        top: 25,
-                            bottom: 0
-            }
-        },
-        scales: {
-            x: {
-                grid: {
-                    display: false,
-                        drawBorder: false
-                },
-                ticks: {
-                    maxTicksLimit: 7
-                }
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
             },
-            y: {
-                ticks: {
-                    maxTicksLimit: 5,
-                        padding: 10,
-                            callback: function(value, index, values) {
-                                return value + ' €';
-                            }
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#6b7280' }
                 },
-                grid: {
-                    color: "rgb(234, 236, 244)",
-                        zeroLineColor: "rgb(234, 236, 244)",
-                            drawBorder: false,
-                                borderDash: [2],
-                                    zeroLineBorderDash: [2]
+                y: {
+                    ticks: {
+                        color: '#6b7280',
+                        callback: function(value) { return value + ' €'; }
+                    },
+                    grid: {
+                        color: 'rgba(23, 50, 77, 0.08)'
+                    }
                 }
-            }
-        },
-        plugins: {
-            legend: {
-                display: false
             }
         }
-    }
     });
 </script>
 {% endblock %}
