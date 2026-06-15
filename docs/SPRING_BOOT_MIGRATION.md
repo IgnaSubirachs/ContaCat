@@ -92,7 +92,7 @@ que en depengui.
 | --- | --- | --- |
 | Core ERP | Empreses, sequencies, productes, impostos, magatzems | Backend Java implementat |
 | Administracio | Usuaris, rols, permisos, configuracio, llicencies | Llicencies implementades; auth i configuracio pendents |
-| Tercers | Clients, proveidors i dades comercials | Backend Java implementat; Angular pendent |
+| Tercers | Clients, proveidors i dades comercials | Backend Java implementat; llistat Angular implementat |
 | Comptabilitat | Pla comptable, assentaments, diari i informes | Backend Java implementat; Angular pendent |
 | Vendes | Pressupostos, comandes i factures | Backend Java implementat; Angular parcial |
 | Compres | Comandes, recepcions i factures de proveidor | Pendent |

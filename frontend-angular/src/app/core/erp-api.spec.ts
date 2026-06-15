@@ -34,6 +34,14 @@ describe('ErpApi', () => {
     request.flush([]);
   });
 
+  it('filters partners by supplier role', () => {
+    api.listPartners('company-1', 'SUPPLIER').subscribe();
+
+    const request = http.expectOne('/api/core/companies/company-1/partners?role=SUPPLIER');
+    expect(request.request.method).toBe('GET');
+    request.flush([]);
+  });
+
   it('confirms an order through its business action endpoint', () => {
     api.confirmOrder('company-1', 'order-1').subscribe();
 

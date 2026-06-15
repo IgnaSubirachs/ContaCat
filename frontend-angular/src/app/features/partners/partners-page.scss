@@ -1,0 +1,38 @@
+.role-tabs {
+  display: flex;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+.role-tabs button {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.role-tabs button.active {
+  border-color: var(--brand);
+  color: #fff;
+  background: var(--brand);
+}
+
+td small {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.partner-role {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  color: var(--brand);
+  background: var(--brand-soft);
+  font-size: 0.7rem;
+  font-weight: 800;
+}

@@ -6,20 +6,23 @@
     </a>
 
     <nav>
-      <p class="nav-label">Visio general</p>
+      <p class="nav-label">Visió general</p>
       <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="menuOpen.set(false)">
         <span>01</span> Tauler executiu
       </a>
 
       <p class="nav-label">Operacions</p>
+      <a routerLink="/tercers" routerLinkActive="active" (click)="menuOpen.set(false)">
+        <span>02</span> Clients i proveïdors
+      </a>
       <a routerLink="/vendes/pressupostos" routerLinkActive="active" (click)="menuOpen.set(false)">
-        <span>02</span> Pressupostos
+        <span>03</span> Pressupostos
       </a>
       <a routerLink="/vendes/comandes" routerLinkActive="active" (click)="menuOpen.set(false)">
-        <span>03</span> Comandes de venda
+        <span>04</span> Comandes de venda
       </a>
       <a routerLink="/vendes/factures" routerLinkActive="active" (click)="menuOpen.set(false)">
-        <span>04</span> Factures de venda
+        <span>05</span> Factures de venda
       </a>
     </nav>
 

@@ -14,6 +14,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/sales/quotes-page').then((module) => module.QuotesPage)
       },
       {
+        path: 'tercers',
+        loadComponent: () => import('./features/partners/partners-page').then((module) => module.PartnersPage)
+      },
+      {
         path: 'vendes/comandes',
         loadComponent: () => import('./features/sales/orders-page').then((module) => module.OrdersPage)
       },

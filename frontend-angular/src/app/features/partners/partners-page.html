@@ -1,0 +1,36 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Dades mestres</p>
+    <h1 class="page-title">Clients i proveïdors</h1>
+    <p class="page-lead">Fitxa comercial única per controlar identitat fiscal, risc, condicions de pagament i relació operativa.</p>
+  </div>
+  <button class="primary-action" type="button" disabled>Nou tercer</button>
+</header>
+
+<section class="role-tabs" aria-label="Filtre de tercers">
+  <button type="button" [class.active]="role() === 'ALL'" (click)="selectRole('ALL')">Tots</button>
+  <button type="button" [class.active]="role() === 'CUSTOMER'" (click)="selectRole('CUSTOMER')">Clients</button>
+  <button type="button" [class.active]="role() === 'SUPPLIER'" (click)="selectRole('SUPPLIER')">Proveïdors</button>
+</section>
+
+<section class="card table-card">
+  <div class="table-toolbar"><strong>{{ partners().length }} tercers</strong><button type="button" (click)="load()">Actualitzar</button></div>
+  @if (loading()) {
+    <div class="state-panel">Carregant tercers...</div>
+  } @else if (error()) {
+    <div class="state-panel">{{ error() }}</div>
+  } @else {
+    <div class="table-scroll"><table><thead><tr><th>Nom fiscal</th><th>NIF</th><th>Rol</th><th>Contacte</th><th>Ubicació</th><th>Pagament</th><th class="numeric">Límit de crèdit</th></tr></thead>
+    <tbody>@for (partner of partners(); track partner.id) {
+      <tr>
+        <td><strong>{{ partner.name }}</strong><small>{{ partner.tradeName || partner.contactPerson || 'Sense nom comercial' }}</small></td>
+        <td>{{ partner.taxId }}</td>
+        <td><span class="partner-role">{{ roleLabel(partner) }}</span></td>
+        <td>{{ partner.email }}<small>{{ partner.phone }}</small></td>
+        <td>{{ partner.city || 'Sense municipi' }}<small>{{ partner.country }}</small></td>
+        <td>{{ partner.paymentMethod }}<small>{{ partner.paymentDays }} dies</small></td>
+        <td class="numeric"><strong>{{ partner.creditLimit | currency:'EUR' }}</strong></td>
+      </tr>
+    } @empty { <tr><td colspan="7" class="empty">No hi ha tercers per al filtre seleccionat.</td></tr> }</tbody></table></div>
+  }
+</section>

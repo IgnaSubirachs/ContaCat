@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
-import { Company, Quote, SalesInvoice, SalesOrder } from './models';
+import { Company, Partner, Quote, SalesInvoice, SalesOrder } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ErpApi {
@@ -9,6 +9,11 @@ export class ErpApi {
 
   listCompanies() {
     return this.http.get<Company[]>('/api/core/companies');
+  }
+
+  listPartners(companyId: string, role?: 'CUSTOMER' | 'SUPPLIER') {
+    const params = role ? new HttpParams().set('role', role) : undefined;
+    return this.http.get<Partner[]>(`/api/core/companies/${companyId}/partners`, { params });
   }
 
   listQuotes(companyId: string, status?: string) {

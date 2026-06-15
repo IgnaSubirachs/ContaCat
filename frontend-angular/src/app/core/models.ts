@@ -8,6 +8,28 @@ export interface Company {
   active: boolean;
 }
 
+export interface Partner {
+  id: string;
+  companyId: string;
+  name: string;
+  tradeName: string;
+  taxId: string;
+  email: string;
+  phone: string;
+  contactPerson: string;
+  customerCode: string;
+  supplierCode: string;
+  customer: boolean;
+  supplier: boolean;
+  relationshipStatus: string;
+  city: string;
+  country: string;
+  paymentMethod: string;
+  paymentDays: number;
+  creditLimit: number;
+  active: boolean;
+}
+
 export interface CommercialDocumentLine {
   lineOrder: number;
   productCode: string;
