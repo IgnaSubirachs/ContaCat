@@ -33,6 +33,8 @@ class PdfInvoiceDocumentReaderTest {
                 content.newLineAtOffset(50, 750);
                 content.showText("Factura F-2026-19");
                 content.newLineAtOffset(0, -20);
+                content.showText("PROVEIDOR TEST SL - CIF B12345678");
+                content.newLineAtOffset(0, -20);
                 content.showText("Data: 15/06/2026");
                 content.newLineAtOffset(0, -20);
                 content.showText("Base imposable: 100,00 EUR");

@@ -47,6 +47,7 @@ class InvoiceImportApplicationServiceTest {
         ArgumentCaptor<JournalEntryCommand> command = ArgumentCaptor.forClass(JournalEntryCommand.class);
         verify(journalEntryService).create(eq("company-1"), command.capture());
         assertThat(result.draftEntry().getStatus()).isEqualTo(JournalEntryStatus.DRAFT);
+        assertThat(command.getValue().description()).contains("Proveidor");
         assertThat(command.getValue().lines()).extracting("accountCode").containsExactly("600000", "472000", "400000");
     }
 }

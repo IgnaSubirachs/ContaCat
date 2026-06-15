@@ -3,6 +3,7 @@ package cat.contacat.erp.core.journal.importer;
 import cat.contacat.erp.core.journal.JournalEntryValidationException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -17,25 +18,36 @@ public class InvoiceTextInterpreter {
 
     private static final Pattern DATE = Pattern.compile("\\b(\\d{1,2}[/-]\\d{1,2}[/-]\\d{4})\\b");
     private static final Pattern INVOICE_NUMBER = Pattern.compile(
-        "(?i)(?:factura|invoice)(?:\\s+n(?:um(?:ero)?|úm(?:ero)?)?\\.?|\\s*#)?\\s*[:\\-]?\\s*([A-Z0-9][A-Z0-9/\\-_.]+)"
+        "(?i)(?:factura|invoice)(?:\\s+n(?:um(?:ero)?)?\\.?|\\s*#)?\\s*[:\\-]?\\s*([A-Z0-9][A-Z0-9/\\-_.]+)"
+    );
+    private static final Pattern SUPPLIER = Pattern.compile(
+        "(?im)^\\s*([A-Z0-9][A-Z0-9 .,'&()\\-]{2,149}?)\\s+-?\\s*(?:CIF|NIF|VAT)\\s+[A-Z0-9]+\\s*$"
     );
     private static final Pattern TOTAL = amountPattern("(?:total\\s+factura|total\\s+a\\s+pagar|import\\s+total|total)");
     private static final Pattern TAX = amountPattern("(?:quota\\s+iva|cuota\\s+iva|iva)");
+    private static final Pattern TAX_WITH_RATE = Pattern.compile(
+        "(?i)iva\\s*\\([0-9.,]+%\\)\\s*[:\\-]?\\s*(?:EUR|€)?\\s*([0-9][0-9.,]*)\\s*(?:EUR|€)?"
+    );
     private static final Pattern BASE = amountPattern("(?:base\\s+imposable|base\\s+imponible|subtotal)");
 
     public InvoiceDocumentData interpret(String text) {
-        String normalized = text == null ? "" : text.replace('\u00a0', ' ');
+        String normalized = normalize(text);
         BigDecimal total = findAmount(TOTAL, normalized);
         if (total == null || total.compareTo(BigDecimal.ZERO) <= 0) {
             throw new JournalEntryValidationException("No s'ha pogut identificar un total valid a la factura PDF");
         }
 
-        BigDecimal tax = defaultZero(findAmount(TAX, normalized));
+        BigDecimal tax = findAmount(TAX_WITH_RATE, normalized);
+        if (tax == null) tax = findAmount(TAX, normalized);
         BigDecimal base = findAmount(BASE, normalized);
         List<String> warnings = new ArrayList<>();
         if (base == null) {
-            base = total.subtract(tax).setScale(2, RoundingMode.HALF_UP);
+            base = total.subtract(defaultZero(tax)).setScale(2, RoundingMode.HALF_UP);
             warnings.add("Base imposable calculada a partir del total i l'IVA");
+        }
+        if (tax == null) {
+            tax = total.subtract(base).setScale(2, RoundingMode.HALF_UP);
+            warnings.add("IVA calculat a partir del total i la base imposable");
         }
         if (base.add(tax).compareTo(total) != 0) {
             warnings.add("Els imports detectats no quadren; cal revisar la proposta");
@@ -48,9 +60,11 @@ public class InvoiceTextInterpreter {
         }
         String number = findGroup(INVOICE_NUMBER, normalized);
         if (number == null) warnings.add("Numero de factura no detectat");
+        String supplier = findGroup(SUPPLIER, normalized);
+        if (supplier == null) warnings.add("Proveidor no detectat");
 
         int confidence = Math.max(25, 100 - warnings.size() * 20);
-        return new InvoiceDocumentData(date, null, number, base, tax, total, confidence, List.copyOf(warnings));
+        return new InvoiceDocumentData(date, supplier, number, base, tax, total, confidence, List.copyOf(warnings));
     }
 
     private static Pattern amountPattern(String label) {
@@ -88,5 +102,15 @@ public class InvoiceTextInterpreter {
 
     private BigDecimal defaultZero(BigDecimal value) {
         return value == null ? BigDecimal.ZERO.setScale(2) : value;
+    }
+
+    private String normalize(String text) {
+        if (text == null) return "";
+        String decomposed = Normalizer.normalize(text.replace('\u00a0', ' '), Normalizer.Form.NFD);
+        return decomposed
+            .replaceAll("\\p{M}", "")
+            .replace('\r', '\n')
+            .replaceAll("[\\t\\x0B\\f ]+", " ")
+            .replaceAll("\\n{2,}", "\n");
     }
 }

@@ -18,7 +18,10 @@ public class PdfInvoiceDocumentReader implements InvoiceDocumentReader {
     @Override
     public InvoiceDocumentData read(byte[] document) {
         try (var pdf = Loader.loadPDF(document)) {
-            return interpreter.interpret(new PDFTextStripper().getText(pdf));
+            PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setStartPage(1);
+            stripper.setEndPage(1);
+            return interpreter.interpret(stripper.getText(pdf));
         } catch (IOException exception) {
             throw new JournalEntryValidationException("No s'ha pogut llegir el document PDF");
         }

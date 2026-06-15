@@ -89,6 +89,10 @@ L'adaptador actual utilitza Apache PDFBox per a PDFs amb text. Un lector OCR o
 un lector extern existent es pot incorporar implementant `InvoiceDocumentReader`
 sense modificar el servei comptable ni els endpoints.
 
+El lector incorpora les regles robustes provades a MirayImporter per a factures
+de serveis: primera pagina, normalitzacio de text, emissor amb CIF/NIF i imports
+d'IVA expressats amb percentatge entre parentesis.
+
 ## Estat actual
 
 Spring Boot ja gestiona el nucli ERP, partners, comptabilitat base, informes,

@@ -27,6 +27,9 @@ public class InvoiceImportApplicationService {
         String description = data.invoiceNumber() == null
             ? "Factura de proveidor importada"
             : "Factura de proveidor " + data.invoiceNumber();
+        if (data.supplierName() != null) {
+            description += " - " + data.supplierName();
+        }
         List<JournalLineCommand> lines = new ArrayList<>();
         lines.add(new JournalLineCommand("600000", data.taxableBase(), BigDecimal.ZERO, description));
         if (data.taxAmount().compareTo(BigDecimal.ZERO) > 0) {
