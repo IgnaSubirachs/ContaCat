@@ -20,6 +20,7 @@ export class OrderDetailPage {
   protected readonly order = signal<SalesOrder | null>(null);
   protected readonly loading = signal(false);
   protected readonly actionRunning = signal(false);
+  protected readonly invoiceCreated = signal(false);
   protected readonly error = signal<string | null>(null);
   private readonly orderId = this.route.snapshot.paramMap.get('orderId');
 
@@ -48,6 +49,20 @@ export class OrderDetailPage {
       next: (order) => this.order.set(order),
       error: () => this.error.set('No s’ha pogut completar l’acció sobre la comanda.')
     });
+  }
+
+  protected createInvoice(): void {
+    const companyId = this.companyContext.selectedId();
+    if (!companyId || !this.orderId || this.actionRunning()) return;
+
+    this.actionRunning.set(true);
+    this.error.set(null);
+    this.api.createInvoiceFromOrder(companyId, this.orderId)
+      .pipe(finalize(() => this.actionRunning.set(false)))
+      .subscribe({
+        next: () => this.invoiceCreated.set(true),
+        error: () => this.error.set('No s’ha pogut crear l’esborrany de factura.')
+      });
   }
 
   private load(companyId: string, orderId: string): void {

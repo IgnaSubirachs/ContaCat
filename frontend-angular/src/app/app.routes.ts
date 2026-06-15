@@ -21,6 +21,10 @@ export const routes: Routes = [
         path: 'vendes/comandes/:orderId',
         loadComponent: () => import('./features/sales/order-detail-page').then((module) => module.OrderDetailPage)
       },
+      {
+        path: 'vendes/factures',
+        loadComponent: () => import('./features/sales/invoices-page').then((module) => module.InvoicesPage)
+      },
       { path: '**', redirectTo: '' }
     ]
   }

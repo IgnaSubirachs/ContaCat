@@ -42,4 +42,12 @@ describe('ErpApi', () => {
     expect(request.request.body).toBeNull();
     request.flush({ id: 'order-1', status: 'CONFIRMED' });
   });
+
+  it('creates a draft invoice from a delivered order', () => {
+    api.createInvoiceFromOrder('company-1', 'order-1').subscribe();
+
+    const request = http.expectOne('/api/sales/companies/company-1/invoices/from-order/order-1');
+    expect(request.request.method).toBe('POST');
+    request.flush({ id: 'invoice-1', status: 'DRAFT' });
+  });
 });

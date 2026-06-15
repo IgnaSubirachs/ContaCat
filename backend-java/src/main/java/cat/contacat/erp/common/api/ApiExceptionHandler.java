@@ -23,6 +23,8 @@ import cat.contacat.erp.sales.quote.QuoteNotFoundException;
 import cat.contacat.erp.sales.quote.QuoteValidationException;
 import cat.contacat.erp.sales.order.SalesOrderNotFoundException;
 import cat.contacat.erp.sales.order.SalesOrderValidationException;
+import cat.contacat.erp.sales.invoice.SalesInvoiceNotFoundException;
+import cat.contacat.erp.sales.invoice.SalesInvoiceValidationException;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
@@ -45,7 +47,8 @@ public class ApiExceptionHandler {
         TaxRateNotFoundException.class,
         DocumentSequenceNotFoundException.class,
         QuoteNotFoundException.class,
-        SalesOrderNotFoundException.class
+        SalesOrderNotFoundException.class,
+        SalesInvoiceNotFoundException.class
     })
     public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", exception.getMessage()));
@@ -74,7 +77,8 @@ public class ApiExceptionHandler {
         JournalEntryValidationException.class,
         ModuleLicenseValidationException.class,
         QuoteValidationException.class,
-        SalesOrderValidationException.class
+        SalesOrderValidationException.class,
+        SalesInvoiceValidationException.class
     })
     public ResponseEntity<Map<String, String>> handleBusinessValidation(RuntimeException exception) {
         return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));

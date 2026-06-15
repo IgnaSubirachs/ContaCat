@@ -52,3 +52,20 @@ export interface SalesOrder {
   total: number;
   lines: CommercialDocumentLine[];
 }
+
+export interface SalesInvoice {
+  id: string;
+  companyId: string;
+  partnerId: string;
+  partnerName: string;
+  salesOrderId: string;
+  salesOrderNumber: string;
+  invoiceNumber: string | null;
+  invoiceDate: string;
+  dueDate: string;
+  status: 'DRAFT' | 'ISSUED' | 'PAID';
+  subtotal: number;
+  totalTax: number;
+  total: number;
+  lines: CommercialDocumentLine[];
+}

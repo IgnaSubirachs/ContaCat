@@ -23,9 +23,14 @@ class FlywayMySqlIntegrationTest extends AbstractMySqlIntegrationTest {
             Integer.class
         );
         Integer accounts = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM accounts", Integer.class);
+        Integer invoiceTables = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'sales_invoices'",
+            Integer.class
+        );
 
         assertThat(companies).isNotNull().isGreaterThanOrEqualTo(1);
         assertThat(sequences).isNotNull().isGreaterThanOrEqualTo(1);
         assertThat(accounts).isNotNull().isGreaterThanOrEqualTo(5);
+        assertThat(invoiceTables).isEqualTo(1);
     }
 }

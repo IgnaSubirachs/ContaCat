@@ -78,47 +78,41 @@ Un modul no es considera migrat nomes per tenir endpoints Java. Ha de complir:
 
 ## Estat actual
 
-Creat el modul `backend-java` amb Spring Boot, JPA i Flyway.
+Spring Boot ja gestiona el nucli ERP, partners, comptabilitat base, informes,
+llicencies i el flux comercial de pressupost, comanda i factura de venda.
+Angular ja disposa del shell ERP i de les primeres pantalles comercials.
 
-Ja hi ha implementat el nucli `core` seguent:
+## Mapa complet de moduls
 
-- Empreses
-- Sequencies documentals transaccionals
-- Magatzems
-- Productes
-- Impostos
-- Partners
-- Pla comptable
-- Assentaments comptables i llibre diari base
+Tots els moduls funcionals existents a Python s'han de portar progressivament a
+Spring Boot i Angular. Python es retirara quan ja no quedi cap flux de negoci
+que en depengui.
 
-Encara no substitueix cap funcionalitat Python en produccio, pero ja defineix una base consistent per continuar amb informes comptables, vendes i compres.
+| Area | Moduls | Estat |
+| --- | --- | --- |
+| Core ERP | Empreses, sequencies, productes, impostos, magatzems | Backend Java implementat |
+| Administracio | Usuaris, rols, permisos, configuracio, llicencies | Llicencies implementades; auth i configuracio pendents |
+| Tercers | Clients, proveidors i dades comercials | Backend Java implementat; Angular pendent |
+| Comptabilitat | Pla comptable, assentaments, diari i informes | Backend Java implementat; Angular pendent |
+| Vendes | Pressupostos, comandes i factures | Backend Java implementat; Angular parcial |
+| Compres | Comandes, recepcions i factures de proveidor | Pendent |
+| Inventari | Stock, moviments, lots, series i valoracio | Pendent |
+| Tresoreria | Cobraments, pagaments, previsions i caixa | Pendent |
+| Banca | Comptes, extractes i conciliacio bancaria | Pendent |
+| Fiscalitat | IVA, IRPF, models, SII i auditories fiscals | Pendent |
+| Actius | Actius fixos i amortitzacions | Pendent |
+| Pressupostos | Pressupostos financers i control de desviacions | Pendent |
+| Recursos humans | Empleats, nomines i obligacions laborals | Pendent |
+| Analitica | KPIs, informes executius i exportacions | Pendent |
+| Serveis transversals | Auditoria, documents, email, IA i internacionalitzacio | Pendent |
 
-## Proper tall vertical: Partners
+## Ordre d'implementacio vigent
 
-Partners sera el patro de migracio completa abans d'obrir mes moduls.
-
-Treball pendent:
-
-1. Ampliar el model Java amb dades comercials, bancaries i comptables.
-2. Modelar contactes, contractes i periodificacions com a registres relacionats,
-   no com a text lliure permanent.
-3. Afegir migracio Flyway i tests de regles de negoci.
-4. Ampliar `JavaErpClient` amb CRUD de partners.
-5. Connectar les pantalles `/partners/` exclusivament al backend Java.
-6. Fer proves de paritat i retirar la persistencia Python de partners.
-
-### Regla especifica mentre partners no estigui migrat a Java
-
-- No s'afegeixen nous camps funcionals de partners nomes al model Python.
-- Si cal una millora urgent de UI, es permet nomes a nivell de presentacio.
-- Qualsevol ampliacio de dades de partners ha de neixer a `backend-java` i
-  arribar a FastAPI a traves de l'adaptador.
-
-Despres de partners, l'ordre recomanat es:
-
-1. Comptabilitat i pla comptable, completant la integracio ja iniciada.
-2. Vendes, de pressupost a factura publicada.
-3. Compres, de comanda a factura i assentament.
-4. Inventari.
-5. Banca i tresoreria.
-6. Fiscalitat i recursos humans.
+1. Tancar vendes: detall, emissio, cobrament, rectificatives i assentament automatic.
+2. Completar Angular per partners, productes i comptabilitat.
+3. Migrar compres de comanda a factura i assentament.
+4. Migrar inventari i integrar-lo amb vendes i compres.
+5. Migrar tresoreria, banca i conciliacio.
+6. Migrar fiscalitat, SII i models oficials.
+7. Migrar actius, pressupostos financers i recursos humans.
+8. Completar analitica, auditoria, documents, email, IA i multidioma.

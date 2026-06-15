@@ -1,4 +1,4 @@
-<a class="back-link" routerLink="/vendes/comandes">← Tornar a comandes</a>
+<a class="back-link" routerLink="/vendes/comandes">Tornar a comandes</a>
 
 @if (loading()) {
   <div class="card state-panel">Carregant la comanda...</div>
@@ -17,6 +17,12 @@
       @if (currentOrder.status === 'CONFIRMED') {
         <button type="button" [disabled]="actionRunning()" (click)="runAction('deliver')">Marcar com a lliurada</button>
         <button class="button--danger" type="button" [disabled]="actionRunning()" (click)="runAction('cancel')">Cancel·lar</button>
+      }
+      @if (currentOrder.status === 'DELIVERED' && !invoiceCreated()) {
+        <button type="button" [disabled]="actionRunning()" (click)="createInvoice()">Crear esborrany de factura</button>
+      }
+      @if (invoiceCreated()) {
+        <a class="button-link" routerLink="/vendes/factures">Veure factures</a>
       }
     </div>
   </header>

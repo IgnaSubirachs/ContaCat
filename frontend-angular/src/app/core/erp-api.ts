@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 
-import { Company, Quote, SalesOrder } from './models';
+import { Company, Quote, SalesInvoice, SalesOrder } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ErpApi {
@@ -35,5 +35,14 @@ export class ErpApi {
 
   cancelOrder(companyId: string, orderId: string) {
     return this.http.post<SalesOrder>(`/api/sales/companies/${companyId}/orders/${orderId}/cancel`, null);
+  }
+
+  listInvoices(companyId: string, status?: string) {
+    const params = status ? new HttpParams().set('status', status) : undefined;
+    return this.http.get<SalesInvoice[]>(`/api/sales/companies/${companyId}/invoices`, { params });
+  }
+
+  createInvoiceFromOrder(companyId: string, orderId: string) {
+    return this.http.post<SalesInvoice>(`/api/sales/companies/${companyId}/invoices/from-order/${orderId}`, null);
   }
 }
