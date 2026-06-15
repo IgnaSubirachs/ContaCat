@@ -11,7 +11,7 @@
   } @else {
     <div class="table-scroll"><table><thead><tr><th>Factura</th><th>Client</th><th>Data</th><th>Venciment</th><th>Comanda origen</th><th>Estat</th><th class="numeric">Total</th></tr></thead>
     <tbody>@for (invoice of documents(); track invoice.id) {
-      <tr><td><strong>{{ invoice.invoiceNumber ?? 'Esborrany sense numerar' }}</strong></td><td>{{ invoice.partnerName }}</td><td>{{ invoice.invoiceDate | date:'dd/MM/yyyy' }}</td><td>{{ invoice.dueDate | date:'dd/MM/yyyy' }}</td><td>{{ invoice.salesOrderNumber }}</td><td><span class="status status--{{ invoice.status | lowercase }}">{{ statusLabel(invoice.status) }}</span></td><td class="numeric"><strong>{{ invoice.total | currency:'EUR' }}</strong></td></tr>
+      <tr><td><a class="document-link" [routerLink]="['/vendes/factures', invoice.id]">{{ invoice.invoiceNumber ?? 'Esborrany sense numerar' }}</a></td><td>{{ invoice.partnerName }}</td><td>{{ invoice.invoiceDate | date:'dd/MM/yyyy' }}</td><td>{{ invoice.dueDate | date:'dd/MM/yyyy' }}</td><td>{{ invoice.salesOrderNumber }}</td><td><span class="status status--{{ invoice.status | lowercase }}">{{ statusLabel(invoice.status) }}</span></td><td class="numeric"><strong>{{ invoice.total | currency:'EUR' }}</strong></td></tr>
     } @empty { <tr><td colspan="7" class="empty">Encara no hi ha factures de venda.</td></tr> }</tbody></table></div>
   }
 </section>

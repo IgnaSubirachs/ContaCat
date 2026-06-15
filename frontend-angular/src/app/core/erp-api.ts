@@ -42,7 +42,23 @@ export class ErpApi {
     return this.http.get<SalesInvoice[]>(`/api/sales/companies/${companyId}/invoices`, { params });
   }
 
+  getInvoice(companyId: string, invoiceId: string) {
+    return this.http.get<SalesInvoice>(`/api/sales/companies/${companyId}/invoices/${invoiceId}`);
+  }
+
   createInvoiceFromOrder(companyId: string, orderId: string) {
     return this.http.post<SalesInvoice>(`/api/sales/companies/${companyId}/invoices/from-order/${orderId}`, null);
+  }
+
+  issueInvoice(companyId: string, invoiceId: string) {
+    return this.http.post<SalesInvoice>(`/api/sales/companies/${companyId}/invoices/${invoiceId}/issue`, null);
+  }
+
+  markInvoicePaid(companyId: string, invoiceId: string) {
+    return this.http.post<SalesInvoice>(`/api/sales/companies/${companyId}/invoices/${invoiceId}/paid`, null);
+  }
+
+  deleteInvoiceDraft(companyId: string, invoiceId: string) {
+    return this.http.delete<void>(`/api/sales/companies/${companyId}/invoices/${invoiceId}`);
   }
 }

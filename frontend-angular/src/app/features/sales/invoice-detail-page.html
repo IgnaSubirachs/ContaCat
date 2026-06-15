@@ -1,0 +1,67 @@
+<a class="back-link" routerLink="/vendes/factures">Tornar a factures</a>
+
+@if (loading()) {
+  <div class="card state-panel">Carregant la factura...</div>
+} @else if (invoice(); as currentInvoice) {
+  <header class="detail-header">
+    <div>
+      <p class="eyebrow">Vendes · Factura de client</p>
+      <h1 class="page-title">{{ currentInvoice.invoiceNumber ?? 'Esborrany sense numerar' }}</h1>
+      <p class="page-lead">{{ currentInvoice.partnerName }} · {{ currentInvoice.invoiceDate | date:'dd/MM/yyyy' }}</p>
+    </div>
+    <div class="actions">
+      <span class="status status--{{ currentInvoice.status | lowercase }}">{{ statusLabel(currentInvoice.status) }}</span>
+      @if (currentInvoice.status === 'DRAFT') {
+        <button type="button" [disabled]="actionRunning()" (click)="runAction('issue')">Emetre i comptabilitzar</button>
+        <button class="button--danger" type="button" [disabled]="actionRunning()" (click)="deleteDraft()">Eliminar esborrany</button>
+      }
+      @if (currentInvoice.status === 'ISSUED') {
+        <button type="button" [disabled]="actionRunning()" (click)="runAction('paid')">Marcar com a cobrada</button>
+      }
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">{{ error() }}</div>
+  }
+
+  <section class="detail-grid">
+    <article class="card lines-card">
+      <div class="card-heading"><div><p class="eyebrow">Contingut fiscal</p><h2>Línies de factura</h2></div><span>{{ currentInvoice.lines.length }} línies</span></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Codi</th><th>Descripció</th><th class="numeric">Quantitat</th><th class="numeric">Preu</th><th class="numeric">IVA</th><th class="numeric">Total</th></tr></thead>
+          <tbody>
+            @for (line of currentInvoice.lines; track line.lineOrder) {
+              <tr><td><strong>{{ line.productCode }}</strong></td><td>{{ line.description }}</td><td class="numeric">{{ line.quantity }}</td><td class="numeric">{{ line.unitPrice | currency:'EUR' }}</td><td class="numeric">{{ line.taxRate }}%</td><td class="numeric"><strong>{{ line.total | currency:'EUR' }}</strong></td></tr>
+            } @empty {
+              <tr><td colspan="6" class="empty">Aquesta factura no té línies.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <aside>
+      <article class="card summary-card">
+        <p class="eyebrow">Import fiscal</p>
+        <div><span>Base imposable</span><strong>{{ currentInvoice.subtotal | currency:'EUR' }}</strong></div>
+        <div><span>Impostos</span><strong>{{ currentInvoice.totalTax | currency:'EUR' }}</strong></div>
+        <div class="summary-total"><span>Total factura</span><strong>{{ currentInvoice.total | currency:'EUR' }}</strong></div>
+      </article>
+      <article class="card origin-card">
+        <p class="eyebrow">Traçabilitat</p>
+        <h2>{{ currentInvoice.salesOrderNumber }}</h2>
+        <p>Comanda de client d’origen.</p>
+        @if (currentInvoice.journalEntryNumber) {
+          <h2>{{ currentInvoice.journalEntryNumber }}</h2>
+          <p>Assentament comptable generat i publicat automàticament.</p>
+        } @else {
+          <p>L’assentament comptable es generarà en emetre la factura.</p>
+        }
+      </article>
+    </aside>
+  </section>
+} @else if (error()) {
+  <div class="card state-panel">{{ error() }}</div>
+}

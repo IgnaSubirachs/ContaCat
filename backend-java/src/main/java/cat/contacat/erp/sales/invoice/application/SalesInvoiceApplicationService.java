@@ -2,6 +2,7 @@ package cat.contacat.erp.sales.invoice.application;
 
 import cat.contacat.erp.core.company.CompanyNotFoundException;
 import cat.contacat.erp.core.company.CompanyRepository;
+import cat.contacat.erp.core.journal.JournalEntry;
 import cat.contacat.erp.core.sequence.DocumentNumber;
 import cat.contacat.erp.core.sequence.DocumentSequenceService;
 import cat.contacat.erp.sales.invoice.SalesInvoice;
@@ -30,17 +31,20 @@ public class SalesInvoiceApplicationService {
     private final SalesOrderRepository orderRepository;
     private final CompanyRepository companyRepository;
     private final DocumentSequenceService documentSequenceService;
+    private final SalesInvoiceAccountingService accountingService;
 
     public SalesInvoiceApplicationService(
         SalesInvoiceRepository repository,
         SalesOrderRepository orderRepository,
         CompanyRepository companyRepository,
-        DocumentSequenceService documentSequenceService
+        DocumentSequenceService documentSequenceService,
+        SalesInvoiceAccountingService accountingService
     ) {
         this.repository = repository;
         this.orderRepository = orderRepository;
         this.companyRepository = companyRepository;
         this.documentSequenceService = documentSequenceService;
+        this.accountingService = accountingService;
     }
 
     @Transactional(readOnly = true)
@@ -101,6 +105,8 @@ public class SalesInvoiceApplicationService {
         invoice.setFiscalYear(allocated.fiscalYear());
         invoice.setSequenceNumber(allocated.number());
         invoice.setInvoiceNumber(allocated.formattedNumber());
+        JournalEntry journalEntry = accountingService.createAndPost(invoice);
+        invoice.setJournalEntry(journalEntry);
         invoice.setStatus(SalesInvoiceStatus.ISSUED);
         invoice.setIssuedAt(OffsetDateTime.now());
         return repository.save(invoice);

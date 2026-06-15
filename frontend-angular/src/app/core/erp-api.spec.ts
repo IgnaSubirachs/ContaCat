@@ -50,4 +50,13 @@ describe('ErpApi', () => {
     expect(request.request.method).toBe('POST');
     request.flush({ id: 'invoice-1', status: 'DRAFT' });
   });
+
+  it('issues and accounts a draft invoice through its business action endpoint', () => {
+    api.issueInvoice('company-1', 'invoice-1').subscribe();
+
+    const request = http.expectOne('/api/sales/companies/company-1/invoices/invoice-1/issue');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toBeNull();
+    request.flush({ id: 'invoice-1', status: 'ISSUED', journalEntryId: 'entry-1' });
+  });
 });

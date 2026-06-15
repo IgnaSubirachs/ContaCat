@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import cat.contacat.erp.core.company.Company;
 import cat.contacat.erp.core.company.CompanyRepository;
+import cat.contacat.erp.core.journal.JournalEntry;
 import cat.contacat.erp.core.partner.Partner;
 import cat.contacat.erp.core.sequence.DocumentNumber;
 import cat.contacat.erp.core.sequence.DocumentSequenceService;
@@ -37,6 +38,7 @@ class SalesInvoiceApplicationServiceTest {
     @Mock private SalesOrderRepository orderRepository;
     @Mock private CompanyRepository companyRepository;
     @Mock private DocumentSequenceService documentSequenceService;
+    @Mock private SalesInvoiceAccountingService accountingService;
 
     @InjectMocks private SalesInvoiceApplicationService service;
 
@@ -83,13 +85,18 @@ class SalesInvoiceApplicationServiceTest {
         when(repository.findById("invoice-1")).thenReturn(Optional.of(invoice));
         when(documentSequenceService.allocateNext("company-1", "SALES_INVOICE", "A", 2026))
             .thenReturn(new DocumentNumber("seq-1", "company-1", "SALES_INVOICE", "A", 2026, 7, "FV-2026-00007"));
+        JournalEntry entry = new JournalEntry();
+        entry.setId("entry-1");
+        when(accountingService.createAndPost(invoice)).thenReturn(entry);
         when(repository.save(invoice)).thenReturn(invoice);
 
         SalesInvoice issued = service.issue("company-1", "invoice-1");
 
         assertThat(issued.getStatus()).isEqualTo(SalesInvoiceStatus.ISSUED);
         assertThat(issued.getInvoiceNumber()).isEqualTo("FV-2026-00007");
+        assertThat(issued.getJournalEntry()).isSameAs(entry);
         assertThat(issued.getIssuedAt()).isNotNull();
+        verify(accountingService).createAndPost(invoice);
     }
 
     @Test

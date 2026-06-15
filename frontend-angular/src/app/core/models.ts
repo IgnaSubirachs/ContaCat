@@ -60,6 +60,8 @@ export interface SalesInvoice {
   partnerName: string;
   salesOrderId: string;
   salesOrderNumber: string;
+  journalEntryId: string | null;
+  journalEntryNumber: string | null;
   invoiceNumber: string | null;
   invoiceDate: string;
   dueDate: string;
@@ -68,4 +70,6 @@ export interface SalesInvoice {
   totalTax: number;
   total: number;
   lines: CommercialDocumentLine[];
+  issuedAt: string | null;
+  paidAt: string | null;
 }

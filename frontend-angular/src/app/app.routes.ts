@@ -25,6 +25,10 @@ export const routes: Routes = [
         path: 'vendes/factures',
         loadComponent: () => import('./features/sales/invoices-page').then((module) => module.InvoicesPage)
       },
+      {
+        path: 'vendes/factures/:invoiceId',
+        loadComponent: () => import('./features/sales/invoice-detail-page').then((module) => module.InvoiceDetailPage)
+      },
       { path: '**', redirectTo: '' }
     ]
   }

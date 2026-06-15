@@ -2,6 +2,7 @@ package cat.contacat.erp.sales.invoice;
 
 import cat.contacat.erp.common.BaseEntity;
 import cat.contacat.erp.core.company.Company;
+import cat.contacat.erp.core.journal.JournalEntry;
 import cat.contacat.erp.core.partner.Partner;
 import cat.contacat.erp.sales.order.SalesOrder;
 import jakarta.persistence.CascadeType;
@@ -52,6 +53,10 @@ public class SalesInvoice extends BaseEntity {
     @JoinColumn(name = "sales_order_id", nullable = false)
     private SalesOrder salesOrder;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "journal_entry_id", unique = true)
+    private JournalEntry journalEntry;
+
     @Column(length = 20)
     private String series;
 
@@ -101,6 +106,8 @@ public class SalesInvoice extends BaseEntity {
     public void setPartner(Partner partner) { this.partner = partner; }
     public SalesOrder getSalesOrder() { return salesOrder; }
     public void setSalesOrder(SalesOrder salesOrder) { this.salesOrder = salesOrder; }
+    public JournalEntry getJournalEntry() { return journalEntry; }
+    public void setJournalEntry(JournalEntry journalEntry) { this.journalEntry = journalEntry; }
     public String getSeries() { return series; }
     public void setSeries(String series) { this.series = series; }
     public Integer getFiscalYear() { return fiscalYear; }
