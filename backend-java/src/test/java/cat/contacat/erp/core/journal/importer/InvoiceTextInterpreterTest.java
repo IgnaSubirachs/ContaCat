@@ -22,6 +22,7 @@ class InvoiceTextInterpreterTest {
 
         assertThat(result.invoiceNumber()).isEqualTo("FV-2026/44");
         assertThat(result.supplierName()).isEqualTo("EMPRESA PROVEIDORA SL");
+        assertThat(result.supplierTaxId()).isEqualTo("B12345678");
         assertThat(result.invoiceDate()).isEqualTo(LocalDate.of(2026, 6, 15));
         assertThat(result.taxableBase()).isEqualByComparingTo("100.00");
         assertThat(result.taxAmount()).isEqualByComparingTo("21.00");
@@ -57,6 +58,7 @@ class InvoiceTextInterpreterTest {
         assertThat(result.invoiceNumber()).isEqualTo("202624");
         assertThat(result.invoiceDate()).isEqualTo(LocalDate.of(2026, 4, 2));
         assertThat(result.supplierName()).isEqualTo("MIRAY CONSULTING SL");
+        assertThat(result.supplierTaxId()).isEqualTo("B64242613");
         assertThat(result.taxableBase()).isEqualByComparingTo("60.00");
         assertThat(result.taxAmount()).isEqualByComparingTo("12.60");
         assertThat(result.total()).isEqualByComparingTo("72.60");

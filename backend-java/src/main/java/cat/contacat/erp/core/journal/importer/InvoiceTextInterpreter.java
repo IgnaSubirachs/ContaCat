@@ -21,7 +21,7 @@ public class InvoiceTextInterpreter {
         "(?i)(?:factura|invoice)(?:\\s+n(?:um(?:ero)?)?\\.?|\\s*#)?\\s*[:\\-]?\\s*([A-Z0-9][A-Z0-9/\\-_.]+)"
     );
     private static final Pattern SUPPLIER = Pattern.compile(
-        "(?im)^\\s*([A-Z0-9][A-Z0-9 .,'&()\\-]{2,149}?)\\s+-?\\s*(?:CIF|NIF|VAT)\\s+[A-Z0-9]+\\s*$"
+        "(?im)^\\s*([A-Z0-9][A-Z0-9 .,'&()\\-]{2,149}?)\\s+-?\\s*(?:CIF|NIF|VAT)\\s+([A-Z0-9]+)\\s*$"
     );
     private static final Pattern TOTAL = amountPattern("(?:total\\s+factura|total\\s+a\\s+pagar|import\\s+total|total)");
     private static final Pattern TAX = amountPattern("(?:quota\\s+iva|cuota\\s+iva|iva)");
@@ -60,11 +60,13 @@ public class InvoiceTextInterpreter {
         }
         String number = findGroup(INVOICE_NUMBER, normalized);
         if (number == null) warnings.add("Numero de factura no detectat");
-        String supplier = findGroup(SUPPLIER, normalized);
+        String supplier = findGroup(SUPPLIER, normalized, 1);
+        String supplierTaxId = findGroup(SUPPLIER, normalized, 2);
         if (supplier == null) warnings.add("Proveidor no detectat");
+        if (supplierTaxId == null) warnings.add("NIF/CIF del proveidor no detectat");
 
         int confidence = Math.max(25, 100 - warnings.size() * 20);
-        return new InvoiceDocumentData(date, supplier, number, base, tax, total, confidence, List.copyOf(warnings));
+        return new InvoiceDocumentData(date, supplier, supplierTaxId, number, base, tax, total, confidence, List.copyOf(warnings));
     }
 
     private static Pattern amountPattern(String label) {
@@ -96,8 +98,12 @@ public class InvoiceTextInterpreter {
     }
 
     private String findGroup(Pattern pattern, String text) {
+        return findGroup(pattern, text, 1);
+    }
+
+    private String findGroup(Pattern pattern, String text, int group) {
         Matcher matcher = pattern.matcher(text);
-        return matcher.find() ? matcher.group(1).trim() : null;
+        return matcher.find() ? matcher.group(group).trim() : null;
     }
 
     private BigDecimal defaultZero(BigDecimal value) {

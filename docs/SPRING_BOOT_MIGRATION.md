@@ -85,6 +85,12 @@ un assentament en estat `DRAFT` amb una proposta de compra, IVA suportat i
 proveidor. La resposta inclou confiança i avisos perquè l'usuari revisi i editi
 la proposta abans de publicar-la.
 
+Abans de generar l'assentament, el servei resol el proveidor pel NIF/CIF detectat.
+Si existeix i es un proveidor actiu, utilitza el seu compte comptable configurat.
+Si no existeix, no genera cap assentament i indica al frontend que ha d'oferir
+la creacio del proveidor. Un tercer existent pero inactiu o que no sigui proveidor
+tambe bloqueja la generacio per evitar duplicats i imputacions incorrectes.
+
 L'adaptador actual utilitza Apache PDFBox per a PDFs amb text. Un lector OCR o
 un lector extern existent es pot incorporar implementant `InvoiceDocumentReader`
 sense modificar el servei comptable ni els endpoints.

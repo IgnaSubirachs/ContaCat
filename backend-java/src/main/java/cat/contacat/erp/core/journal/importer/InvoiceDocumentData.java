@@ -7,6 +7,7 @@ import java.util.List;
 public record InvoiceDocumentData(
     LocalDate invoiceDate,
     String supplierName,
+    String supplierTaxId,
     String invoiceNumber,
     BigDecimal taxableBase,
     BigDecimal taxAmount,
