@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,6 +52,15 @@ public class JournalEntryController {
     @PostMapping("/{entryId}/post")
     public JournalEntryResponse post(@PathVariable String companyId, @PathVariable String entryId) {
         return JournalEntryResponse.from(service.post(companyId, entryId));
+    }
+
+    @PutMapping("/{entryId}")
+    public JournalEntryResponse updateDraft(
+        @PathVariable String companyId,
+        @PathVariable String entryId,
+        @Valid @RequestBody JournalEntryRequest request
+    ) {
+        return JournalEntryResponse.from(service.updateDraft(companyId, entryId, toCommand(request)));
     }
 
     private JournalEntryCommand toCommand(JournalEntryRequest request) {

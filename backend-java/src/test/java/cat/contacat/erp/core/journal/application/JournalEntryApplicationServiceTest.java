@@ -150,6 +150,61 @@ class JournalEntryApplicationServiceTest {
             .isInstanceOf(JournalEntryAlreadyPostedException.class);
     }
 
+    @Test
+    void updateDraftReplacesEditableDataWithoutChangingNumber() {
+        Company company = new Company();
+        company.setId("company-1");
+        JournalEntry entry = new JournalEntry();
+        entry.setId("entry-1");
+        entry.setCompany(company);
+        entry.setEntryNumber(5);
+        entry.setFormattedNumber("JE-2026-00005");
+        entry.setStatus(JournalEntryStatus.DRAFT);
+        entry.setLines(new java.util.ArrayList<>());
+        JournalEntryCommand command = new JournalEntryCommand(
+            LocalDate.of(2026, 6, 15),
+            "Factura corregida",
+            "factura.pdf",
+            List.of(
+                new JournalLineCommand("600000", new BigDecimal("100.00"), BigDecimal.ZERO, "Compra"),
+                new JournalLineCommand("400000", BigDecimal.ZERO, new BigDecimal("100.00"), "Proveidor")
+            )
+        );
+        when(repository.findById("entry-1")).thenReturn(Optional.of(entry));
+        when(accountApplicationService.findAccountByCode("company-1", "600000"))
+            .thenReturn(account("a1", company, "600000", "Compres", AccountType.EXPENSE));
+        when(accountApplicationService.findAccountByCode("company-1", "400000"))
+            .thenReturn(account("a2", company, "400000", "Proveidors", AccountType.LIABILITY));
+        when(repository.save(entry)).thenReturn(entry);
+
+        JournalEntry updated = service.updateDraft("company-1", "entry-1", command);
+
+        assertThat(updated.getFormattedNumber()).isEqualTo("JE-2026-00005");
+        assertThat(updated.getDescription()).isEqualTo("Factura corregida");
+        assertThat(updated.getLines()).hasSize(2);
+    }
+
+    @Test
+    void updateDraftRejectsPostedEntries() {
+        Company company = new Company();
+        company.setId("company-1");
+        JournalEntry entry = new JournalEntry();
+        entry.setId("entry-1");
+        entry.setCompany(company);
+        entry.setStatus(JournalEntryStatus.POSTED);
+        when(repository.findById("entry-1")).thenReturn(Optional.of(entry));
+
+        assertThatThrownBy(() -> service.updateDraft("company-1", "entry-1", new JournalEntryCommand(
+            LocalDate.now(),
+            "Intent de canvi",
+            null,
+            List.of(
+                new JournalLineCommand("600000", BigDecimal.ONE, BigDecimal.ZERO, ""),
+                new JournalLineCommand("400000", BigDecimal.ZERO, BigDecimal.ONE, "")
+            )
+        ))).isInstanceOf(JournalEntryAlreadyPostedException.class);
+    }
+
     private Account account(String id, Company company, String code, String name, AccountType type) {
         Account account = new Account();
         account.setId(id);

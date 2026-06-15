@@ -73,8 +73,21 @@ Un modul no es considera migrat nomes per tenir endpoints Java. Ha de complir:
 - Tota numeracio ha de passar per `document_sequences` amb bloqueig transaccional.
 - Cap canvi d'esquema sense migracio Flyway.
 - Cap taula nova sense `company_id`, excepte taules estrictament globals.
+- Els assentaments en esborrany es poden editar abans de publicar-los.
 - Les operacions comptables publicades no s'editen: es reverteixen amb contraassentament.
 - Les decisions fiscals han de quedar auditades.
+
+## Importacio de factures PDF
+
+Spring Boot exposa `POST /api/core/companies/{companyId}/journal-entry-imports/supplier-invoice-pdf`.
+El document PDF es llegeix mitjancant l'adaptador `InvoiceDocumentReader` i genera
+un assentament en estat `DRAFT` amb una proposta de compra, IVA suportat i
+proveidor. La resposta inclou confiança i avisos perquè l'usuari revisi i editi
+la proposta abans de publicar-la.
+
+L'adaptador actual utilitza Apache PDFBox per a PDFs amb text. Un lector OCR o
+un lector extern existent es pot incorporar implementant `InvoiceDocumentReader`
+sense modificar el servei comptable ni els endpoints.
 
 ## Estat actual
 

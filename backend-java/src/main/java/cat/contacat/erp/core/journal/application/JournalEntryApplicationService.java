@@ -79,6 +79,23 @@ public class JournalEntryApplicationService {
     }
 
     @Transactional
+    public JournalEntry updateDraft(String companyId, String entryId, JournalEntryCommand command) {
+        validateCommand(command);
+        JournalEntry entry = findEntry(companyId, entryId);
+        if (entry.getStatus() == JournalEntryStatus.POSTED) {
+            throw new JournalEntryAlreadyPostedException(entryId);
+        }
+
+        entry.setEntryDate(command.entryDate());
+        entry.setDescription(command.description().trim());
+        entry.setAttachmentPath(normalizeNullable(command.attachmentPath()));
+        List<JournalLine> replacementLines = buildLines(companyId, entry, command.lines());
+        entry.getLines().clear();
+        entry.getLines().addAll(replacementLines);
+        return repository.save(entry);
+    }
+
+    @Transactional
     public JournalEntry post(String companyId, String entryId) {
         JournalEntry entry = findEntry(companyId, entryId);
         if (entry.getStatus() == JournalEntryStatus.POSTED) {
